@@ -1,0 +1,66 @@
+/* CSS */
+.button {
+    appearance: none;
+    background-color: var(--primColor);
+    border: 1px solid var(--shadowColor);
+    border-radius: 6px;
+    box-shadow: var(--primColor) 0 1px 0, var(--primColor) 0 1px 0 inset;
+    box-sizing: border-box;
+    color: var(--secoColor);
+    cursor: pointer;
+    display: inline-block;
+    list-style: none;
+    padding: 6px 16px;
+    position: relative;
+    transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap;
+    word-wrap: break-word;
+}
+
+.button:hover {
+    background-color: #F3F4F6;
+    text-decoration: none;
+    transition-duration: 0.1s;
+}
+
+.button:disabled {
+    background-color: #FAFBFC;
+    border-color: rgba(27, 31, 35, 0.15);
+    color: #959DA5;
+    cursor: default;
+}
+
+.button:active {
+    background-color: #EDEFF2;
+    box-shadow: rgba(225, 228, 232, 0.2) 0 1px 0 inset;
+    transition: none 0s;
+}
+
+.button:focus {
+    outline: 1px transparent;
+}
+
+.button:before {
+    display: none;
+}
+
+.button::-webkit-details-marker {
+    display: none;
+}
+
+.alert {
+    background-color: darkred;
+    color: var(--primColor);
+    box-shadow: darkred 0 1px 0, darkred 0 1px 0 inset;
+
+}
+
+.alert:hover {
+    background-color: #ff0127;
+    text-decoration: none;
+    transition-duration: 0.1s;
+}

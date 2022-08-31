@@ -1,0 +1,43 @@
+.viewWrapper {
+    display: flex;
+    flex-direction: row;
+}
+
+.w70 {
+width: 70%;
+}
+.w100 {
+    width: 100%;
+}
+.w30 {
+    width: 30%;
+}
+
+.col {
+    margin-left: 0.5em;
+    margin-bottom: 0.5em;
+    overflow: hidden;
+}
+
+#resetGraph {
+    background-color: #880000;
+    color: var(--primColor);
+    border-radius: 20px;
+}
+
+#SwitchWrapper {
+    appearance: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    box-shadow: var(--primColor) 0 1px 0, var(--primColor) 0 1px 0 inset;
+    box-sizing: border-box;
+    padding: 6px 16px;
+    white-space: nowrap;
+    word-wrap: break-word;
+    font-weight: 500;
+}
+
+#ControlsWrapper {
+    display: flex;
+    flex-direction: column;
+}

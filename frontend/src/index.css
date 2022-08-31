@@ -1,0 +1,43 @@
+:root {
+  --primColor: #dcdcdc;
+  --backgroundColor: #dcdcdc;
+  --altBackgroundColor: #BEBEBE;
+  --secoColor: #222222;
+  --cornerRad: 4px;
+  --titleColor:#222222;
+  --shadowColor: rgba(0, 0, 0, 0.2);
+}
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  height: 100vh;
+  background-color: var(--primColor);
+  font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 1em;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--secoColor);
+}
+
+button {
+  margin: 0.5em  0px 0px 0.5em;
+  background-color: var(--primColor);
+  color: var(--secoColor);
+  box-shadow: 0 4px 12px 0 var(--shadowColor);
+  border: none;
+  font-weight: bold;
+  padding: 12px;
+  display: inline-block;
+  margin: 0 7px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:active {
+
+  background-color: var(--secoColor);
+  color: var(--primColor);
+}

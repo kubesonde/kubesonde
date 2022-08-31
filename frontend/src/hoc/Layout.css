@@ -1,0 +1,24 @@
+
+.app {
+    height: 100%;
+    display: flex;
+    position: relative;
+}
+
+.app > .main {
+    padding: 24px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#menuTitle {
+    text-decoration: none;
+    color: var(--secoColor);
+    font-weight: bolder;
+    border-top: 20px !important;
+    padding: 24px;
+    text-align: center;
+    overflow: hidden;
+}

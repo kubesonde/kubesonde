@@ -1,0 +1,23 @@
+@startuml Detailed view
+skinparam defaultFontName Helvetica
+component "Kubesonde manager" as manager
+component "Event listener" as el 
+component "Recurring probing task" as task
+component "Netinfo process" as netinfo
+entity "new pod" as np
+boundary "Kubernetes APIs" as k8s
+boundary "Storage" as storage
+boundary "HTTP REST Apis" as apis
+manager -down-> el
+manager -down-> task
+manager -down-> netinfo
+np -up-> el : (1) Event is generated
+el <-down-> k8s : (2) Install debug and netinfo containers \n(3) Get declarative pod networking information\n(4) Run probing command
+el -up-> storage: (5) Store probe output \nand declarative information
+netinfo <-down-> k8s : (a) Monitor listening ports \n(b) Run probes to discovered ports
+netinfo -up-> storage : (c) Store pod netinfo\nand probes
+task <-up- storage : (i) Get current\nprobes
+task <-down-> k8s : (ii) Run probes again
+task -up-> storage: (iii) Store result
+manager -> apis : Publish results
+@enduml

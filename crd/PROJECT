@@ -1,0 +1,7 @@
+domain: kubesonde.io
+repo: kubesonde.io
+resources:
+- group: security
+  kind: Kubesonde
+  version: v1
+version: "2"

@@ -1,0 +1,127 @@
+#tableWrapper {
+   /* max-height: 20vh;
+    overflow-y: auto;*/
+    /*border-bottom: 1px solid var(--shadowColor);*/
+}
+
+table {
+    width: 100%;
+    border-spacing: 0;
+    border: 4px solid var(--shadowColor);
+    border-radius: var(--cornerRad);
+    /*font-size: medium;
+    font-weight: bolder;*/
+}
+th {
+    padding: 0.4em;
+    border-right: 1px solid var(--shadowColor);
+    position: sticky;
+    z-index: 2;
+    /*top: 0;  Don't forget this, required for the stickiness */
+}
+
+td {
+    padding: 0.2em;
+    font-weight: 600;
+    text-align: left;
+}
+
+tr>th {
+    background-color: var(--shadowColor) !important;
+    color: var(--titleColor);
+}
+tr>th:last-child {
+  border-right: none;
+}
+tr:nth-child(even){
+    background-color: var(--shadowColor);
+}
+
+.deployment {
+    cursor: pointer;
+}
+
+
+.deploymentClicked{
+    cursor: pointer;
+    color: var(--secoColor);
+}
+
+
+.arrow {
+    cursor: pointer;
+    position: sticky;
+    margin-left: -0.1em;
+}
+
+.podItem {
+    padding-left: 1em;
+}
+
+.portItem {
+    padding-left: 1em;
+}
+.portItemUnderlined {
+    padding-left: 1em;
+    background-color: white;
+}
+.portItemNetstatOnly {
+    padding-left: 1em;
+    background-color: black;
+    color: white;
+}
+.okPort {
+    padding-left: 1em;
+    background-color: greenyellow;
+    color: black;
+}
+.errorPort {
+    padding-left: 1em;
+    background-color: red;
+    color: black;
+}
+.warningPort {
+    padding-left: 1em;
+    background-color: red;
+    color: black;
+}
+.colordiv {
+    width: 1em;
+    height: 1em;
+    position: relative;
+    margin: auto;
+}
+
+*[data-tooltip] {
+    position: relative;
+}
+
+*[data-tooltip]::before {
+    content: attr(data-tooltip);
+
+    position: absolute;
+    bottom: 30px;
+    left: 25%;
+    width:auto;
+
+    pointer-events: none;
+    opacity: 0;
+    -webkit-transition: opacity .15s ease-in-out;
+    -moz-transition: opacity .15s ease-in-out;
+    -ms-transition: opacity .15s ease-in-out;
+    -o-transition: opacity .15s ease-in-out;
+    transition: opacity .15s ease-in-out;
+
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    background: var(--secoColor);
+    color: var(--primColor);
+    padding: 2px 2px;
+    border: 1px solid #c0c0c0;
+    box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.4);
+}
+
+*[data-tooltip]:hover::before {
+    opacity: 1;
+}

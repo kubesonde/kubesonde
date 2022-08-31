@@ -1,0 +1,36 @@
+
+
+.download-button {
+    float: right;
+    background-color: white;
+    border: 4px solid black;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+#SwitchWrapper {
+    appearance: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    box-shadow: var(--primColor) 0 1px 0, var(--primColor) 0 1px 0 inset;
+    box-sizing: border-box;
+    padding: 6px 16px;
+    white-space: nowrap;
+    word-wrap: break-word;
+    font-weight: 500;
+}
+
+#AppearanceControllerContainer {
+    display: flex;
+    flexDirection: row;
+
+
+    $breakpoint-tablet: 768px;
+    @media (max-width: $breakpoint-tablet) {
+
+     flex-direction: column;
+        margin-right: 41%;
+        margin-left: 0%;
+
+    }
+}

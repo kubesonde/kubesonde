@@ -1,0 +1,9 @@
+apiVersion: security.kubesonde.io/v1
+kind: Kubesonde
+metadata:
+  name: kubesonde-sample
+spec:
+  # Add fields here
+  namespace: ""
+  schedule: 1m
+  mode: continuous

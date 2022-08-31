@@ -1,0 +1,12 @@
+name: Build and Test frontend
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - frontend/**
+
+jobs:
+  prepare:
+    uses: jackap/kubesonde/.github/workflows/frontend_base.yaml@main

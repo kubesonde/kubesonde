@@ -1,0 +1,3 @@
+resources:
+- monitor.yaml
+- monitor_role_binding.yaml

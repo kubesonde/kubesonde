@@ -1,0 +1,24 @@
+# permissions for end users to edit Kubesondes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: Kubesonde-editor-role
+rules:
+  - apiGroups:
+      - security.kubesonde.io
+    resources:
+      - Kubesondes
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - security.kubesonde.io
+    resources:
+      - Kubesondes/status
+    verbs:
+      - get

@@ -1,0 +1,90 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.2
+  creationTimestamp: null
+  name: kubesondes.security.kubesonde.io
+spec:
+  group: security.kubesonde.io
+  names:
+    kind: Kubesonde
+    listKind: KubesondeList
+    plural: kubesondes
+    singular: kubesonde
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Kubesonde is the Schema for the Kubesondes API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: KubesondeSpec defines the desired state of Kubesonde
+            properties:
+              actions:
+                description: Actions is the set of rules to be tested
+                items:
+                  properties:
+                    action:
+                      description: Action is the expected outcome of the probe. It
+                        might have values "allow" or "deny"
+                      type: string
+                    endpoint:
+                      description: Endpoint to probe
+                      type: string
+                    fromPodSelector:
+                      description: FromPodSelector is a selector for the origin Pod
+                        or a set of pods
+                      type: string
+                    port:
+                      description: Port is the probing port for ToPodSelector defaults
+                        to 80
+                      type: string
+                    protocol:
+                      description: Protocol is the protocol to use when probing ToPodSelector
+                      type: string
+                    toPodSelector:
+                      description: ToPodSelector is a selector for the destination
+                        Pod or a set of pods
+                      type: string
+                    url:
+                      description: Url to probe
+                      type: string
+                  type: object
+                type: array
+              namespace:
+                description: Namespace indicates the target namespace for the probe
+                type: string
+            type: object
+          status:
+            description: KubesondeStatus defines the observed state of Kubesonde
+            properties:
+              lastProbeTime:
+                description: Information when was the last time the probe was run.
+                format: date-time
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

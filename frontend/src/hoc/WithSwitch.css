@@ -1,0 +1,14 @@
+
+.withSwitch {
+    padding: 4px 4px;
+    margin-bottom: 12px;
+
+}
+
+.switchText {
+    position: relative;
+    top: -10%;
+    padding-left: 4px;
+}
+
+

@@ -1,0 +1,95 @@
+/*
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package controllers
+
+import (
+	"context"
+	"time"
+
+	securityv1 "kubesonde.io/api/v1"
+	"kubesonde.io/controllers/dispatcher"
+	kubesondeEvents "kubesonde.io/controllers/events"
+	kubesondemetrics "kubesonde.io/controllers/metrics"
+
+	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
+	. "kubesonde.io/controllers/netinfo"
+	. "kubesonde.io/controllers/recursive-probing"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
+)
+
+// KubesondeReconciler reconciles a Kubesonde object
+type KubesondeReconciler struct {
+	client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
+	// TODO: Add fake clock  for testing purposes
+}
+
+// +kubebuilder:rbac:groups=*,resources=*,verbs=*
+
+func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("Kubesonde-controller", req.NamespacedName)
+	clusterConfig := config.GetConfigOrDie()
+	apiClient, err := kubernetes.NewForConfig(clusterConfig)
+	if err != nil {
+		log.Error(err, "Wrong kubernetes configuration")
+		panic(err.Error())
+	}
+	var Kubesonde securityv1.Kubesonde
+	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
+		log.Error(err, "unable to fetch Kubesonde")
+		// Ignore not found errors as we do not want to support this usecase
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// TODOs
+	/*
+		1) Handle pod deletion. When a pod is deleted also the probes that regard that pod should be removed
+	*/
+
+	// Dispatcher
+	go dispatcher.Run(apiClient)
+
+	// Events
+	go kubesondeEvents.InitEventListener(apiClient, Kubesonde)
+
+	// Probing
+	go RecursiveProbing(Kubesonde, 20*time.Second)
+
+	// Netinfo
+	go EventuallyRunNetinfo(apiClient)
+
+	return ctrl.Result{}, nil
+}
+
+func (r *KubesondeReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&securityv1.Kubesonde{}).
+		Complete(r)
+}
+
+func init() {
+	// Register custom metrics with the global prometheus registry
+	metrics.Registry.MustRegister(kubesondemetrics.MetricsSummary)
+	metrics.Registry.MustRegister(kubesondemetrics.DurationSummary)
+	metrics.Registry.MustRegister(kubesondemetrics.TargetedMetricsSummary)
+}
