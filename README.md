@@ -25,6 +25,7 @@ Folders are organised as follows:
 - `crd`: backend service and kubesonde CRD 
 - `docs`: documentation of the project/ideas.
 - `frontend`: contains the UI for analysing the probe outputs
+- `examples`: sample output from Kubesonde
 
 ## Development tools
 

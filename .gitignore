@@ -40,7 +40,6 @@ istio-1.7.2/
 microservices-demo/
 pitstop/
 waveworks-microservices/
-examples/
 
 **/**/*.env
 infrastructure/.terraform/
