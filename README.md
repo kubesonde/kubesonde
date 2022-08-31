@@ -5,6 +5,8 @@
 
 
 
+![Kubesonde logo](frontend/public/logo257.png "Kubesonde logo")
+
 # Kubesonde
 
 Kubesonde is a tool to probe and test network security policies in a Kubernetes cluster.
