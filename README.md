@@ -30,7 +30,9 @@ Folders are organised as follows:
 
 ## Development tools
 
-To create a k8s cluster, the recommended option is Minikube
+All the tooling required to run kubesonde is in the `crd` folder.
+
+To create a k8s cluster, the recommended option is Minikube:
  
  `minikube start`
 
@@ -39,7 +41,7 @@ Alternatively one can use [kind](https://github.com/kubernetes-sigs/kind).
 `kind create cluster --image kindest/node:v1.16.5`
 
 There is an already-made recipe to run the whole stack: 
-`make run-test-env`
+` cd crd && make run-test-env`
 
 > Note: 
 > If you are planning to use another Kubernetes implementation, please take a look
