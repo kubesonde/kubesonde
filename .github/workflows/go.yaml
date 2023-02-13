@@ -36,3 +36,15 @@ jobs:
       - name: Test
         working-directory: crd
         run: go test -v ./... -coverprofile cover.out
+
+      - name: Add git safe.directory for container
+        run: |
+          mkdir -p /home/runner/work/_temp/_github_home
+          printf "[safe]\ndirectory = /github/workspace" > /home/runner/work/_temp/_github_home/.gitconfig
+
+      - name: Send coverage results
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: go
+          coverage-file: cover.out
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
