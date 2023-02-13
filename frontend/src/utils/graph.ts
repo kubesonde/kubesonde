@@ -394,6 +394,8 @@ export function toCyNode(node: GraphNode): cytoscape.ElementDefinition {
             return "deployment"
         } else if (node.type === "Internet") {
             return "internet"
+        } else if (node.type === "Service") {
+            return "service"
         } else {
             return "pod"
         }

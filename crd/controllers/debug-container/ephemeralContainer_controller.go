@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/samber/lo"
@@ -22,7 +21,7 @@ import (
 
 var log = logf.Log.WithName("controllers.state")
 
-func InstallEphameralContainers(client *kubernetes.Clientset, pods *v1.PodList) {
+func InstallEphameralContainers(client kubernetes.Interface, pods *v1.PodList) {
 
 	for _, pod := range pods.Items {
 		if !ephemeralContainerExists(pod) {
@@ -41,14 +40,17 @@ func ephemeralContainerExists(pod v1.Pod) bool {
 	_, ok1 := lo.Find(ephNames, func(s string) bool {
 		return s == "debugger"
 	})
-	/*_, ok2 := lo.Find(ephNames, func(s string) bool {
-		return s == "netinfo"
-	})*/
-	log.Info(fmt.Sprintf("Pod %s has %v ephemeral containers", pod.Name, ephNames))
-	return ok1 // && ok2
+	_, ok2 := lo.Find(ephNames, func(s string) bool {
+		return s == "monitor"
+	})
+	ok := ok1 && ok2
+	if len(ephNames) != 2 {
+		log.Info(fmt.Sprintf("Pod %s has %v ephemeral containers", pod.Name, ephNames))
+	}
+	return ok
 }
 
-func installContainers(client *kubernetes.Clientset, pod v1.Pod) {
+func installContainers(client kubernetes.Interface, pod v1.Pod) {
 	podJS, err := json.Marshal(pod)
 	if err != nil {
 		log.Error(err, "error creating JSON for pod: %s", pod.Name)
@@ -76,6 +78,7 @@ func installContainers(client *kubernetes.Clientset, pod v1.Pod) {
 }
 
 func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
+	privileged := true
 	ec1 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
 			Name:                     "debugger",
@@ -85,47 +88,28 @@ func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
 			TTY:                      true,
 			Command:                  []string{"sh"},
+			SecurityContext: &v1.SecurityContext{
+				Privileged: &privileged,
+			},
 		},
 	}
-	host := GetOutboundIP()
-	endpoint := fmt.Sprintf("http://%s:2709/netinfo", host)
 	ec2 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
-			Name:                     "netinfo",
-			Image:                    "netinfo:latest",
+			Name:                     "monitor",
+			Image:                    "registry.cs.aalto.fi/kubesonde/monitor:latest",
 			ImagePullPolicy:          v1.PullIfNotPresent,
 			Stdin:                    true,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
 			TTY:                      true,
-			Env: []v1.EnvVar{{
-				Name:  "HOST",
-				Value: endpoint,
-			}, {Name: "POD_NAME",
-				Value: pod.Name,
-			},
-			},
+			Command:                  []string{"sh"},
 		}}
 
 	copied := pod.DeepCopy()
 	copied.Spec.EphemeralContainers = append(copied.Spec.EphemeralContainers, *ec1, *ec2)
-
 	return copied, nil
 }
 
-// Get preferred outbound ip of this machine
-func GetOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Error(err, "cannot get my ip")
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
-}
-
-func RunNetinfoProcess(client *kubernetes.Clientset, namespace string, sourcePodName string) (*bytes.Buffer, *bytes.Buffer, error) {
+func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, sourcePodName string) (*bytes.Buffer, *bytes.Buffer, error) {
 
 	pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), sourcePodName, metav1.GetOptions{})
 	if err != nil {
@@ -133,6 +117,7 @@ func RunNetinfoProcess(client *kubernetes.Clientset, namespace string, sourcePod
 	}
 
 	if !ephemeralContainerExists(*pod) {
+		log.Info("Ephemeral containers are not ready")
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}
 	req := client.
@@ -144,14 +129,15 @@ func RunNetinfoProcess(client *kubernetes.Clientset, namespace string, sourcePod
 		Name(sourcePodName).
 		SubResource("exec").
 		VersionedParams(&v1.PodExecOptions{
-			Command:   []string{"python", "main.py"},
-			Container: "netinfo",
+			Command:   []string{"/workspace/main"},
+			Container: "monitor",
 			Stdin:     false,
 			Stdout:    true,
 			Stderr:    true,
 			TTY:       true,
 		}, scheme.ParameterCodec)
 	exec, err := remotecommand.NewSPDYExecutor(config.GetConfigOrDie(), "POST", req.URL())
+
 	if err != nil {
 		log.Error(err, "Remote Command failed")
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
@@ -166,7 +152,7 @@ func RunNetinfoProcess(client *kubernetes.Clientset, namespace string, sourcePod
 			})
 			if err != nil {
 				log.Error(err, "Streaming error")
-				time.Sleep(1 * time.Second)
+				time.Sleep(3 * time.Second)
 			}
 		}
 	}()

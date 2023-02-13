@@ -11,9 +11,9 @@ type MockedCNIState struct {
 	mock.Mock
 }
 
-func (mock *MockedCNIState) getClient() *kubernetes.Clientset {
-	mock.Called()
-	return &kubernetes.Clientset{}
+func (mock *MockedCNIState) getClient() kubernetes.Interface {
+	args := mock.Called()
+	return args.Get(0).(kubernetes.Interface)
 }
 func (mock *MockedCNIState) logError(err error, message string) {
 	mock.Called(err, message)
@@ -31,7 +31,7 @@ func (mock *MockedCNIState) getKubesonde() v12.Kubesonde {
 	return v12.Kubesonde{Spec: v12.KubesondeSpec{Actions: probingActions}}
 
 }
-func (mock *MockedCNIState) runCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error) {
+func (mock *MockedCNIState) runCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error) {
 	ret := mock.Called(client, namespace, command, checker)
 	return ret.Get(0).(bool), ret.Error(1)
 

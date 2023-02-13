@@ -42,14 +42,14 @@ func InNamespace(configurationNamespace string, podNamespace string) bool {
 
 }
 
-func GetDeploymentNamesInNamespace(client *kubernetes.Clientset, namespace string) []string {
+func GetDeploymentNamesInNamespace(client kubernetes.Interface, namespace string) []string {
 	deployments, _ := client.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	names := lo.Map(deployments.Items, func(d v1.Deployment, i int) string {
 		return d.Name
 	})
 	return names
 }
-func GetReplicaSetsNamesInNamespace(client *kubernetes.Clientset, namespace string) []string {
+func GetReplicaSetsNamesInNamespace(client kubernetes.Interface, namespace string) []string {
 	replicas, _ := client.AppsV1().ReplicaSets(namespace).List(context.TODO(), metav1.ListOptions{})
 	names := lo.Map(replicas.Items, func(d v1.ReplicaSet, i int) string {
 		return d.Name

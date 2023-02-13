@@ -4,4 +4,4 @@ metadata:
   name: kubesonde-sample
 spec:
   # Add fields here
-  namespace: default
+  namespace: test

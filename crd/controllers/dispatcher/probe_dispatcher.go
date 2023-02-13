@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/samber/lo"
 	"golang.org/x/sync/semaphore"
 	"k8s.io/client-go/kubernetes"
 	"kubesonde.io/controllers/inner"
@@ -25,7 +26,7 @@ var (
 
 // Add to queue
 func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
-	dispatcherSemaphore.Acquire(context.Background(), 1)
+	lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
 	for index, probe := range probes {
 		heap.Push(&pq, &Item{
 			value:    probe,
@@ -43,7 +44,7 @@ func Run(apiClient *kubernetes.Clientset) {
 	heap.Init(&pq)
 	for { //FIXME: this could also be event based maybe
 		for pq.Len() > 0 {
-			dispatcherSemaphore.Acquire(context.Background(), 1)
+			lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
 			start := time.Now()
 			item := heap.Pop(&pq).(*Item)
 			dispatcherSemaphore.Release(1)

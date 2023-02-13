@@ -58,6 +58,10 @@ tr:nth-child(even){
     padding-left: 1em;
 }
 
+.podGroup {
+    display: flex;
+}
+
 .portItem {
     padding-left: 1em;
 }

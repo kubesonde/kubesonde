@@ -21,10 +21,11 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-/**
+/*
+*
 Boundaries of this function are:
- - k8s APIs
- - Event Storage
+  - k8s APIs
+  - Event Storage
 */
 var probe_processing_semaphore = semaphore.NewWeighted(1)
 var log = logf.Log.WithName("kubesonde.podEvents")
@@ -39,7 +40,7 @@ func IsProcessingEvent() bool {
 }
 
 // TODO: Add resilience mechanism to to unlock the resource when pending for too long.
-func addPodEvent(client *kubernetes.Clientset, pod v1.Pod) {
+func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 	pods := v1.PodList{
 		Items: []v1.Pod{pod},
 	}
@@ -71,10 +72,19 @@ func addPodEvent(client *kubernetes.Clientset, pod v1.Pod) {
 		// Build probes
 		probes := probe_command.BuildTargetedCommands(pod, activePods)
 		probes_from_pods := probe_command.BuildCommandsFromPodSelectors(activePods, "nothing")
+		// Current pod probes all services
+
 		AddProbes(probes)
 		AddProbes(probes_from_pods)
 		dispatcher.SendToQueue(probes, dispatcher.HIGH)
 	}
+	// TODO: Maybe there should be an event listener on the services to do the same thing.
+	curr_services, err := client.CoreV1().Services(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Info(fmt.Sprintf("Cannot get services"))
+	}
+	services_probes := probe_command.BuildCommandsToServices(pod, curr_services.Items)
+	AddProbes(services_probes)
 	other_probes := probe_command.BuildCommandsToOutsideWorld(pod)
 	AddProbes(other_probes)
 
@@ -114,7 +124,7 @@ func addPodPortsToState(pod v1.Pod) {
 				Protocol: string(port.Protocol),
 			}
 		})
-		log.V(1).Info(fmt.Sprintf("InitContainers for pod %s: \n\n %v", pod.Name, portMapping))
+		// log.V(1).Info(fmt.Sprintf("InitContainers for pod %s: \n\n %v", pod.Name, portMapping))
 		items = append(items, portMapping...)
 	}
 	state.SetConfig(name, &items)
@@ -193,6 +203,7 @@ func deletePodEvent(pod v1.Pod) {
 			Source: v12.ProbeEndpointInfo{
 				Name:      pod.Name,
 				Namespace: pod.Namespace,
+				IPAddress: pod.Status.PodIP,
 			},
 		},
 		Reason: "PodDeleted",

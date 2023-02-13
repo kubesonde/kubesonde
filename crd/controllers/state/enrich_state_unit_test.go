@@ -1,16 +1,10 @@
 package state
 
 import (
-	"testing"
-
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "kubesonde.io/api/v1"
 )
-
-func TestStateEnriching(t *testing.T) {
-	RegisterFailHandler(Fail)
-}
 
 var _ = Describe("Enrich state", func() {
 	It("Enriches a state", func() {

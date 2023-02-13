@@ -45,7 +45,6 @@ func SetProbeState(probes *v1.ProbeOutput) {
 }
 
 func GetProbeState() v1.ProbeOutput {
-
 	return innerState
 }
 

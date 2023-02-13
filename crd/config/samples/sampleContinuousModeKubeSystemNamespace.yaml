@@ -5,5 +5,3 @@ metadata:
 spec:
   # Add fields here
   namespace: kube-system
-  schedule: 1m
-  mode: continuous

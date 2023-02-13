@@ -15,7 +15,7 @@ import (
 	"kubesonde.io/controllers/utils"
 )
 
-func podEventHandler(client *kubernetes.Clientset, Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
+func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			pod := obj.(*v1.Pod)
@@ -50,7 +50,7 @@ func podEventHandler(client *kubernetes.Clientset, Kubesonde securityv1.Kubesond
 	}
 }
 
-func svcEventHandler(client *kubernetes.Clientset, Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
+func svcEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			srv := obj.(*v1.Service)
@@ -63,6 +63,7 @@ func svcEventHandler(client *kubernetes.Clientset, Kubesonde securityv1.Kubesond
 					return
 				}
 				if srv.Spec.ClusterIP == "None" || srv.Spec.ClusterIP == "" {
+					log.V(1).Info(fmt.Sprintf("Service %s does not have a ClusterIP", srv.Name))
 					return
 				}
 				log.V(1).Info(fmt.Sprintf("Service %s Probed", srv.Name))
@@ -82,7 +83,7 @@ func svcEventHandler(client *kubernetes.Clientset, Kubesonde securityv1.Kubesond
 	}
 }
 
-func InitEventListener(client *kubernetes.Clientset, Kubesonde securityv1.Kubesonde) {
+func InitEventListener(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) {
 	fmt.Printf("Setting up the event listener...")
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(client, time.Second*5)
 	podInformer := kubeInformerFactory.Core().V1().Pods().Informer()
