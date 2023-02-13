@@ -1,7 +1,39 @@
 version = 1
 
+test_patterns = [
+  "crd/**/*_test.go",
+  "frontend/**/*.test.(ts|tsx)"
+]
+
+exclude_patterns = [
+  "docs/**",
+  "examples/**",
+  ".github/**"
+]
+
+[[analyzers]]
+name = "shell"
+
+[[analyzers]]
+name = "secrets"
+
+[[analyzers]]
+name = "test-coverage"
+
+[[analyzers]]
+name = "docker"
+
+  [analyzers.meta]
+  dockerfile_paths = ["docker/**"]
+
+[[analyzers]]
+name = "javascript"
+
+  [analyzers.meta]
+  plugins = ["react"]
+
 [[analyzers]]
 name = "go"
 
   [analyzers.meta]
-  import_root = "github.com/jackap/kubesonde"
+  import_root = "github.com/jackap/kubesonde/crd"
