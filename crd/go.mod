@@ -10,7 +10,7 @@ require (
 	github.com/onsi/gomega v1.25.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/samber/lo v1.21.0
-	github.com/stretchr/testify v1.7.4
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/sync v0.1.0
 	k8s.io/api v0.24.2
 	k8s.io/apimachinery v0.24.2
@@ -52,7 +52,7 @@ require (
 	github.com/prometheus/common v0.35.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
