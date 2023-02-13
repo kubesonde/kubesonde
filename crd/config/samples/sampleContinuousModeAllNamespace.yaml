@@ -5,5 +5,3 @@ metadata:
 spec:
   # Add fields here
   namespace: ""
-  schedule: 1m
-  mode: continuous

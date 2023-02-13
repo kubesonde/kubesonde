@@ -1,17 +1,10 @@
 package state
 
 import (
-	"testing"
-
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "kubesonde.io/api/v1"
 )
-
-func TestProbeStateController(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "ProbeState")
-}
 
 var _ = Describe("Probe State", func() {
 	It("Records state", func() {
@@ -73,7 +66,7 @@ var _ = Describe("Probe State", func() {
 			Start:  "abc",
 			End:    "",
 		}
-		netinfo := []v1.PodNetworkingInfo{
+		monitor := []v1.PodNetworkingInfo{
 			{
 				PodName: "testPod",
 				Netstat: "somestring",
@@ -84,8 +77,8 @@ var _ = Describe("Probe State", func() {
 			},
 		}
 		SetProbeState(&initialState)
-		AppendNetInfo(&netinfo)
-		Expect(netinfo).To(Equal(GetProbeState().PodNetworking))
+		AppendNetInfo(&monitor)
+		Expect(monitor).To(Equal(GetProbeState().PodNetworking))
 
 	})
 

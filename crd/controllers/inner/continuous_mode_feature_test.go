@@ -1,16 +1,19 @@
 package inner
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"bou.ke/monkey"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	v12 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 	v1 "kubesonde.io/api/v1"
-	v12 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
 )
@@ -46,9 +49,17 @@ var _ = Describe("ContinuousMode", func() {
 			Command:              "sample command",
 			Action:               v1.ALLOW,
 		}
-		state.On("runCommand", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("this is an error"))
-		state.On("getClient").Times(1)
+		client := fake.NewSimpleClientset()
+		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod"}, Spec: v12.PodSpec{
+			EphemeralContainers: []v12.EphemeralContainer{{EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "debugger"}}, {EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "monitor"}}}}}
+		_, err := client.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
+		if err != nil {
+			log.Info("error injecting pod add: %v", err)
+			Panic()
+		}
 
+		state.Mock.On("getClient").Return(client)
+		state.On("runCommand", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("this is an error"))
 		output := InspectWithContinuousMode(state, []probe_command.KubesondeCommand{command})
 
 		Expect(output.Errors).To(BeEquivalentTo(
@@ -103,7 +114,16 @@ var _ = Describe("ContinuousMode", func() {
 		}
 		state.On("runCommand", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("this is an error")).Once()
 		state.On("runCommand", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil).Once()
-		state.On("getClient").Times(1)
+		client := fake.NewSimpleClientset()
+		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod"}, Spec: v12.PodSpec{
+			EphemeralContainers: []v12.EphemeralContainer{{EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "debugger"}}, {EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "monitor"}}}}}
+		_, err := client.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
+		if err != nil {
+			log.Info("error injecting pod add: %v", err)
+			Panic()
+		}
+
+		state.Mock.On("getClient").Return(client)
 
 		output := InspectWithContinuousMode(state, []probe_command.KubesondeCommand{error_command, success_command})
 
@@ -111,7 +131,7 @@ var _ = Describe("ContinuousMode", func() {
 			[]v1.ProbeOutputError{
 				{
 					Value: v1.ProbeOutputItem{
-						Type:            v12.PROBE,
+						Type:            v1.PROBE,
 						ExpectedAction:  v1.ALLOW,
 						ResultingAction: v1.DENY,
 						Source:          v1.ProbeEndpointInfo{Name: "test-pod", Namespace: "default", DeploymentName: "", ReplicaSetName: ""},

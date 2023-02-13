@@ -21,8 +21,8 @@ type KubesondeMode interface {
 	logInfo(string)
 	getKubesonde() v12.Kubesonde
 	logError(err error, message string)
-	getClient() *kubernetes.Clientset
-	runCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error)
+	getClient() kubernetes.Interface
+	runCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error)
 	runGenericCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand) (string, error)
 }
 
@@ -82,7 +82,7 @@ func runGenericCommand(client *kubernetes.Clientset, namespace string, command p
 	return stdout.String(), nil
 }
 
-func runRemoteCommandWithErrorHandler(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error) {
+func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error) {
 	req := client.
 		CoreV1().
 		RESTClient().

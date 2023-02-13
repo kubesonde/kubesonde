@@ -22,6 +22,12 @@ export const cytoscapeStylesheet = [
         }
     },
     {
+        selector: 'node[type="service"]',
+        style: {
+            shape: 'octagon',
+        }
+    },
+    {
         selector: 'node[type="internet"]',
         style: {
             shape: "diamond"

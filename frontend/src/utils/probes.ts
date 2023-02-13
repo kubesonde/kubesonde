@@ -1,4 +1,4 @@
-import { PodNetworkingInfoV2, ProbeEndpointInfo, ProbeOutput, ProbeOutputError, ProbeOutputItem } from "../entities/probeOutput";
+import { PodNetworkingInfoV2, ProbeEndpointInfo, ProbeEndpointType, ProbeOutput, ProbeOutputError, ProbeOutputItem } from "../entities/probeOutput";
 import { GraphNode, SimpleGraphEdge } from "../entities/graph";
 import { NetstatInterface, parseNetstat } from "./netstat";
 import { Dict } from "src/entities/types";
@@ -210,7 +210,7 @@ export function cleanupNetInfo(data: PodNetworkingInfoV2): PodNetworkingInfoV2 {
 interface ProbeDict { [key: string]: ProbeOutputItem }
 export function cleanupProbes(items: ProbeOutputItem[]): ProbeOutputItem[] {
     const probesDict = items.reduce((acc: ProbeDict, curr: ProbeOutputItem) => {
-        const key = `${curr.destination.name}-${curr.source.name}-${curr.port}-${curr.protocol}`
+        const key = `${curr.destination.name}-${curr.source.name}-${curr.destination.type}-${curr.port}-${curr.protocol}`
         if (key in acc) {
             const previousItem = acc[key]
             if (curr.timestamp > previousItem.timestamp) {
@@ -232,9 +232,44 @@ export function cleanupProbes(items: ProbeOutputItem[]): ProbeOutputItem[] {
  * - Removes conflicting entries in the probes by selecting always the newest probes 
  */
 export function cleanupProbeOutput(input_probes: ProbeOutput): ProbeOutput {
-    return {
+    const updated_probes = {
         ...input_probes,
         items: cleanupProbes(input_probes.items),
         podNetworkingv2: cleanupNetInfo(input_probes.podNetworkingv2)
     }
+    const fixed_services = {
+        ...updated_probes,
+        items: updated_probes.items.map((item: ProbeOutputItem) => {
+            if (item.destination.type !== ProbeEndpointType.SERVICE) {
+                return item
+            }
+            return {
+                ...item,
+                destination: {
+                    ...item.destination,
+                    name: item.destination.name + "_SVC",
+                    deploymentName: undefined,
+                    replicaSetName: undefined
+                }
+            }
+        }),
+        errors: updated_probes.errors.map((item: ProbeOutputError) => {
+            if (item.value.destination.type !== ProbeEndpointType.SERVICE) {
+                return item
+            }
+            return {
+                ...item,
+                value: {
+                    ...item.value,
+                    destination: {
+                        ...item.value.destination,
+                        name: item.value.destination.name + "_SVC",
+                        deploymentName: undefined,
+                        replicaSetName: undefined
+                    }
+                }
+            }
+        })
+    }
+    return fixed_services
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/samber/lo"
 	v1 "k8s.io/api/core/v1"
 	v12 "kubesonde.io/api/v1"
 )
@@ -56,18 +57,18 @@ var (
 )
 
 /*
-	This Command will make a GET request at the root of the ip:port combination
-	and will fetch the return code. Here we suppose that every code <500 is a valid
-	response. This is because we do not know if the root of the service is a valid address.
+This Command will make a GET request at the root of the ip:port combination
+and will fetch the return code. Here we suppose that every code <500 is a valid
+response. This is because we do not know if the root of the service is a valid address.
 */
 const curlCommand = "curl -s -o /dev/null -I -X GET -w %%{http_code} %s"
 
 // This command scans both UDP and TCP ports and returns only the amount of open ports
-const nmapCommand = "nmap --open -sSU -p %d %s"
-const nmapUDPCommand = "nmap --open -sU -p %d %s"
-const nmapTCPCommand = "nmap --open -sT -p %d %s"
+const nmapCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sSU -p %d %s"
+const nmapUDPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sU -p %d %s"
+const nmapTCPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sT -Pn -p %d %s"
 const nmapSCTPCommand = "nmap --open -sY -p %d %s"
-const dnsUDPCommand = "nslookup %s %s"
+const dnsUDPCommand = "nslookup -timeout=5 %s %s"
 
 func NslookupSucceded(output string) bool {
 	return strings.Contains(output, "Server:")
@@ -94,6 +95,15 @@ type PortAndProtocol struct {
 	protocol string
 }
 
+func getAllPortsAndProtocolsFromService(svc v1.Service) []PortAndProtocol {
+	return lo.Map[v1.ServicePort, PortAndProtocol](svc.Spec.Ports, func(sp v1.ServicePort, i int) PortAndProtocol {
+		return PortAndProtocol{
+			port:     sp.Port,
+			protocol: string(sp.Protocol),
+		}
+	})
+
+}
 func getAllPortsAndProtocolsFromPodSelector(pod v1.Pod) []PortAndProtocol {
 	var portProto []PortAndProtocol
 	// Regular containers
@@ -130,6 +140,42 @@ func getAllPortsAndProtocolsFromPodSelector(pod v1.Pod) []PortAndProtocol {
 func generateNmapCommand(cmd string, ip string, port int32) string {
 	command := fmt.Sprintf(cmd, port, ip)
 	return command
+}
+
+func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol string, destType v12.ProbeEndpointType, srcType v12.ProbeEndpointType) KubesondeCommand {
+	var namespace = source.Namespace
+	addresses, err := net.LookupAddr(dest.Spec.ClusterIP)
+	if err != nil {
+		addresses = []string{}
+	}
+
+	var cmd string
+	if protocol == "TCP" {
+		cmd = generateNmapCommand(nmapTCPCommand, dest.Spec.ClusterIP, port)
+	} else if protocol == "UDP" {
+		cmd = generateNmapCommand(nmapUDPCommand, dest.Spec.ClusterIP, port)
+	} else if protocol == "SCTP" {
+		cmd = generateNmapCommand(nmapSCTPCommand, dest.Spec.ClusterIP, port)
+	} else {
+		cmd = generateNmapCommand(nmapCommand, dest.Spec.ClusterIP, port)
+	}
+	return KubesondeCommand{
+		Action:               v12.DENY,
+		ContainerName:        "debugger",
+		Namespace:            namespace,
+		Command:              cmd,
+		Protocol:             protocol,
+		Destination:          dest.Name,
+		DestinationPort:      strconv.Itoa(int(port)),
+		DestinationHostnames: addresses,
+		DestinationNamespace: dest.Namespace,
+		DestinationIPAddress: dest.Spec.ClusterIP,
+		DestinationType:      destType,
+		SourcePodName:        source.Name,
+		SourceIPAddress:      source.Status.PodIP,
+		SourceType:           srcType,
+		ProbeChecker:         NmapSucceded,
+	}
 }
 
 func buildCommand(source v1.Pod, dest v1.Pod, port int32, protocol string, destType v12.ProbeEndpointType, srcType v12.ProbeEndpointType) KubesondeCommand {
@@ -231,13 +277,26 @@ func BuildCommandsFromSpec(actions []v12.ProbingAction, namespace string) []Kube
 
 	return commands
 }
+func BuildCommandsToServices(pod v1.Pod, services []v1.Service) []KubesondeCommand {
+	var commands []KubesondeCommand
+	var source = pod
+	for _, destination := range services {
+		if destination.Spec.ClusterIP != "" && destination.Name != "kubernetes" {
+			for _, portProto := range getAllPortsAndProtocolsFromService(destination) {
+				commands = append(commands, buildServiceCommand(source, destination, portProto.port, portProto.protocol, v12.SERVICE, v12.POD))
+			}
 
+		}
+	}
+
+	return commands
+}
 func BuildCommandsFromPodSelectors(pods []v1.Pod, _ string) []KubesondeCommand {
 
 	var commands []KubesondeCommand
 	for _, source := range pods {
 		for _, destination := range pods {
-			if cmp.Equal(destination, source) == false {
+			if !cmp.Equal(destination, source) {
 				for _, portProto := range getAllPortsAndProtocolsFromPodSelector(destination) {
 					commands = append(commands, buildCommand(source, destination, portProto.port, portProto.protocol, v12.POD, v12.POD))
 
@@ -355,8 +414,9 @@ func BuildTargetedCommandsToDestination(availablePods []v1.Pod, probeDestination
 
 	for _, source := range availablePods {
 		for idx := range probeDestinationPorts {
-			commands = append(commands, buildCommand(source, probeDestination, probeDestinationPorts[idx], protocol[idx], v12.POD, v12.POD))
-
+			if source.Name != probeDestination.Name {
+				commands = append(commands, buildCommand(source, probeDestination, probeDestinationPorts[idx], protocol[idx], v12.POD, v12.POD))
+			}
 		}
 	}
 

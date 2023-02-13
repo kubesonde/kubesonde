@@ -28,7 +28,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	. "kubesonde.io/controllers/netinfo"
+	. "kubesonde.io/controllers/monitor"
 	. "kubesonde.io/controllers/recursive-probing"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -64,6 +64,7 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// TODOs
 	/*
 		1) Handle pod deletion. When a pod is deleted also the probes that regard that pod should be removed
+		2) Handle resource deletion. When a kubesonde resource is removed, the state should be cleared
 	*/
 
 	// Dispatcher
@@ -75,8 +76,8 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// Probing
 	go RecursiveProbing(Kubesonde, 20*time.Second)
 
-	// Netinfo
-	go EventuallyRunNetinfo(apiClient)
+	// Monitor
+	go RunMonitorContainers(apiClient)
 
 	return ctrl.Result{}, nil
 }
