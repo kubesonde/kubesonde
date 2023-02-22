@@ -11,8 +11,9 @@ export const PodCellRenderer = (
   let rendered;
   if (toggle) {
     rendered = (row.value as string[]).map((value, index) => (
-      <div key={index} className="podItem">
+      <div key={"podItem" + index} className="podItem">
         <input
+          key={"podItem_checkbox" + index}
           type="checkbox"
           disabled={
             row.row.original.deployment.startsWith("none")

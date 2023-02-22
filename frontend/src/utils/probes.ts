@@ -131,7 +131,7 @@ interface EdgeDict { [key: string]: SimpleGraphEdge }
 function removeDuplicates(allEdges: SimpleGraphEdge[]): SimpleGraphEdge[] {
 
     const maps = allEdges.reduce((acc, curr) => {
-        const id: string = `${curr.from}-${curr.to}-${curr.port}-${curr.label}`
+        const id = `${curr.from}-${curr.to}-${curr.port}-${curr.label}`
         if (id in acc) {
             const prev = acc[id]
             if (prev.timestamp > curr.timestamp) {

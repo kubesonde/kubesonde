@@ -22,7 +22,7 @@ var parseAddress = exports.parseAddress = function (raw) {
     }
 
     return {
-        port: port ? parseInt(port) : null,
+        port: port ? parseInt(port,10) : null,
         address: address
     };
 };
@@ -46,7 +46,7 @@ const normalizeValues = function (item) {
         item.pid = 0;
     }
 
-    item.pid = parseInt(item.pid);
+    item.pid = parseInt(item.pid,10);
     return item;
 };
 

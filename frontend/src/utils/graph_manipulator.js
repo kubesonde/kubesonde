@@ -1,4 +1,3 @@
-module.exports = stronglyConnectedComponents
 
 function stronglyConnectedComponents(adjList) {
     var numVertices = adjList.length;
@@ -110,3 +109,5 @@ function stronglyConnectedComponents(adjList) {
 
     return {components: components, adjacencyList: sccAdjList}
 }
+
+export default stronglyConnectedComponents
