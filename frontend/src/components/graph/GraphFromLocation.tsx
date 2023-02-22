@@ -53,7 +53,6 @@ export const GraphFromLocation = () => {
   // @ts-ignore
   const data = cleanupProbeOutput(state.data as ProbeOutput);
   const nodes = buildNodesFromProbes(data);
-  console.log(nodes);
   const edges = buildEdgesFromProbes(data);
   const errorLog = getErrorLogs(data);
   const netInfoContainers = data.podNetworkingv2;

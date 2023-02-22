@@ -35,7 +35,7 @@ func (mock *MockedCNIState) runGenericCommand(client *kubernetes.Clientset, name
 
 }
 
-func (mock *MockedCNIState) AddEdge(kubesondeCommand probe_command.KubesondeCommand, _ bool) {
+func (mock *MockedCNIState) AddEdge(_ probe_command.KubesondeCommand, _ bool) {
 	mock.Called()
 
 }

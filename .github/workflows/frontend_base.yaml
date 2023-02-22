@@ -22,9 +22,6 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: frontend
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16.15.1
       - uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
@@ -36,6 +33,9 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.1
       - name: Install
         run: npm install
 

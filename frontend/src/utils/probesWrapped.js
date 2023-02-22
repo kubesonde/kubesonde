@@ -33,13 +33,13 @@ const normalizeValues = function (item) {
     item.local = parseAddress(item.local);
     item.remote = parseAddress(item.remote);
 
-    if (item.protocol == 'tcp' && item.local.address && ~item.local.address.indexOf(':')) {
+    if (item.protocol == 'tcp' && item.local.address && item.local.address.indexOf(':') !== -1) {
         item.protocol = 'tcp6';
     }
 
     if (item.pid == '-') {
         item.pid = 0;
-    } else if (~item.pid.indexOf('/')) {
+    } else if (item.pid.indexOf('/') !== -1) {
         parts = item.pid.split('/');
         item.pid = parts.length > 1 ? parts[0] : 0;
     } else if (isNaN(item.pid)) {
@@ -52,7 +52,7 @@ const normalizeValues = function (item) {
 
 exports.linux = function (options) {
     options = options || {};
-    var parseName = !!options.parseName;
+    var parseName = Boolean(options.parseName)
 
     return function (line, callback) {
         var parts = line.split(/\s/).filter(String);
