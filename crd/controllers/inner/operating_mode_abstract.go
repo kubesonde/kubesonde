@@ -71,7 +71,7 @@ func runGenericCommand(client *kubernetes.Clientset, namespace string, command p
 		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort, &stdout, &stderr))
 		return err.Error(), err
 	}
-	//log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
+	// log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
 	//	command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
 
 	return stdout.String(), nil
