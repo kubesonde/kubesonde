@@ -89,6 +89,10 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+                  - uses: actions/cache@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.15.1
       - name: Install
         run: npm install
       - name: Get version
