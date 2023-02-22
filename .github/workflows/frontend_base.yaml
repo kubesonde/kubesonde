@@ -9,7 +9,7 @@ jobs:
     env:
       working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/upload-artifact@v3
         with:
           name: frontend
@@ -19,13 +19,13 @@ jobs:
     needs: checkout
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: frontend
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: frontend
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
@@ -78,7 +78,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: frontend
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
