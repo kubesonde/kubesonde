@@ -49,7 +49,7 @@ func Run(apiClient *kubernetes.Clientset) {
 			item := heap.Pop(&pq).(*Item)
 			dispatcherSemaphore.Release(1)
 			inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{item.value})
-			duration := time.Now().Sub(start)
+			duration := time.Since(start)
 
 			if duration < probesPerSecond {
 				time.Sleep(probesPerSecond - duration)

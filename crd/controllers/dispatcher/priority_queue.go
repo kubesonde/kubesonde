@@ -1,8 +1,6 @@
 package dispatcher
 
 import (
-	"container/heap"
-
 	"kubesonde.io/controllers/probe_command"
 )
 
@@ -47,11 +45,4 @@ func (pq *PriorityQueue) Pop() any {
 	item.index = -1 // for safety
 	*pq = old[0 : n-1]
 	return item
-}
-
-// update modifies the priority and value of an Item in the queue.
-func (pq *PriorityQueue) update(item *Item, value probe_command.KubesondeCommand, priority int) {
-	item.value = value
-	item.priority = priority
-	heap.Fix(pq, item.index)
 }

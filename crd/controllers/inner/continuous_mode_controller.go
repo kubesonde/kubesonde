@@ -25,22 +25,6 @@ type KubesondeContinuousState struct {
 	Kubesonde v12.Kubesonde
 }
 
-func (state *KubesondeContinuousState) AddEdge(command probe_command.KubesondeCommand, value bool) {
-	panic("implement me")
-}
-
-func (state *KubesondeContinuousState) logInfo(s string) {
-	panic("implement me")
-}
-
-func (state *KubesondeContinuousState) getKubesonde() v12.Kubesonde {
-	panic("implement me")
-}
-
-func (state *KubesondeContinuousState) logError(err error, message string) {
-	panic("implement me")
-}
-
 func (state *KubesondeContinuousState) getClient() kubernetes.Interface {
 	return state.Client
 }

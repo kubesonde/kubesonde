@@ -11,16 +11,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/remotecommand"
-	v12 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/probe_command"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type KubesondeMode interface {
-	AddEdge(command probe_command.KubesondeCommand, value bool)
-	logInfo(string)
-	getKubesonde() v12.Kubesonde
-	logError(err error, message string)
 	getClient() kubernetes.Interface
 	runCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error)
 	runGenericCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand) (string, error)

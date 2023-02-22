@@ -47,7 +47,7 @@ func getServicesAsProbes(servicePorts []v1.ServicePort, pods []v1.Pod, serviceCl
 	return newItems
 }
 func isSamePort(podPort v1.ContainerPort, servicePort v1.ServicePort) bool {
-	if &servicePort.TargetPort == nil || servicePort.TargetPort.StrVal == "" {
+	if servicePort.TargetPort.StrVal == "" {
 		return podPort.ContainerPort == servicePort.Port
 	}
 	if podPort.Name == servicePort.TargetPort.String() {

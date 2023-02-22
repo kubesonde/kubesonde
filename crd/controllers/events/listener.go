@@ -74,12 +74,6 @@ func svcEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde
 			}
 
 		},
-		DeleteFunc: func(obj interface{}) {
-			return
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			return
-		},
 	}
 }
 

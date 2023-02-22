@@ -18,7 +18,7 @@ func GetProbesHandler() http.Handler {
 			log.Error(err, "[GET /probes]Could not not return data")
 			fmt.Fprintf(w, "Error")
 		}
-		fmt.Fprintf(w, string(data))
+		fmt.Fprintf(w, "%s", string(data))
 	}
 	handler := http.HandlerFunc(handerFun)
 	return handler
