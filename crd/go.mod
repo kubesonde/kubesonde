@@ -5,11 +5,10 @@ go 1.18
 require (
 	bou.ke/monkey v1.0.2
 	github.com/go-logr/logr v1.2.3
-	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
 	github.com/google/go-cmp v0.5.9
 	github.com/onsi/gomega v1.27.0
 	github.com/prometheus/client_golang v1.14.0
-	github.com/samber/lo v1.21.0
+	github.com/samber/lo v1.37.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/sync v0.1.0
 	k8s.io/api v0.24.2
@@ -75,7 +74,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gotest.tools v2.2.0+incompatible
 	k8s.io/apiextensions-apiserver v0.24.2 // indirect
 	k8s.io/component-base v0.24.2 // indirect
 	k8s.io/klog/v2 v2.70.0 // indirect
