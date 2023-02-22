@@ -127,7 +127,7 @@ func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace str
 		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort, &stdout, &stderr))
 		return false, err
 	}
-	//log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
+	// log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
 	//	command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
 
 	return checker(stdout.String()), nil

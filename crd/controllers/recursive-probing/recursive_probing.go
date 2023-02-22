@@ -13,13 +13,13 @@ var log = logf.Log.WithName("Recursive probing")
 
 func RecursiveProbing(Kubesonde securityv1.Kubesonde, when time.Duration) {
 	var task = func() {
-		go RunProbing(Kubesonde)
+		go RunProbing()
 		RecursiveProbing(Kubesonde, when)
 	}
 	time.AfterFunc(when, task)
 }
 
-func RunProbing(Kubesonde securityv1.Kubesonde) {
+func RunProbing() {
 	var probes = eventstorage.GetProbes()
 
 	if len(probes) <= 1 {

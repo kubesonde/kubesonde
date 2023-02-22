@@ -33,7 +33,7 @@ var notDebuggablePods = []string{"kube-apiserver-minikube", "etcd-minikube", "ku
 
 func IsProcessingEvent() bool {
 	var result = probe_processing_semaphore.TryAcquire(1)
-	if result == true {
+	if result {
 		probe_processing_semaphore.Release(1)
 	}
 	return !result
@@ -47,7 +47,7 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 	_, isnotDebuggable := lo.Find(notDebuggablePods, func(s string) bool {
 		return s == pod.Name
 	})
-	if isnotDebuggable == false {
+	if !isnotDebuggable {
 		debugcontainer.InstallEphameralContainers(client, &pods)
 	} else {
 		log.Info(fmt.Sprintf("Non debuggable pod: %s", pod.Name))
@@ -81,7 +81,7 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 	// TODO: Maybe there should be an event listener on the services to do the same thing.
 	curr_services, err := client.CoreV1().Services(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Info(fmt.Sprintf("Cannot get services"))
+		log.Info("Cannot get services")
 	}
 	services_probes := probe_command.BuildCommandsToServices(pod, curr_services.Items)
 	AddProbes(services_probes)

@@ -41,7 +41,6 @@ func SetProbeState(probes *v1.ProbeOutput) {
 	must(sem.Acquire(context.Background(), 1))
 	innerState = *probes
 	sem.Release(1)
-	return
 }
 
 func GetProbeState() v1.ProbeOutput {

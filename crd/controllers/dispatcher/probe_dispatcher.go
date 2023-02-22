@@ -42,7 +42,7 @@ func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
 func Run(apiClient *kubernetes.Clientset) {
 	const probesPerSecond = time.Second / 10
 	heap.Init(&pq)
-	for { //FIXME: this could also be event based maybe
+	for { // FIXME: this could also be event based maybe
 		for pq.Len() > 0 {
 			lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
 			start := time.Now()

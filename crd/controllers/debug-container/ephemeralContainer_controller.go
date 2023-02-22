@@ -156,7 +156,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 			}
 		}
 	}()
-	//log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
-	//	command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
+	// log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
+	// command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
 	return &stdout, &stderr, nil
 }

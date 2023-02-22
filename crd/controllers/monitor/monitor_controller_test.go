@@ -64,7 +64,7 @@ var _ = Describe("buildProbesFromMonitorContainer", func() {
 		// When/then
 		Expect(len(buildProbesFromMonitorContainer(client, p1, "testpod"))).To(Equal(1))
 
-		//cleanup
+		// cleanup
 		eventstorage.DeleteActivePod("anotherpod")
 		eventstorage.DeleteActivePod("testpod")
 	})

@@ -23,7 +23,7 @@ func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde
 			//	If we leave this condition, then we might lose information about the init containers
 			if /*pod.Status.Phase == v1.PodRunning &&*/ utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
 
-				//if utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
+				// if utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
 				addPodEvent(client, *pod)
 			}
 		},
@@ -50,7 +50,7 @@ func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde
 	}
 }
 
-func svcEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
+func svcEventHandler(Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			srv := obj.(*v1.Service)
@@ -84,7 +84,7 @@ func InitEventListener(client kubernetes.Interface, Kubesonde securityv1.Kubeson
 	svcInformer := kubeInformerFactory.Core().V1().Services().Informer()
 
 	podInformer.AddEventHandler(podEventHandler(client, Kubesonde))
-	svcInformer.AddEventHandler(svcEventHandler(client, Kubesonde))
+	svcInformer.AddEventHandler(svcEventHandler(Kubesonde))
 
 	stop := make(chan struct{})
 	defer close(stop)

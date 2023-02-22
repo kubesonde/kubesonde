@@ -56,7 +56,7 @@ func ephemeralContainerExists(pod v1.Pod) bool {
 }
 
 func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.KubesondeCommand) v12.ProbeOutput {
-	//runCommand, client := state.runCommand, state.getClient()
+	// runCommand, client := state.runCommand, state.getClient()
 	client := mode.getClient()
 
 	for _, kubesondeCommand := range commands {
@@ -100,7 +100,7 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 				}}
 			state.AppendErrors(&errors)
 			log.Info("Error when Probing...")
-		} else if err == nil && result == true {
+		} else if err == nil && result {
 			probes := []v12.ProbeOutputItem{{
 				Type:                 v12.PROBE,
 				ExpectedAction:       kubesondeCommand.Action,
@@ -123,7 +123,7 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 				Timestamp: time.Now().Unix(),
 			}}
 			state.AppendProbes(&probes)
-		} else if err == nil && result == false {
+		} else if err == nil && !result {
 			probes := []v12.ProbeOutputItem{{
 				Type:                 v12.PROBE,
 				ExpectedAction:       kubesondeCommand.Action,
@@ -157,7 +157,7 @@ func InspectAndStoreResult(client *kubernetes.Clientset, probes []probe_command.
 	probestate := new(KubesondeContinuousState)
 	probestate.Client = client
 	probeOutput := InspectWithContinuousMode(probestate, probes)
-	//state.AppendNetInfo(&probeOutput.PodNetworking)
+	// state.AppendNetInfo(&probeOutput.PodNetworking)
 	deployments := utils.GetDeploymentNamesInNamespace(client, probes[0].Namespace)
 	replicas := utils.GetReplicaSetsNamesInNamespace(client, probes[0].Namespace)
 	enriched_state := state.EnrichState(&probeOutput, replicas, deployments)
