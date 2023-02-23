@@ -27,6 +27,7 @@ import (
 var log = logf.Log.WithName("NetInfo controller")
 var MAX_CONNECT_RETRIES = 6
 
+// This function starts an infinite loop
 func RunMonitorContainers(client kubernetes.Interface) {
 	for {
 		var pods = eventstorage.GetActivePods() /*lo.Filter(GetActivePods(), func(pod v1.Pod, i int) bool {

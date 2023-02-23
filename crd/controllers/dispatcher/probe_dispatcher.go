@@ -1,3 +1,5 @@
+// The dispatcher module is responsible for scheduling the probes
+// it maintains an internal priority queue that continuously runs the probes
 package dispatcher
 
 import (
@@ -24,7 +26,7 @@ var (
 	pq                  = make(PriorityQueue, 0, 1000)
 )
 
-// Add to queue
+// Add probes to queue
 func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
 	lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
 	for index, probe := range probes {
@@ -38,7 +40,7 @@ func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
 
 }
 
-// Run
+// Main routine. Starts the probe running loop.
 func Run(apiClient *kubernetes.Clientset) {
 	const probesPerSecond = time.Second / 10
 	heap.Init(&pq)

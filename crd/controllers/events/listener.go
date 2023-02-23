@@ -77,6 +77,8 @@ func svcEventHandler(Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler 
 	}
 }
 
+// Setup event listener for pods and services. When a new event is received, probes
+// and ephemeral containers will be generated
 func InitEventListener(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) {
 	fmt.Printf("Setting up the event listener...")
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(client, time.Second*5)

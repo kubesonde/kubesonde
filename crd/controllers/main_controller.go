@@ -24,12 +24,13 @@ import (
 	"kubesonde.io/controllers/dispatcher"
 	kubesondeEvents "kubesonde.io/controllers/events"
 	kubesondemetrics "kubesonde.io/controllers/metrics"
+	"kubesonde.io/controllers/monitor"
 
 	"github.com/go-logr/logr"
+	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	. "kubesonde.io/controllers/monitor"
-	. "kubesonde.io/controllers/recursive-probing"
+	recursiveprobing "kubesonde.io/controllers/recursive-probing"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -49,11 +50,8 @@ type KubesondeReconciler struct {
 func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("Kubesonde-controller", req.NamespacedName)
 	clusterConfig := config.GetConfigOrDie()
-	apiClient, err := kubernetes.NewForConfig(clusterConfig)
-	if err != nil {
-		log.Error(err, "Wrong kubernetes configuration")
-		panic(err.Error())
-	}
+	apiClient := lo.Must1(kubernetes.NewForConfig(clusterConfig))
+
 	var Kubesonde securityv1.Kubesonde
 	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
 		log.Error(err, "unable to fetch Kubesonde")
@@ -74,10 +72,10 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	go kubesondeEvents.InitEventListener(apiClient, Kubesonde)
 
 	// Probing
-	go RecursiveProbing(Kubesonde, 20*time.Second)
+	go recursiveprobing.RecursiveProbing(Kubesonde, 20*time.Second)
 
 	// Monitor
-	go RunMonitorContainers(apiClient)
+	go monitor.RunMonitorContainers(apiClient)
 
 	return ctrl.Result{}, nil
 }

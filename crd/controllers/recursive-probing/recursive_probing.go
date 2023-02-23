@@ -11,6 +11,8 @@ import (
 
 var log = logf.Log.WithName("Recursive probing")
 
+// This function starts an infinite loop that runs all the probes at regular
+// intervals
 func RecursiveProbing(Kubesonde securityv1.Kubesonde, when time.Duration) {
 	var task = func() {
 		go RunProbing()
