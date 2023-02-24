@@ -1,4 +1,4 @@
-name: Build and Test frontend
+name: Deploy containers
 
 on:
   push:
