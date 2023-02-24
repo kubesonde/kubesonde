@@ -58,6 +58,21 @@ func GetDeployment(replica v1.ReplicaSet) (string, error) {
 	return "", errors.New("no deployment")
 }
 
+func GetReplicaAndDeployment(client kubernetes.Interface, pod k8sAPI.Pod) (string, string) {
+	if replicaSetName, err := GetReplicaSet(pod); err != nil {
+		return "", ""
+	} else {
+		replicaSet, err := client.AppsV1().ReplicaSets(pod.Namespace).Get(context.TODO(), replicaSetName, metav1.GetOptions{})
+		if err != nil {
+			return replicaSetName, ""
+		}
+		if deployment, err2 := GetDeployment(*replicaSet); err2 != nil {
+			return replicaSetName, ""
+		} else {
+			return replicaSetName, deployment
+		}
+	}
+}
 func GetReplicaSet(pod k8sAPI.Pod) (string, error) {
 
 	refs := pod.OwnerReferences
