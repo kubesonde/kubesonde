@@ -13,6 +13,7 @@ import (
 	v12 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
+	"kubesonde.io/controllers/utils"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -105,6 +106,23 @@ func toProbeItem(kubesondeCommand probe_command.KubesondeCommand, result v12.Act
 	}
 }
 
+func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
+	// Source is always a pod
+	source_pod, err_source := client.CoreV1().Pods(output.Source.Namespace).Get(context.TODO(), output.Source.Name, metav1.GetOptions{})
+	dest_pod, err_dest := client.CoreV1().Pods(output.Destination.Namespace).Get(context.TODO(), output.Destination.Name, metav1.GetOptions{})
+	if err_source == nil {
+		s_replica, s_deployment := utils.GetReplicaAndDeployment(client, *source_pod)
+		output.Source.ReplicaSetName = s_replica
+		output.Source.DeploymentName = s_deployment
+	}
+	if err_dest == nil {
+		d_replica, d_deployment := utils.GetReplicaAndDeployment(client, *dest_pod)
+		output.Destination.ReplicaSetName = d_replica
+		output.Destination.DeploymentName = d_deployment
+	}
+
+	return output
+}
 func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.KubesondeCommand) v12.ProbeOutput {
 	// runCommand, client := state.runCommand, state.getClient()
 	client := mode.getClient()
@@ -127,10 +145,10 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 			state.AppendErrors(&errors)
 			log.Info("Error when Probing...")
 		} else if err == nil && result {
-			probes := []v12.ProbeOutputItem{toProbeItem(kubesondeCommand, v12.ALLOW)}
+			probes := []v12.ProbeOutputItem{withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.ALLOW))}
 			state.AppendProbes(&probes)
 		} else if err == nil && !result {
-			probes := []v12.ProbeOutputItem{toProbeItem(kubesondeCommand, v12.DENY)}
+			probes := []v12.ProbeOutputItem{withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.DENY))}
 			state.AppendProbes(&probes)
 		}
 	}
