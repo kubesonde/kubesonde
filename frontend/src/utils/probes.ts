@@ -48,10 +48,10 @@ const toErrorEdge = (groupMap: Map<string, string>) => (probe: ProbeOutputError,
     id: index.toString() + "disallowed",
     from: probe.value.source.name, //source.name.endsWith('DNS') ? PUBLIC_DNS : probe.source.name,
     to: probe.value.destination.name,//probe.destination.name.endsWith('DNS') ? PUBLIC_DNS : probe.destination.name,
-    label: probe.reason.toString(),
+    label: probe.value.port ? probe.value.port.toString() : "UNKNOWN",
     fromDeployment: groupMap.get(probe.value.source.name),
     toDeployment: groupMap.get(probe.value.destination.name),
-    port: probe.value.port ?? "None",
+    port: probe.value.forwardedPort ? `${probe.value.port}:${probe.value.forwardedPort}/${probe.value.protocol}` : `${probe.value.port}/${probe.value.protocol}`,
     hidden: true,
     deniedConnection: true,
     timestamp: probe.value.timestamp
@@ -66,61 +66,29 @@ export function getNetstatInfoFromProbes(input_probes: ProbeOutput): NetstatInfo
     }))
 }
 
-export function buildNodesFromProbes(input_probes: ProbeOutput): GraphNode[] {
-    const regular_nodes: ProbeEndpointInfo[] = input_probes.items.map(probe => [probe.source, probe.destination]).flat()
-    const error_nodes: ProbeEndpointInfo[] = input_probes.errors.map(probe => [probe.value.source, probe.value.destination]).flat()
-
-    const individualNodes = Array.from(new Set(regular_nodes.concat(error_nodes)))
-    const individualNodesNames = individualNodes.map(node => node.name)
-    const buildTitle = (node: string): string | undefined => {
-        const nodeInfo = (input_probes.items).concat(input_probes.errors.map(e => e.value)).find((item) => item.source.name === node)
-        if (!nodeInfo) {
-            return undefined
-        }
-        const namespace = nodeInfo.source.namespace
-        const name = nodeInfo.source.name
-        const hostNames = nodeInfo.destinationHostnames
-        const deployment = nodeInfo.source.deploymentName
-        const title = JSON.stringify({
-            name,
-            namespace,
-            hostNames,
-            deployment
-        }, null, 2)
-        return title
-    }
-    const groupMap = buildGroupMap(input_probes)
-    const nodesFromAllowedProbes = individualNodes.map((item) => (
-        {
-            id: item.name,
+export function buildNodesFromProbes(probes: ProbeOutput): GraphNode[] {
+    const buildTitle = (item: ProbeEndpointInfo): string => {
+        return JSON.stringify({
             name: item.name,
-            label: item.name,
-            deployment: groupMap.get(item.name),
-            group: groupMap.get(item.name),
-            title: buildTitle(item.name),
-            type: item.type as string
-        }))
-
-    const disallowedProbes = input_probes.items
-        .filter((probe) => probe.resultingAction === "Deny")
-        .map((probe) => ([probe.source, probe.destination])).flat()
-    const nodesToBeAdded = Array.from(new Set(disallowedProbes.filter((node) => !individualNodesNames.includes(node.name))))
-        .map((item) => (
-            {
-                id: item.name,
-                name: item.name,
-                label: item.name,
-                hidden: true,
-                deployment: groupMap.get(item.name),
-                group: groupMap.get(item.name),
-                title: buildTitle(item.name),
-                type: item.type as string
-            }))
-    const retval = [...nodesFromAllowedProbes, ...nodesToBeAdded]
-    const uniqueArray = retval.filter((value) => value.id
+            namespace: item.namespace,
+            deployment: item.deploymentName
+        }, null, 2)
+    }
+    const allProbes = probes.items.concat(probes.errors.map(e => e.value))
+    const allNodes = allProbes.map(probe => [probe.source, probe.destination]).flat()
+    const nodes = allNodes.map((item) => ({
+        id: item.name,
+        name: item.name,
+        label: item.name,
+        deployment: item.deploymentName,
+        group: item.deploymentName,
+        title: buildTitle(item),
+        type: item.type as string
+    }))
+    const uniqueArray = nodes.filter((value) => value.id
         !== undefined).filter((value, index) => {
             const _value = JSON.stringify(value);
-            return index === retval.findIndex(obj => {
+            return index === nodes.findIndex(obj => {
                 return JSON.stringify(obj) === _value;
             });
         });
@@ -162,13 +130,6 @@ export function buildEdgesFromProbes(probes: ProbeOutput): SimpleGraphEdge[] {
         .map((edge) => ({ ...edge, id: edge.id + "disallowed", hidden: true }))
     const errorEdges = probes.errors.map(toErrorEdge(groupMap))
     const retval = removeDuplicates([...allowedEdges, ...disallowedEdges, ...errorEdges])
-    /*const retvalSameId = retval.map(item => ({ ...item, id: '1' }))
-    const uniqueArray = retvalSameId.filter((value, index) => {
-        const _value = JSON.stringify(value);
-        return index === retvalSameId.findIndex(obj => {
-            return JSON.stringify(obj) === _value;
-        });
-    });*/
     const uniqueId = retval.map((item, index) => ({ ...item, id: index.toString() }))
     return uniqueId
 }
