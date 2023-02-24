@@ -13,6 +13,8 @@ jobs:
     uses: jackap/kubesonde/.github/workflows/go_base.yaml@main
 
   deploy:
+    needs:
+      - prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
