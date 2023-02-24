@@ -2,7 +2,6 @@ package inner
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -59,7 +58,7 @@ func runGenericCommand(client *kubernetes.Clientset, namespace string, command p
 		Tty:    false,
 	})
 	if err != nil {
-		log.Info(fmt.Sprintf(`
+		/*log.Info(fmt.Sprintf(`
 		Namespace: %s,
 		Endpoint: %s
 		Error: %v
@@ -68,7 +67,7 @@ func runGenericCommand(client *kubernetes.Clientset, namespace string, command p
 		Destination : %s:%s,
 		Stdout: %s
 		Stderr : %s
-		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort, &stdout, &stderr))
+		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort, &stdout, &stderr))*/
 		return err.Error(), err
 	}
 	// log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
@@ -115,7 +114,7 @@ func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace str
 		Tty:    false,
 	})
 	if err != nil {
-		log.Info(fmt.Sprintf(`
+		/*log.Info(fmt.Sprintf(`
 		Namespace: %s,
 		Endpoint: %s
 		Error: %v
@@ -124,7 +123,7 @@ func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace str
 		Destination : %s:%s,
 		Stdout: %s
 		Stderr : %s
-		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort, &stdout, &stderr))
+		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort, &stdout, &stderr))*/
 		return false, err
 	}
 	// log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",

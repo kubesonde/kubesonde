@@ -2,7 +2,6 @@ package inner
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -53,18 +52,18 @@ func runRemoteCommand(client *kubernetes.Clientset, namespace string, command pr
 		Tty:    false,
 	})
 	if err != nil {
-		log.Info(fmt.Sprintf(`
+		/*log.Info(fmt.Sprintf(`
 		Namespace: %s,
 		Endpoint: %s
 		Error: %v
 		When running command: %s
 		Source Pod: %s
 		Destination : %s:%s
-		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort))
+		`, namespace, req.URL().String(), err, command.Command, command.SourcePodName, command.Destination, command.DestinationPort))*/
 		return false
 	}
-	log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
-		command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
+	//	log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
+	//		command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
 
 	return checker(stdout.String())
 }
