@@ -13,7 +13,6 @@ import (
 	v12 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
-	"kubesonde.io/controllers/utils"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -55,6 +54,57 @@ func ephemeralContainerExists(pod v1.Pod) bool {
 	return ok1 && ok2
 }
 
+func toProbeError(kubesondeCommand probe_command.KubesondeCommand, err error) v12.ProbeOutputError {
+	return v12.ProbeOutputError{
+		Value: v12.ProbeOutputItem{
+			Type:            v12.PROBE,
+			ExpectedAction:  kubesondeCommand.Action,
+			ResultingAction: v12.DENY,
+			Source: v12.ProbeEndpointInfo{
+				Type:      kubesondeCommand.SourceType,
+				Name:      kubesondeCommand.SourcePodName,
+				Namespace: kubesondeCommand.Namespace,
+				IPAddress: kubesondeCommand.SourceIPAddress,
+			},
+			Destination: v12.ProbeEndpointInfo{
+				Type:      kubesondeCommand.DestinationType,
+				Name:      kubesondeCommand.Destination,
+				Namespace: kubesondeCommand.Namespace,
+				IPAddress: kubesondeCommand.DestinationIPAddress,
+			},
+			DestinationHostnames: kubesondeCommand.DestinationHostnames,
+			Protocol:             kubesondeCommand.Protocol,
+			Port:                 kubesondeCommand.DestinationPort,
+			Timestamp:            time.Now().Unix(),
+		},
+		Reason: err.Error(),
+	}
+}
+
+func toProbeItem(kubesondeCommand probe_command.KubesondeCommand, result v12.ActionType) v12.ProbeOutputItem {
+	return v12.ProbeOutputItem{
+		Type:                 v12.PROBE,
+		ExpectedAction:       kubesondeCommand.Action,
+		DestinationHostnames: kubesondeCommand.DestinationHostnames,
+		ResultingAction:      result,
+		Source: v12.ProbeEndpointInfo{
+			Type:      kubesondeCommand.SourceType,
+			Name:      kubesondeCommand.SourcePodName,
+			Namespace: kubesondeCommand.Namespace,
+			IPAddress: kubesondeCommand.SourceIPAddress,
+		},
+		Destination: v12.ProbeEndpointInfo{
+			Type:      kubesondeCommand.DestinationType,
+			Name:      kubesondeCommand.Destination,
+			Namespace: kubesondeCommand.Namespace,
+			IPAddress: kubesondeCommand.DestinationIPAddress,
+		},
+		Port:      kubesondeCommand.DestinationPort,
+		Protocol:  kubesondeCommand.Protocol,
+		Timestamp: time.Now().Unix(),
+	}
+}
+
 func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.KubesondeCommand) v12.ProbeOutput {
 	// runCommand, client := state.runCommand, state.getClient()
 	client := mode.getClient()
@@ -73,78 +123,14 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 		result, err := mode.runCommand(client, kubesondeCommand.Namespace, kubesondeCommand, kubesondeCommand.ProbeChecker)
 
 		if err != nil {
-			errors := []v12.ProbeOutputError{
-				{
-					Value: v12.ProbeOutputItem{
-						Type:            v12.PROBE,
-						ExpectedAction:  kubesondeCommand.Action,
-						ResultingAction: v12.DENY,
-						Source: v12.ProbeEndpointInfo{
-							Type:      kubesondeCommand.SourceType,
-							Name:      kubesondeCommand.SourcePodName,
-							Namespace: kubesondeCommand.Namespace,
-							IPAddress: kubesondeCommand.SourceIPAddress,
-						},
-						Destination: v12.ProbeEndpointInfo{
-							Type:      kubesondeCommand.DestinationType,
-							Name:      kubesondeCommand.Destination,
-							Namespace: kubesondeCommand.Namespace,
-							IPAddress: kubesondeCommand.DestinationIPAddress,
-						},
-						DestinationHostnames: kubesondeCommand.DestinationHostnames,
-						Protocol:             kubesondeCommand.Protocol,
-						Port:                 kubesondeCommand.DestinationPort,
-						Timestamp:            time.Now().Unix(),
-					},
-					Reason: err.Error(),
-				}}
+			errors := []v12.ProbeOutputError{toProbeError(kubesondeCommand, err)}
 			state.AppendErrors(&errors)
 			log.Info("Error when Probing...")
 		} else if err == nil && result {
-			probes := []v12.ProbeOutputItem{{
-				Type:                 v12.PROBE,
-				ExpectedAction:       kubesondeCommand.Action,
-				DestinationHostnames: kubesondeCommand.DestinationHostnames,
-				ResultingAction:      v12.ALLOW,
-				Source: v12.ProbeEndpointInfo{
-					Type:      kubesondeCommand.SourceType,
-					Name:      kubesondeCommand.SourcePodName,
-					Namespace: kubesondeCommand.Namespace,
-					IPAddress: kubesondeCommand.SourceIPAddress,
-				},
-				Destination: v12.ProbeEndpointInfo{
-					Type:      kubesondeCommand.DestinationType,
-					Name:      kubesondeCommand.Destination,
-					Namespace: kubesondeCommand.Namespace,
-					IPAddress: kubesondeCommand.DestinationIPAddress,
-				},
-				Port:      kubesondeCommand.DestinationPort,
-				Protocol:  kubesondeCommand.Protocol,
-				Timestamp: time.Now().Unix(),
-			}}
+			probes := []v12.ProbeOutputItem{toProbeItem(kubesondeCommand, v12.ALLOW)}
 			state.AppendProbes(&probes)
 		} else if err == nil && !result {
-			probes := []v12.ProbeOutputItem{{
-				Type:                 v12.PROBE,
-				ExpectedAction:       kubesondeCommand.Action,
-				DestinationHostnames: kubesondeCommand.DestinationHostnames,
-				ResultingAction:      v12.DENY,
-				Source: v12.ProbeEndpointInfo{
-					Type:      kubesondeCommand.SourceType,
-					Name:      kubesondeCommand.SourcePodName,
-					Namespace: kubesondeCommand.Namespace,
-					IPAddress: kubesondeCommand.SourceIPAddress,
-				},
-				Destination: v12.ProbeEndpointInfo{
-					Type:      kubesondeCommand.DestinationType,
-					Name:      kubesondeCommand.Destination,
-					Namespace: kubesondeCommand.Namespace,
-					IPAddress: kubesondeCommand.DestinationIPAddress,
-				},
-				Port:      kubesondeCommand.DestinationPort,
-				Protocol:  kubesondeCommand.Protocol,
-				Timestamp: time.Now().Unix(),
-			}}
+			probes := []v12.ProbeOutputItem{toProbeItem(kubesondeCommand, v12.DENY)}
 			state.AppendProbes(&probes)
 		}
 	}
@@ -157,17 +143,7 @@ func InspectAndStoreResult(client *kubernetes.Clientset, probes []probe_command.
 	probestate := new(KubesondeContinuousState)
 	probestate.Client = client
 	probeOutput := InspectWithContinuousMode(probestate, probes)
-	// state.AppendNetInfo(&probeOutput.PodNetworking)
-	deployments := utils.GetDeploymentNamesInNamespace(client, probes[0].Namespace)
-	replicas := utils.GetReplicaSetsNamesInNamespace(client, probes[0].Namespace)
-	enriched_state := state.EnrichState(&probeOutput, replicas, deployments)
-	/*svcs_before := lo.Filter(probes, func(item probe_command.KubesondeCommand, idx int) bool {
-		return item.DestinationType == v12.SERVICE
-	})
-	svcs := lo.Filter(probeOutput.Items, func(item v12.ProbeOutputItem, idx int) bool {
-		return item.Destination.Type == v12.SERVICE
-	})
-	log.Info(fmt.Sprintf("%d services scanned out of %d possible probes", len(svcs), len(svcs_before)))*/
-	state.AppendProbes(&enriched_state.Items)
-	state.AppendErrors(&enriched_state.Errors)
+
+	state.AppendProbes(&probeOutput.Items)
+	state.AppendErrors(&probeOutput.Errors)
 }
