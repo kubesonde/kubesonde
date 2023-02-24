@@ -1,0 +1,34 @@
+name: Build and Test frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - crd/**
+      - .github/**
+
+jobs:
+  prepare:
+    uses: jackap/kubesonde/.github/workflows/go_base.yaml@main
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to github registry
+        uses: actions-hub/docker/login@master
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_REGISTRY_URL: registry.cs.aalto.fi:5000
+
+      - name: Build :latest
+        working-directory: crd
+        if: success()
+        run: make docker-build
+
+      - name: Push to Repository :latest
+        if: success()
+        run: make docker-push

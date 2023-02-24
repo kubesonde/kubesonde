@@ -1,16 +1,7 @@
 name: Build and test CRD
 
 on:
-  push:
-    branches:
-      - master
-      - dev
-    paths:
-      - crd/**
-  pull_request:
-    branches:
-      - "**"
-      - ".github/**"
+  workflow_call:
 
 jobs:
   build:

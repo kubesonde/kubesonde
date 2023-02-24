@@ -1,0 +1,13 @@
+name: Build and Test frontend
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - crd/**
+      - .github/**
+
+jobs:
+  prepare:
+    uses: jackap/kubesonde/.github/workflows/go_base.yaml@main
