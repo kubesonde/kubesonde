@@ -66,7 +66,7 @@ func ProcessNetInfo(apiClient kubernetes.Interface, stdout *bytes.Buffer, stderr
 		if stdout.Len() == 0 {
 			counter += 1
 			if counter >= MAX_CONNECT_RETRIES {
-				log.Info(fmt.Sprintf("Restarting monitor probes on %s", podname))
+				log.Info(fmt.Sprintf("Restarting monitor container on %s", podname))
 				if len(stderr.String()) > 0 {
 					log.Info(fmt.Sprintf("Stderr %s", stderr.String()))
 				}

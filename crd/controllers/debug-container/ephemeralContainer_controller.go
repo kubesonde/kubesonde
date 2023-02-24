@@ -151,7 +151,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 				Stderr: &stderr,
 			})
 			if err != nil {
-				log.Error(err, "Streaming error")
+				log.Info("Monitor container not found in Pod %s", sourcePodName)
 				time.Sleep(3 * time.Second)
 			}
 		}

@@ -45,7 +45,7 @@ run-test-env:
 .SILENT:
 deploy-docker-container:
 	echo "Building kubesonde docker image..."
-	eval $$(minikube -p minikube docker-env) && make docker-build && docker pull instrumentisto/nmap:latest &&  docker build docker/gonetstat -t monitor:latest
+	eval $$(minikube -p minikube docker-env) && make docker-build && docker pull instrumentisto/nmap:latest &&  docker build ../docker/gonetstat -t monitor:latest
 	make deploy
 
 test: generate fmt vet manifests
