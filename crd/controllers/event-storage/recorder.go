@@ -5,6 +5,7 @@ import v1 "k8s.io/api/core/v1"
 type CreatedPodRecord struct {
 	Pod               v1.Pod
 	DeploymentName    string
+	ReplicaSetName    string
 	CreationTimestamp int64
 }
 

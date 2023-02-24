@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -18,6 +17,7 @@ import (
 	. "kubesonde.io/controllers/event-storage"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
+	"kubesonde.io/controllers/utils"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -57,13 +57,7 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 	}
 
 	var timestamp = time.Now().Unix()
-	var deployment string
-	// TODO: this is a hacky thing.
-	if strings.ContainsAny(pod.Name, "-") {
-		deployment = strings.Split(pod.Name, "-")[0]
-	} else {
-		deployment = ""
-	}
+
 	/**
 	If the active pods list is not empty then build probes
 	*/
@@ -87,11 +81,13 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 	AddProbes(services_probes)
 	other_probes := probe_command.BuildCommandsToOutsideWorld(pod)
 	AddProbes(other_probes)
+	replicaSet, deployment := utils.GetReplicaAndDeployment(client, pod)
 
 	AddActivePod(pod.Name, CreatedPodRecord{
 		Pod:               pod,
 		CreationTimestamp: timestamp,
 		DeploymentName:    deployment,
+		ReplicaSetName:    replicaSet,
 	})
 
 	addPodPortsToState(pod)
