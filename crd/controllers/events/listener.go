@@ -20,10 +20,8 @@ func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde
 		AddFunc: func(obj interface{}) {
 			pod := obj.(*v1.Pod)
 
-			//	If we leave this condition, then we might lose information about the init containers
-			if /*pod.Status.Phase == v1.PodRunning &&*/ utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
+			if utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
 
-				// if utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
 				addPodEvent(client, *pod)
 			}
 		},
@@ -40,9 +38,6 @@ func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde
 			if !utils.InNamespace(Kubesonde.Spec.Namespace, oldPod.Namespace) {
 				return
 			}
-			/*if oldPod.Status.Phase != v1.PodRunning && newPod.Status.Phase == v1.PodRunning {
-				addPodEvent(client, *newPod)
-			} else */
 			if oldPod.Status.Phase == v1.PodRunning && newPod.Status.Phase != v1.PodRunning {
 				deletePodEvent(*oldPod)
 			}
