@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 
 	lo "github.com/samber/lo"
 	v1 "k8s.io/api/apps/v1"
@@ -40,6 +41,36 @@ func InNamespace(configurationNamespace string, podNamespace string) bool {
 		return configurationNamespace == podNamespace
 	}
 
+}
+
+func GetDeployment(replica v1.ReplicaSet) (string, error) {
+
+	refs := replica.OwnerReferences
+	depRefs := lo.Filter(refs, func(ref metav1.OwnerReference, idx int) bool {
+		return ref.Kind == "Deployment"
+	})
+	depName := lo.Map(depRefs, func(ref metav1.OwnerReference, idx int) string {
+		return ref.Name
+	})
+	if len(depName) == 1 {
+		return depName[0], nil
+	}
+	return "", errors.New("no deployment")
+}
+
+func GetReplicaSet(pod k8sAPI.Pod) (string, error) {
+
+	refs := pod.OwnerReferences
+	depRefs := lo.Filter(refs, func(ref metav1.OwnerReference, idx int) bool {
+		return ref.Kind == "ReplicaSet"
+	})
+	depName := lo.Map(depRefs, func(ref metav1.OwnerReference, idx int) string {
+		return ref.Name
+	})
+	if len(depName) == 1 {
+		return depName[0], nil
+	}
+	return "", errors.New("no replicas")
 }
 
 func GetDeploymentNamesInNamespace(client kubernetes.Interface, namespace string) []string {
