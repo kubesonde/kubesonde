@@ -71,17 +71,18 @@ export function buildNodesFromProbes(probes: ProbeOutput): GraphNode[] {
         return JSON.stringify({
             name: item.name,
             namespace: item.namespace,
-            deployment: item.deploymentName
+            //      deployment: item.deploymentName
         }, null, 2)
     }
+    const groupMap = buildGroupMap(probes)
     const allProbes = probes.items.concat(probes.errors.map(e => e.value))
     const allNodes = allProbes.map(probe => [probe.source, probe.destination]).flat()
     const nodes = allNodes.map((item) => ({
         id: item.name,
         name: item.name,
         label: item.name,
-        deployment: item.deploymentName,
-        group: item.deploymentName,
+        deployment: groupMap.get(item.name),
+        group: groupMap.get(item.name),
         title: buildTitle(item),
         type: item.type as string
     }))
