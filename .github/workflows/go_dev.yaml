@@ -7,6 +7,12 @@ on:
     paths:
       - crd/**
       - .github/**
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - crd/**
+      - .github/**
 
 jobs:
   prepare:

@@ -6,6 +6,13 @@ on:
       - dev
     paths:
       - frontend/**
+      - .github/**
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - frontend/**
+      - .github/**
 
 jobs:
   prepare:
