@@ -29,7 +29,7 @@ func (mock *MockedCNIState) runCommand(client kubernetes.Interface, namespace st
 
 }
 
-func (mock *MockedCNIState) runGenericCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand) (string, error) {
+func (mock *MockedCNIState) runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error) {
 	ret := mock.Called(client, namespace, command)
 	return ret.Get(0).(string), ret.Error(1)
 

@@ -92,7 +92,7 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 
 	addPodPortsToState(pod)
 }
-func PodWithEphemeralContainer(client *kubernetes.Clientset, pod v1.Pod) bool {
+func PodWithEphemeralContainer(client kubernetes.Interface, pod v1.Pod) bool {
 	ppd, _ := client.CoreV1().Pods(pod.Namespace).Get(context.TODO(), pod.Name, metav1.GetOptions{})
 	return EphemeralContainersRunning(ppd.Spec.EphemeralContainers, pod.Status.EphemeralContainerStatuses)
 }
@@ -134,7 +134,7 @@ func EphemeralContainersRunning(ephc []v1.EphemeralContainer, ephStats []v1.Cont
 	}
 	return true
 }
-func WaitEphemeralContainersToBeRunning(client *kubernetes.Clientset, pod v1.Pod) bool {
+func WaitEphemeralContainersToBeRunning(client kubernetes.Interface, pod v1.Pod) bool {
 	failures := 0
 polleph:
 	for {
@@ -166,7 +166,7 @@ polleph:
 		return true
 	}
 }
-func WaitContainersToBeRunning(client *kubernetes.Clientset, pod v1.Pod) {
+func WaitContainersToBeRunning(client kubernetes.Interface, pod v1.Pod) {
 polleph:
 	for {
 		ppd, _ := client.CoreV1().Pods(pod.Namespace).Get(context.TODO(), pod.Name, metav1.GetOptions{})

@@ -21,7 +21,7 @@ var log = logf.Log.WithName("Kubesonde Runner")
 
 type KubesondeContinuousState struct {
 	Log       logr.Logger
-	Client    *kubernetes.Clientset
+	Client    kubernetes.Interface
 	Kubesonde v12.Kubesonde
 }
 
@@ -33,7 +33,7 @@ func (state *KubesondeContinuousState) runCommand(client kubernetes.Interface, n
 	return runRemoteCommandWithErrorHandler(client, namespace, command, checker)
 }
 
-func (state *KubesondeContinuousState) runGenericCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand) (string, error) {
+func (state *KubesondeContinuousState) runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error) {
 	return runGenericCommand(client, namespace, command)
 }
 
@@ -156,7 +156,7 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 	return state.GetProbeState()
 }
 
-func InspectAndStoreResult(client *kubernetes.Clientset, probes []probe_command.KubesondeCommand) {
+func InspectAndStoreResult(client kubernetes.Interface, probes []probe_command.KubesondeCommand) {
 	// log.Info("Probing...")
 	probestate := new(KubesondeContinuousState)
 	probestate.Client = client

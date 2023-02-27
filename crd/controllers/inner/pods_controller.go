@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func runRemoteCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) bool {
+func runRemoteCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) bool {
 	req := client.
 		CoreV1().
 		RESTClient().

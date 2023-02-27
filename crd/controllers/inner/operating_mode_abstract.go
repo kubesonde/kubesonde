@@ -17,10 +17,10 @@ import (
 type KubesondeMode interface {
 	getClient() kubernetes.Interface
 	runCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error)
-	runGenericCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand) (string, error)
+	runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error)
 }
 
-func runGenericCommand(client *kubernetes.Clientset, namespace string, command probe_command.KubesondeCommand) (string, error) {
+func runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error) {
 	req := client.
 		CoreV1().
 		RESTClient().

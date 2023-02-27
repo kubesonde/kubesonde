@@ -41,7 +41,7 @@ func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
 }
 
 // Main routine. Starts the probe running loop.
-func Run(apiClient *kubernetes.Clientset) {
+func Run(apiClient kubernetes.Interface) {
 	const probesPerSecond = time.Second / 10
 	heap.Init(&pq)
 	for { // FIXME: this could also be event based maybe
