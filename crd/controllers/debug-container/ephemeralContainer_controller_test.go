@@ -18,14 +18,14 @@ func TestEphemeralContainers(t *testing.T) {
 	RunSpecs(t, "Ephemeral controller")
 }
 
-var _ = Describe("ephemeralContainerExists", func() {
+var _ = Describe("EphemeralContainerExists", func() {
 	It("Finds duplicate containers", func() {
 		pod := v1.Pod{
 			Spec: v1.PodSpec{
 				EphemeralContainers: []v1.EphemeralContainer{{}, {}},
 			},
 		}
-		Expect(ephemeralContainerExists(pod)).To(BeFalse())
+		Expect(EphemeralContainerExists(pod)).To(BeFalse())
 	})
 	It("Returns true if all containers have been installed", func() {
 		pod := v1.Pod{
@@ -37,7 +37,7 @@ var _ = Describe("ephemeralContainerExists", func() {
 				}},
 			},
 		}
-		Expect(ephemeralContainerExists(pod)).To(BeTrue())
+		Expect(EphemeralContainerExists(pod)).To(BeTrue())
 	})
 })
 

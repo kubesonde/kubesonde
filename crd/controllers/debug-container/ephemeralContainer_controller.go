@@ -24,14 +24,14 @@ var log = logf.Log.WithName("controllers.state")
 func InstallEphameralContainers(client kubernetes.Interface, pods *v1.PodList) {
 
 	for _, pod := range pods.Items {
-		if !ephemeralContainerExists(pod) {
+		if !EphemeralContainerExists(pod) {
 			installContainers(client, pod)
 			log.V(1).Info(fmt.Sprintf("ephemeral container installed in %s pod", pod.Name))
 		}
 
 	}
 }
-func ephemeralContainerExists(pod v1.Pod) bool {
+func EphemeralContainerExists(pod v1.Pod) bool {
 	// FIXME: check if container with `debugger` name exists
 	ephCont := pod.Spec.EphemeralContainers
 	var ephNames = lo.Map(ephCont, func(ec v1.EphemeralContainer, i int) string {
@@ -48,6 +48,16 @@ func ephemeralContainerExists(pod v1.Pod) bool {
 		log.Info(fmt.Sprintf("Pod %s has %v ephemeral containers", pod.Name, ephNames))
 	}
 	return ok
+}
+
+func EphemeralContainersRunning(pod v1.Pod) bool {
+	// FIXME: check if container with `debugger` name exists
+	ephCont := pod.Status.EphemeralContainerStatuses
+	ready := lo.Filter(ephCont, func(item v1.ContainerStatus, index int) bool {
+		return item.State.Running != nil
+
+	})
+	return len(ready) == 2
 }
 
 func installContainers(client kubernetes.Interface, pod v1.Pod) {
@@ -116,7 +126,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}
 
-	if !ephemeralContainerExists(*pod) {
+	if !EphemeralContainersRunning(*pod) {
 		log.Info("Ephemeral containers are not ready")
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}

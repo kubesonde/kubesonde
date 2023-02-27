@@ -25,7 +25,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("NetInfo controller")
+var log = logf.Log.WithName("Monitor controller")
 var MAX_CONNECT_RETRIES = 6
 
 // This function starts an infinite loop

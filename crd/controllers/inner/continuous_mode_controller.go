@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/samber/lo"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	v12 "kubesonde.io/api/v1"
+	debug_container "kubesonde.io/controllers/debug-container"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
 	"kubesonde.io/controllers/utils"
@@ -35,24 +34,6 @@ func (state *KubesondeContinuousState) runCommand(client kubernetes.Interface, n
 
 func (state *KubesondeContinuousState) runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error) {
 	return runGenericCommand(client, namespace, command)
-}
-
-func ephemeralContainerExists(pod v1.Pod) bool {
-	// FIXME: check if container with `debugger` name exists
-	ephCont := pod.Spec.EphemeralContainers
-	var ephNames = lo.Map(ephCont, func(ec v1.EphemeralContainer, i int) string {
-		return ec.Name
-	})
-	_, ok1 := lo.Find(ephNames, func(s string) bool {
-		return s == "debugger"
-	})
-	_, ok2 := lo.Find(ephNames, func(s string) bool {
-		return s == "monitor"
-	})
-	if len(ephNames) != 2 {
-		log.Info(fmt.Sprintf("Pod %s has %v ephemeral containers", pod.Name, ephNames))
-	}
-	return ok1 && ok2
 }
 
 func toProbeError(kubesondeCommand probe_command.KubesondeCommand, err error) v12.ProbeOutputError {
@@ -133,8 +114,8 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 			continue
 		}
 
-		if !ephemeralContainerExists(*pod) {
-			log.Info("Ephemeral containers are not ready")
+		if !debug_container.EphemeralContainerExists(*pod) || !debug_container.EphemeralContainersRunning(*pod) {
+			log.Info(fmt.Sprintf("Ephemeral containers are not ready: %s", pod.Name))
 			continue
 		}
 
