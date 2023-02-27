@@ -80,6 +80,9 @@ func eventuallyDecodeNetinfoData(stdout *bytes.Buffer) (types.NestatInfoRequestB
 		stdout.Next(1)
 		payload_raw = stdout.String()
 		index = strings.Index(payload_raw, "\n")
+		if index < 0 {
+			return nil, errors.New("not found")
+		}
 	}
 
 	var potential_json = stdout.Next(index)
@@ -88,7 +91,6 @@ func eventuallyDecodeNetinfoData(stdout *bytes.Buffer) (types.NestatInfoRequestB
 	if err != nil {
 		log.Error(err, "Could not decode monitor")
 		log.Info(string(payload_raw))
-		time.Sleep(3 * time.Second)
 		return nil, errors.New("could not decode")
 	}
 	return payload, nil

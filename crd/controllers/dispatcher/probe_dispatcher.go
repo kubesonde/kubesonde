@@ -45,18 +45,17 @@ func Run(apiClient kubernetes.Interface) {
 	const probesPerSecond = time.Second / 10
 	heap.Init(&pq)
 	for { // FIXME: this could also be event based maybe
+		lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
 		for pq.Len() > 0 {
-			lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
 			start := time.Now()
 			item := heap.Pop(&pq).(*Item)
-			dispatcherSemaphore.Release(1)
 			inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{item.value})
 			duration := time.Since(start)
-
 			if duration < probesPerSecond {
 				time.Sleep(probesPerSecond - duration)
 			}
 
 		}
+		dispatcherSemaphore.Release(1)
 	}
 }

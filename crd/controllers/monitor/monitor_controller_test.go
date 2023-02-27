@@ -1,11 +1,15 @@
 package monitor
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/samber/lo"
 	v12 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -69,4 +73,53 @@ var _ = Describe("buildProbesFromMonitorContainer", func() {
 		eventstorage.DeleteActivePod("testpod")
 	})
 
+})
+
+var _ = Describe("Decode netinfo data", func() {
+	It("Returns error when buffer does not exist", func() {
+		buffer := new(bytes.Buffer)
+		_, err := eventuallyDecodeNetinfoData(buffer)
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(Equal("not found"))
+	})
+
+	It("Returns error when no new line is available", func() {
+		buffer := new(bytes.Buffer)
+		message := "Test"
+		buffer.Write([]byte(message))
+		_, err := eventuallyDecodeNetinfoData(buffer)
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(Equal("not found"))
+	})
+	It("Returns error when data structure cannot be decoded and starts with newline", func() {
+		buffer := new(bytes.Buffer)
+		message := "\nTest"
+		buffer.Write([]byte(message))
+		_, err := eventuallyDecodeNetinfoData(buffer)
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(Equal("not found"))
+	})
+	It("Returns error when data structure cannot be decoded and ends with newline", func() {
+		buffer := new(bytes.Buffer)
+		message := "Test\n"
+		buffer.Write([]byte(message))
+		_, err := eventuallyDecodeNetinfoData(buffer)
+		Expect(err).NotTo(BeNil())
+		Expect(err.Error()).To(Equal("could not decode"))
+	})
+	It("Decodes netinfo information", func() {
+		netinfo := types.NestatInfoRequestBody{
+			types.NestatInfoRequestBodyItem{Fd: 1,
+				Family: 2,
+				Type:   1,
+				Laddr:  []string{"1.1.1.1", "8080"}},
+		}
+		data := lo.Must1(json.Marshal(netinfo))
+		buffer := new(bytes.Buffer)
+		message := fmt.Sprintf("%s\n", data)
+		buffer.Write([]byte(message))
+		payload, err := eventuallyDecodeNetinfoData(buffer)
+		Expect(err).To(BeNil())
+		Expect(payload).To(Equal(netinfo))
+	})
 })
