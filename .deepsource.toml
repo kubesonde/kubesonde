@@ -20,9 +20,6 @@ name = "shell"
 name = "secrets"
 
 [[analyzers]]
-name = "test-coverage"
-
-[[analyzers]]
 name = "docker"
 
   [analyzers.meta]
