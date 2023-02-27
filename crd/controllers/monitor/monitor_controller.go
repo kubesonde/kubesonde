@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -60,17 +61,47 @@ func RunMonitorContainers(client kubernetes.Interface) {
 	}
 }
 
+func deleteNetstatPodWithLog(podname string, stderr *bytes.Buffer) {
+	log.Info(fmt.Sprintf("Restarting monitor container on %s", podname))
+	if len(stderr.String()) > 0 {
+		log.Info(fmt.Sprintf("Stderr %s", stderr.String()))
+	}
+	state.DeleteNetstatPod(podname)
+}
+
+func eventuallyDecodeNetinfoData(stdout *bytes.Buffer) (types.NestatInfoRequestBody, error) {
+	var payload_raw = stdout.String()
+	var index = strings.Index(payload_raw, "\n")
+
+	if index < 0 { // Not found
+		return nil, errors.New("not found")
+	}
+	if index == 0 { // First char is \n
+		stdout.Next(1)
+		payload_raw = stdout.String()
+		index = strings.Index(payload_raw, "\n")
+	}
+
+	var potential_json = stdout.Next(index)
+	var payload types.NestatInfoRequestBody
+	var err = json.Unmarshal(potential_json, &payload)
+	if err != nil {
+		log.Error(err, "Could not decode monitor")
+		log.Info(string(payload_raw))
+		time.Sleep(3 * time.Second)
+		return nil, errors.New("could not decode")
+	}
+	return payload, nil
+}
+
 func ProcessNetInfo(apiClient kubernetes.Interface, stdout *bytes.Buffer, stderr *bytes.Buffer, podname string) {
 	var counter = 0
 	for {
 		if stdout.Len() == 0 {
 			counter += 1
 			if counter >= MAX_CONNECT_RETRIES {
-				log.Info(fmt.Sprintf("Restarting monitor container on %s", podname))
-				if len(stderr.String()) > 0 {
-					log.Info(fmt.Sprintf("Stderr %s", stderr.String()))
-				}
-				state.DeleteNetstatPod(podname)
+				deleteNetstatPodWithLog(podname, stderr)
+				counter = 0
 				return
 			}
 			counterAsDuration := time.Duration(counter * 1000)
@@ -78,30 +109,14 @@ func ProcessNetInfo(apiClient kubernetes.Interface, stdout *bytes.Buffer, stderr
 			continue
 		}
 		counter = 0
-		var payload_raw = stdout.String()
-		var index = strings.Index(payload_raw, "\n")
-		if index < 0 { // Not found
-			time.Sleep(3 * time.Second)
-			continue
-		}
-		if index == 0 { // First char is \n
-			stdout.Next(1)
-			payload_raw = stdout.String()
-			index = strings.Index(payload_raw, "\n")
-			time.Sleep(3 * time.Second)
-			continue
-		}
-		var potential_json = stdout.Next(index)
-		var payload types.NestatInfoRequestBody
-		var err = json.Unmarshal(potential_json, &payload)
+
+		payload, err := eventuallyDecodeNetinfoData(stdout)
 		if err != nil {
-			log.Error(err, "Could not decode monitor")
-			log.Info(string(payload_raw))
 			time.Sleep(3 * time.Second)
 			continue
 		}
 		PostNestatInfoController(apiClient, payload, podname)
-		time.Sleep(3 * time.Second)
+
 	}
 }
 
