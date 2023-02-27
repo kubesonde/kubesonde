@@ -15,7 +15,7 @@ jobs:
           go-version: 1.18
 
       - name: Cache dependencies
-        uses: actions/cache@preview
+        uses: actions/cache@v3
         id: cache
         with:
           path: ~/go/pkg/mod
