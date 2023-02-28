@@ -54,7 +54,6 @@ func RunMonitorContainers(client kubernetes.Interface) {
 			}
 			go ProcessNetInfo(client, stdout, stderr, p.Name)
 			state.SetNestatPod(p.Name)
-			// log.Info(fmt.Sprintf("Pod %s contains monitor ephemeral container", p.Name))
 
 		})
 		time.Sleep(10 * time.Second)

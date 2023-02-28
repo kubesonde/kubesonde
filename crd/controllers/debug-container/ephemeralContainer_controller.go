@@ -127,7 +127,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 	}
 
 	if !EphemeralContainersRunning(*pod) {
-		log.Info("Ephemeral containers are not ready")
+		log.Info("Ephemeral containers are not ready, cannot start monitor process")
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}
 	req := client.
