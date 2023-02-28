@@ -107,7 +107,7 @@ func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutp
 func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.KubesondeCommand) v12.ProbeOutput {
 	// runCommand, client := state.runCommand, state.getClient()
 	client := mode.getClient()
-	// FIXME: here I should return only the current probes. 
+	// FIXME: here I should return only the current probes.
 	for _, kubesondeCommand := range commands {
 		pod, err := client.CoreV1().Pods(kubesondeCommand.Namespace).Get(context.TODO(), kubesondeCommand.SourcePodName, metav1.GetOptions{})
 		if err != nil {

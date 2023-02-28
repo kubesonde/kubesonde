@@ -50,8 +50,17 @@ var _ = Describe("ContinuousMode", func() {
 			Action:               v1.ALLOW,
 		}
 		client := fake.NewSimpleClientset()
-		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod"}, Spec: v12.PodSpec{
-			EphemeralContainers: []v12.EphemeralContainer{{EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "debugger"}}, {EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "monitor"}}}}}
+		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod"},
+			Status: v12.PodStatus{EphemeralContainerStatuses: []v12.ContainerStatus{
+				v12.ContainerStatus{
+					State: v12.ContainerState{Running: &v12.ContainerStateRunning{StartedAt: metav1.Time{}}},
+				},
+				v12.ContainerStatus{
+					State: v12.ContainerState{Running: &v12.ContainerStateRunning{StartedAt: metav1.Time{}}},
+				},
+			}},
+			Spec: v12.PodSpec{
+				EphemeralContainers: []v12.EphemeralContainer{{EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "debugger"}}, {EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "monitor"}}}}}
 		_, err := client.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
 		if err != nil {
 			log.Info("error injecting pod add: %v", err)
@@ -115,8 +124,17 @@ var _ = Describe("ContinuousMode", func() {
 		state.On("runCommand", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("this is an error")).Once()
 		state.On("runCommand", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(true, nil).Once()
 		client := fake.NewSimpleClientset()
-		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod"}, Spec: v12.PodSpec{
-			EphemeralContainers: []v12.EphemeralContainer{{EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "debugger"}}, {EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "monitor"}}}}}
+		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "test-pod"},
+			Status: v12.PodStatus{EphemeralContainerStatuses: []v12.ContainerStatus{
+				v12.ContainerStatus{
+					State: v12.ContainerState{Running: &v12.ContainerStateRunning{StartedAt: metav1.Time{}}},
+				},
+				v12.ContainerStatus{
+					State: v12.ContainerState{Running: &v12.ContainerStateRunning{StartedAt: metav1.Time{}}},
+				},
+			}},
+			Spec: v12.PodSpec{
+				EphemeralContainers: []v12.EphemeralContainer{{EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "debugger"}}, {EphemeralContainerCommon: v12.EphemeralContainerCommon{Name: "monitor"}}}}}
 		_, err := client.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
 		if err != nil {
 			log.Info("error injecting pod add: %v", err)
