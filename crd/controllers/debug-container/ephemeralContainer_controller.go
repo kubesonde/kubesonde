@@ -22,16 +22,16 @@ import (
 var log = logf.Log.WithName("controllers.state")
 
 func InstallEphameralContainers(client kubernetes.Interface, pods *v1.PodList) {
-
-	for _, pod := range pods.Items {
-		if !EphemeralContainerExists(pod) {
-			installContainers(client, pod)
-			log.V(1).Info(fmt.Sprintf("ephemeral container installed in %s pod", pod.Name))
+	podList := pods.Items
+	for i := range podList {
+		if !EphemeralContainerExists(&podList[i]) {
+			installContainers(client, &podList[i])
+			log.V(1).Info(fmt.Sprintf("ephemeral container installed in %s pod", podList[i].Name))
 		}
 
 	}
 }
-func EphemeralContainerExists(pod v1.Pod) bool {
+func EphemeralContainerExists(pod *v1.Pod) bool {
 	// FIXME: check if container with `debugger` name exists
 	ephCont := pod.Spec.EphemeralContainers
 	var ephNames = lo.Map(ephCont, func(ec v1.EphemeralContainer, i int) string {
@@ -50,7 +50,7 @@ func EphemeralContainerExists(pod v1.Pod) bool {
 	return ok
 }
 
-func EphemeralContainersRunning(pod v1.Pod) bool {
+func EphemeralContainersRunning(pod *v1.Pod) bool {
 	// FIXME: check if container with `debugger` name exists
 	ephCont := pod.Status.EphemeralContainerStatuses
 	ready := lo.Filter(ephCont, func(item v1.ContainerStatus, index int) bool {
@@ -60,12 +60,12 @@ func EphemeralContainersRunning(pod v1.Pod) bool {
 	return len(ready) == 2
 }
 
-func installContainers(client kubernetes.Interface, pod v1.Pod) {
+func installContainers(client kubernetes.Interface, pod *v1.Pod) {
 	podJS, err := json.Marshal(pod)
 	if err != nil {
 		log.Error(err, "error creating JSON for pod: %s", pod.Name)
 	}
-	debugPod, err := generateDebugContainers(&pod)
+	debugPod, err := generateDebugContainers(pod)
 	if err != nil {
 		log.Error(err, "something went wrong")
 	}
@@ -126,7 +126,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}
 
-	if !EphemeralContainersRunning(*pod) {
+	if !EphemeralContainersRunning(pod) {
 		log.Info("Ephemeral containers are not ready, cannot start monitor process")
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}

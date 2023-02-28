@@ -114,7 +114,7 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 			continue
 		}
 
-		if !debug_container.EphemeralContainerExists(*pod) || !debug_container.EphemeralContainersRunning(*pod) {
+		if !debug_container.EphemeralContainerExists(pod) || !debug_container.EphemeralContainersRunning(pod) {
 			log.Info(fmt.Sprintf("Ephemeral containers are not ready: %s", pod.Name))
 			continue
 		}

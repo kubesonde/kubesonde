@@ -25,7 +25,7 @@ var _ = Describe("EphemeralContainerExists", func() {
 				EphemeralContainers: []v1.EphemeralContainer{{}, {}},
 			},
 		}
-		Expect(EphemeralContainerExists(pod)).To(BeFalse())
+		Expect(EphemeralContainerExists(&pod)).To(BeFalse())
 	})
 	It("Returns true if all containers have been installed", func() {
 		pod := v1.Pod{
@@ -37,7 +37,7 @@ var _ = Describe("EphemeralContainerExists", func() {
 				}},
 			},
 		}
-		Expect(EphemeralContainerExists(pod)).To(BeTrue())
+		Expect(EphemeralContainerExists(&pod)).To(BeTrue())
 	})
 })
 
@@ -91,7 +91,7 @@ func TestInstallContainers(t *testing.T) {
 	client := testclient.NewSimpleClientset()
 	client.CoreV1().Pods("default").Create(context.TODO(), &pod, metav1.CreateOptions{})
 	// When
-	installContainers(client, pod)
+	installContainers(client, &pod)
 	// Then
 	updatedPod, err := client.CoreV1().Pods("default").Get(context.TODO(), "test", metav1.GetOptions{})
 	assert.Nil(t, err)
