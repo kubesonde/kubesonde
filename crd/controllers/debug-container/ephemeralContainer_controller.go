@@ -139,7 +139,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 		Name(sourcePodName).
 		SubResource("exec").
 		VersionedParams(&v1.PodExecOptions{
-			Command:   []string{"/workspace/main"},
+			Command:   []string{"./main"},
 			Container: "monitor",
 			Stdin:     false,
 			Stdout:    true,
