@@ -59,27 +59,4 @@ var _ = Describe("Probe State", func() {
 		Expect(initialState).NotTo(Equal(GetProbeState()))
 		Expect(finalState).To(Equal(GetProbeState()))
 	})
-	It("AppendNetInfo", func() {
-		initialState := v1.ProbeOutput{
-			Items:  nil,
-			Errors: nil,
-			Start:  "abc",
-			End:    "",
-		}
-		monitor := []v1.PodNetworkingInfo{
-			{
-				PodName: "testPod",
-				Netstat: "somestring",
-			},
-			{
-				PodName: "testPod2",
-				Netstat: "somestring2",
-			},
-		}
-		SetProbeState(&initialState)
-		AppendNetInfo(&monitor)
-		Expect(monitor).To(Equal(GetProbeState().PodNetworking))
-
-	})
-
 })
