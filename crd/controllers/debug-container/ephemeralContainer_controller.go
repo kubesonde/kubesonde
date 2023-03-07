@@ -119,6 +119,7 @@ func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
 	return copied, nil
 }
 
+// This function creates a shell on an already existing debug container named `monitor`
 func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, sourcePodName string) (*bytes.Buffer, *bytes.Buffer, error) {
 
 	pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), sourcePodName, metav1.GetOptions{})

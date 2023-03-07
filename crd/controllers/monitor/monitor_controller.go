@@ -42,8 +42,16 @@ func RunMonitorContainers(client kubernetes.Interface) {
 			if index < currPodsWithNetstatLen && currPodsWithNetstat[index] == p.Name {
 				return
 			}
+			fresh_pod, erro := client.CoreV1().Pods(p.Namespace).Get(context.TODO(), p.Name, metav1.GetOptions{})
+			if erro != nil {
+				log.Info(fmt.Sprintf("Pod %s does not exist, removing from state", p.Name))
+				eventstorage.DeleteActivePod(p.Name)
+				return
+			}
 			//	WaitEphemeralContainersToBeRunning(client, p)
-
+			if !debug_container.EphemeralContainerExists(fresh_pod) || !debug_container.EphemeralContainersRunning(fresh_pod) {
+				return
+			}
 			// log.Info(fmt.Sprintf("Running monitor on pod %s", p.Name))
 
 			var stdout, stderr, err = debug_container.RunMonitorContainerProcess(client, p.Namespace, p.Name)
