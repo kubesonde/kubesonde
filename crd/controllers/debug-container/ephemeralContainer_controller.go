@@ -112,6 +112,9 @@ func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
 			TTY:                      true,
 			Command:                  []string{"sh"},
+			SecurityContext: &v1.SecurityContext{
+				Privileged: &privileged,
+			},
 		}}
 
 	copied := pod.DeepCopy()
