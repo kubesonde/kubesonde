@@ -38,7 +38,7 @@ func toNetstatInfoRequestBodyItem(data netstat.SockTabEntry, item_type int) Nest
 
 func display_socks() {
 	var sockets []NestatInfoRequestBodyItem
-	counter := 0
+	
 	tcp_tabs, err := netstat.TCPSocks(func(s *netstat.SockTabEntry) bool {
 		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
 	})
@@ -46,6 +46,16 @@ func display_socks() {
 		return
 	}
 	for _, e := range tcp_tabs {
+		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, TCP_TYPE))
+	}
+
+	tcpv6_tabs, err := netstat.TCP6Socks(func(s *netstat.SockTabEntry) bool {
+		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
+	})
+	if err != nil {
+		return
+	}
+	for _, e := range tcpv6_tabs {
 		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, TCP_TYPE))
 	}
 
@@ -57,8 +67,18 @@ func display_socks() {
 	}
 	for _, e := range udp_tabs {
 		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, UDP_TYPE))
-		counter++
 	}
+
+	udpv6_tabs, err := netstat.UDP6Socks(func(s *netstat.SockTabEntry) bool {
+		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
+	})
+	if err != nil {
+		return
+	}
+	for _, e := range udpv6_tabs {
+		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, UDP_TYPE))
+	}
+
 	if len(sockets) == 0 {
 		return
 	}
