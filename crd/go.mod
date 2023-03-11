@@ -11,9 +11,9 @@ require (
 	github.com/samber/lo v1.37.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/sync v0.1.0
-	k8s.io/api v0.26.1
+	k8s.io/api v0.26.2
 	k8s.io/apimachinery v0.26.2
-	k8s.io/client-go v0.26.1
+	k8s.io/client-go v0.26.2
 	sigs.k8s.io/controller-runtime v0.14.4
 )
 
