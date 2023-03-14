@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cakturk/go-netstat/netstat"
@@ -38,9 +39,9 @@ func toNetstatInfoRequestBodyItem(data netstat.SockTabEntry, item_type int) Nest
 
 func display_socks() {
 	var sockets []NestatInfoRequestBodyItem
-	
+
 	tcp_tabs, err := netstat.TCPSocks(func(s *netstat.SockTabEntry) bool {
-		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
+		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
 	})
 	if err != nil {
 		return
@@ -50,7 +51,7 @@ func display_socks() {
 	}
 
 	tcpv6_tabs, err := netstat.TCP6Socks(func(s *netstat.SockTabEntry) bool {
-		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
+		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
 	})
 	if err != nil {
 		return
@@ -60,7 +61,7 @@ func display_socks() {
 	}
 
 	udp_tabs, err := netstat.UDPSocks(func(s *netstat.SockTabEntry) bool {
-		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
+		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
 	})
 	if err != nil {
 		return
@@ -70,7 +71,7 @@ func display_socks() {
 	}
 
 	udpv6_tabs, err := netstat.UDP6Socks(func(s *netstat.SockTabEntry) bool {
-		return s.LocalAddr.IP.String() != "127.0.0.1" && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
+		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
 	})
 	if err != nil {
 		return
