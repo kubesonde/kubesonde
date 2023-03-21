@@ -162,17 +162,12 @@ func buildProbesFromMonitorContainer(apiClient kubernetes.Interface, payload typ
 	if len(monitorPorts) == 0 {
 		return []probe_command.KubesondeCommand{}
 	}
-	pods, err := apiClient.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
-	must(err)
+	// FIXME: get namespace from declaration
+	pod, err := apiClient.CoreV1().Pods(currPods[0].Namespace).Get(context.TODO(), podname, metav1.GetOptions{})
 	if err != nil {
 		return []probe_command.KubesondeCommand{}
 	}
-	podsFound := lo.Filter(pods.Items, func(pod v1.Pod, i int) bool {
-		return pod.Name == podname
-	})
-	if len(podsFound) == 0 {
-		return []probe_command.KubesondeCommand{}
-	}
+
 	intPorts := lo.Map(monitorPorts, func(s string, i int) int32 {
 		acc, err := strconv.ParseInt(s, 10, 32)
 		must(err)
@@ -181,7 +176,7 @@ func buildProbesFromMonitorContainer(apiClient kubernetes.Interface, payload typ
 	var protocols = lo.Map(intPorts, func(value int32, _ int) string {
 		return strings.ToUpper(monitorMapping[value])
 	})
-	probes := probe_command.BuildTargetedCommandsToDestination(currPods, podsFound[0], intPorts, protocols)
+	probes := probe_command.BuildTargetedCommandsToDestination(currPods, *pod, intPorts, protocols)
 	if len(probes) == 0 {
 		log.Info("No probes could be found")
 		return []probe_command.KubesondeCommand{}
