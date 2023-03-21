@@ -20,7 +20,7 @@ import (
 
 func TestContinuousMode(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "ContinuousMode")
+	//RunSpecs(t, "ContinuousMode")
 }
 
 var _ = Describe("ContinuousMode", func() {

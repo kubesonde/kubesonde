@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/samber/lo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	v12 "kubesonde.io/api/v1"
@@ -86,8 +87,8 @@ func toProbeItem(kubesondeCommand probe_command.KubesondeCommand, result v12.Act
 	}
 }
 
-func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
-	// Source is always a pod
+func withDeploymentInformationSlow(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
+	log.Info("Getting information about deployment, slowly...")
 	source_pod, err_source := client.CoreV1().Pods(output.Source.Namespace).Get(context.TODO(), output.Source.Name, metav1.GetOptions{})
 	dest_pod, err_dest := client.CoreV1().Pods(output.Destination.Namespace).Get(context.TODO(), output.Destination.Name, metav1.GetOptions{})
 	if err_source == nil {
@@ -103,20 +104,53 @@ func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutp
 
 	return output
 }
+func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
+	// Source is always a pod
+	curr_state := state.GetProbeState().Items
+	src, source_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Source.Name == output.Source.Name })
+	src_2, source_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Destination.Name == output.Source.Name })
+	if source_in_state {
+		output.Source.ReplicaSetName = src.Source.ReplicaSetName
+		output.Source.DeploymentName = src.Source.DeploymentName
+	} else if source_in_state_2 {
+		output.Source.ReplicaSetName = src_2.Destination.ReplicaSetName
+		output.Source.DeploymentName = src_2.Destination.DeploymentName
+	}
+
+	dst, dst_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Source.Name == output.Destination.Name })
+	dst_2, dst_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Destination.Name == output.Destination.Name })
+	if dst_in_state {
+		output.Source.ReplicaSetName = dst.Source.ReplicaSetName
+		output.Source.DeploymentName = dst.Source.DeploymentName
+	} else if dst_in_state_2 {
+		output.Destination.ReplicaSetName = dst_2.Destination.ReplicaSetName
+		output.Destination.DeploymentName = dst_2.Destination.DeploymentName
+	}
+
+	if (source_in_state || source_in_state_2) && (dst_in_state || dst_in_state_2) {
+		return output
+	}
+
+	return withDeploymentInformationSlow(client, output)
+}
 func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.KubesondeCommand) v12.ProbeOutput {
 	// runCommand, client := state.runCommand, state.getClient()
 	client := mode.getClient()
 	// FIXME: here I should return only the current probes.
 	for _, kubesondeCommand := range commands {
-		pod, err := client.CoreV1().Pods(kubesondeCommand.Namespace).Get(context.TODO(), kubesondeCommand.SourcePodName, metav1.GetOptions{})
-		if err != nil {
-			continue
-		}
+		_, source_has_netinfo := lo.Find(state.GetNetstatPods(), func(item string) bool {
+			return item == kubesondeCommand.SourcePodName
+		})
+		if kubesondeCommand.SourceType == v12.POD && !source_has_netinfo {
+			pod, err := client.CoreV1().Pods(kubesondeCommand.Namespace).Get(context.TODO(), kubesondeCommand.SourcePodName, metav1.GetOptions{})
+			if err != nil {
+				continue
+			}
 
-		if !debug_container.EphemeralContainerExists(pod) || !debug_container.EphemeralContainersRunning(pod) {
-			continue
+			if !debug_container.EphemeralContainerExists(pod) || !debug_container.EphemeralContainersRunning(pod) {
+				continue
+			}
 		}
-
 		result, err := mode.runCommand(client, kubesondeCommand.Namespace, kubesondeCommand, kubesondeCommand.ProbeChecker)
 
 		if err != nil {

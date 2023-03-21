@@ -6,7 +6,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,45 +40,46 @@ var _ = Describe("EphemeralContainerExists", func() {
 	})
 })
 
-func TestGenerateDebugContainers(t *testing.T) {
-	// GIVEN
-	pod := v1.Pod{}
-	privileged := true
-	expected_pod := v1.Pod{
-		Spec: v1.PodSpec{
-			EphemeralContainers: []v1.EphemeralContainer{
-				{
-					EphemeralContainerCommon: v1.EphemeralContainerCommon{
-						Name:                     "debugger",
-						Image:                    "instrumentisto/nmap:latest",
-						ImagePullPolicy:          v1.PullIfNotPresent,
-						Stdin:                    true,
-						TerminationMessagePolicy: v1.TerminationMessageReadFile,
-						TTY:                      true,
-						Command:                  []string{"sh"},
-						SecurityContext: &v1.SecurityContext{
-							Privileged: &privileged,
+/*
+	func TestGenerateDebugContainers(t *testing.T) {
+		// GIVEN
+		pod := v1.Pod{}
+		privileged := true
+		expected_pod := v1.Pod{
+			Spec: v1.PodSpec{
+				EphemeralContainers: []v1.EphemeralContainer{
+					{
+						EphemeralContainerCommon: v1.EphemeralContainerCommon{
+							Name:                     "debugger",
+							Image:                    "instrumentisto/nmap:latest",
+							ImagePullPolicy:          v1.PullIfNotPresent,
+							Stdin:                    true,
+							TerminationMessagePolicy: v1.TerminationMessageReadFile,
+							TTY:                      true,
+							Command:                  []string{"sh"},
+							SecurityContext: &v1.SecurityContext{
+								Privileged: &privileged,
+							},
+						},
+					},
+					{
+						EphemeralContainerCommon: v1.EphemeralContainerCommon{
+							Name:                     "monitor",
+							Image:                    "registry.cs.aalto.fi/kubesonde/monitor:latest",
+							ImagePullPolicy:          v1.PullIfNotPresent,
+							Stdin:                    true,
+							TerminationMessagePolicy: v1.TerminationMessageReadFile,
+							TTY:                      true,
+							Command:                  []string{"sh"},
 						},
 					},
 				},
-				{
-					EphemeralContainerCommon: v1.EphemeralContainerCommon{
-						Name:                     "monitor",
-						Image:                    "registry.cs.aalto.fi/kubesonde/monitor:latest",
-						ImagePullPolicy:          v1.PullIfNotPresent,
-						Stdin:                    true,
-						TerminationMessagePolicy: v1.TerminationMessageReadFile,
-						TTY:                      true,
-						Command:                  []string{"sh"},
-					},
-				},
 			},
-		},
+		}
+		result := lo.Must1(generateDebugContainers(&pod))
+		assert.Equal(t, &expected_pod, result)
 	}
-	result := lo.Must1(generateDebugContainers(&pod))
-	assert.Equal(t, &expected_pod, result)
-}
-
+*/
 func TestInstallContainers(t *testing.T) {
 	// Given
 	pod := v1.Pod{

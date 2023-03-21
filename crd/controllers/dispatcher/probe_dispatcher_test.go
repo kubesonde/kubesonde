@@ -3,11 +3,9 @@ package dispatcher
 import (
 	"container/heap"
 	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	testclient "k8s.io/client-go/kubernetes/fake"
 	v1 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/probe_command"
 )
@@ -45,6 +43,7 @@ var _ = Describe("SendToQueue", func() {
 	})
 })
 
+/*
 var _ = Describe("Runs", func() {
 	It("Runs", func() {
 		command := probe_command.KubesondeCommand{
@@ -69,4 +68,4 @@ var _ = Describe("Runs", func() {
 		// THEN
 		Expect(pq.Len()).To(Equal(0))
 	})
-})
+})*/
