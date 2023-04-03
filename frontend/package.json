@@ -34,7 +34,7 @@
     "@types/cytoscape": "^3.19.4",
     "@types/cytoscape-popper": "^2.0.0",
     "@types/jest": "^27.4.1",
-    "@types/node": "^16.11.26",
+    "@types/node": "^18.15.11",
     "@types/random-seed": "^0.3.3",
     "@types/react": "^17.0.39",
     "@types/react-cytoscapejs": "^1.2.2",
