@@ -143,21 +143,29 @@ func generateNmapCommand(cmd string, ip string, port int32) string {
 }
 
 func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol string, destType v12.ProbeEndpointType, srcType v12.ProbeEndpointType) KubesondeCommand {
+
+	var destinationAddressForService string
+	if dest.Spec.ClusterIP != "" && dest.Spec.ClusterIP != "None" {
+		destinationAddressForService = dest.Spec.ClusterIP
+	} else {
+		destinationAddressForService = dest.Name
+	}
+
 	var namespace = source.Namespace
-	addresses, err := net.LookupAddr(dest.Spec.ClusterIP)
+	addresses, err := net.LookupAddr(destinationAddressForService)
 	if err != nil {
 		addresses = []string{}
 	}
 
 	var cmd string
 	if protocol == "TCP" {
-		cmd = generateNmapCommand(nmapTCPCommand, dest.Spec.ClusterIP, port)
+		cmd = generateNmapCommand(nmapTCPCommand, destinationAddressForService, port)
 	} else if protocol == "UDP" {
-		cmd = generateNmapCommand(nmapUDPCommand, dest.Spec.ClusterIP, port)
+		cmd = generateNmapCommand(nmapUDPCommand, destinationAddressForService, port)
 	} else if protocol == "SCTP" {
-		cmd = generateNmapCommand(nmapSCTPCommand, dest.Spec.ClusterIP, port)
+		cmd = generateNmapCommand(nmapSCTPCommand, destinationAddressForService, port)
 	} else {
-		cmd = generateNmapCommand(nmapCommand, dest.Spec.ClusterIP, port)
+		cmd = generateNmapCommand(nmapCommand, destinationAddressForService, port)
 	}
 	return KubesondeCommand{
 		Action:               v12.DENY,
@@ -169,7 +177,7 @@ func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol st
 		DestinationPort:      strconv.Itoa(int(port)),
 		DestinationHostnames: addresses,
 		DestinationNamespace: dest.Namespace,
-		DestinationIPAddress: dest.Spec.ClusterIP,
+		DestinationIPAddress: destinationAddressForService,
 		DestinationType:      destType,
 		SourcePodName:        source.Name,
 		SourceIPAddress:      source.Status.PodIP,
@@ -281,7 +289,7 @@ func BuildCommandsToServices(pod v1.Pod, services []v1.Service) []KubesondeComma
 	var commands []KubesondeCommand
 	var source = pod
 	for _, destination := range services {
-		if destination.Spec.ClusterIP != "" && destination.Name != "kubernetes" {
+		if destination.Name != "kubernetes" {
 			for _, portProto := range getAllPortsAndProtocolsFromService(destination) {
 				commands = append(commands, buildServiceCommand(source, destination, portProto.port, portProto.protocol, v12.SERVICE, v12.POD))
 			}
