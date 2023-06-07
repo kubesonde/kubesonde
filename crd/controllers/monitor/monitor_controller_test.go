@@ -53,14 +53,14 @@ var _ = Describe("buildProbesFromMonitorContainer", func() {
 	It("works", func() {
 		// Given
 		eventstorage.AddActivePod("anotherpod", eventstorage.CreatedPodRecord{
-			Pod: v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "anotherpod"}, Status: v12.PodStatus{PodIP: "1.1.1.1"}},
+			Pod: v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "anotherpod", Namespace: "mynamespace"}, Status: v12.PodStatus{PodIP: "1.1.1.1"}},
 		})
 		eventstorage.AddActivePod("testpod", eventstorage.CreatedPodRecord{
-			Pod: v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "testpod"}, Status: v12.PodStatus{PodIP: "1.2.3.4"}},
+			Pod: v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "testpod", Namespace: "mynamespace"}, Status: v12.PodStatus{PodIP: "1.2.3.4"}},
 		})
 		client := fake.NewSimpleClientset()
-		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "testpod"}}
-		client.CoreV1().Pods("default").Create(context.TODO(), p, metav1.CreateOptions{})
+		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "testpod", Namespace: "mynamespace"}}
+		client.CoreV1().Pods("mynamespace").Create(context.TODO(), p, metav1.CreateOptions{})
 		p1 := []types.NestatInfoRequestBodyItem{{
 			Type:  1,
 			Laddr: []string{"1.2.3.4", "80"},
