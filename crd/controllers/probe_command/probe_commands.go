@@ -65,7 +65,7 @@ const curlCommand = "curl -s -o /dev/null -I -X GET -w %%{http_code} %s"
 
 // This command scans both UDP and TCP ports and returns only the amount of open ports
 const nmapCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sSU -p %d %s"
-const nmapUDPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sU -p %d %s"
+const nmapUDPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sU -Pn -p %d %s"
 const nmapTCPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sT -Pn -p %d %s"
 const nmapSCTPCommand = "nmap --open -sY -p %d %s"
 const dnsUDPCommand = "nslookup -timeout=5 %s %s"
