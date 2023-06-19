@@ -67,7 +67,7 @@ func AppendErrors(items *[]v1.ProbeOutputError) {
 
 func AppendNetInfoV2(key string, items *[]v1.PodNetworkingItem) {
 	must(sem.Acquire(context.Background(), 1))
-	innerState.PodNetworkingV2[key] = append(innerState.PodNetworkingV2[key], *items...)
+	innerState.PodNetworkingV2[key] = lo.Union(innerState.PodNetworkingV2[key], *items)
 	sem.Release(1)
 }
 func SetConfig(podName string, items *[]v1.PodNetworkingItem) {
