@@ -56,6 +56,7 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
 		log.Error(err, "unable to fetch Kubesonde")
 		// Ignore not found errors as we do not want to support this usecase
+		// Use 	apierrors "k8s.io/apimachinery/pkg/api/errors" to find out if resource was deleted.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 

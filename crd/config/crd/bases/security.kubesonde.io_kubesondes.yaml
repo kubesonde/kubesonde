@@ -36,16 +36,35 @@ spec:
           spec:
             description: KubesondeSpec defines the desired state of Kubesonde
             properties:
-              actions:
-                description: Actions is the set of rules to be tested
+              exclude:
+                description: Exclude is the set of probes to be excluded
                 items:
                   properties:
-                    action:
-                      description: Action is the expected outcome of the probe. It
-                        might have values "allow" or "deny"
+                    fromPodSelector:
+                      description: FromPodSelector is a selector for the origin Pod
+                        or a set of pods
                       type: string
-                    endpoint:
-                      description: Endpoint to probe
+                    port:
+                      description: Port is the probing port for ToPodSelector defaults
+                        to 80
+                      type: string
+                    protocol:
+                      description: Protocol is the protocol to use when probing ToPodSelector
+                        defaults to TCP
+                      type: string
+                    toPodSelector:
+                      description: ToPodSelector is a selector for the destination
+                        Pod or a set of pods
+                      type: string
+                  type: object
+                type: array
+              include:
+                description: Include is the set of probes to be included
+                items:
+                  properties:
+                    expected:
+                      description: ExpectedAction describes the expected outcome of
+                        the probe
                       type: string
                     fromPodSelector:
                       description: FromPodSelector is a selector for the origin Pod
@@ -57,18 +76,20 @@ spec:
                       type: string
                     protocol:
                       description: Protocol is the protocol to use when probing ToPodSelector
+                        defaults to TCP
                       type: string
                     toPodSelector:
                       description: ToPodSelector is a selector for the destination
                         Pod or a set of pods
                       type: string
-                    url:
-                      description: Url to probe
-                      type: string
                   type: object
                 type: array
               namespace:
                 description: Namespace indicates the target namespace for the probe
+                type: string
+              probe:
+                description: Probe describes if the default behavior is to probe all
+                  or none
                 type: string
             type: object
           status:

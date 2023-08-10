@@ -24,10 +24,13 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type ActionType string
+type ProbeType string
 
 const (
 	ALLOW ActionType = "Allow"
 	DENY  ActionType = "Deny"
+	ALL   ProbeType  = "all"
+	NONE  ProbeType  = "none"
 )
 
 type ProbingAction struct {
@@ -55,17 +58,58 @@ type ProbingAction struct {
 	Url string `json:"url,omitempty"`
 }
 
+type ExcludedItem struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// FromPodSelector is a selector for the origin Pod or a set of pods
+	FromPodSelector string `json:"fromPodSelector,omitempty"`
+	// ToPodSelector is a selector for the destination Pod or a set of pods
+	ToPodSelector string `json:"toPodSelector,omitempty"`
+	// Port is the probing port for ToPodSelector defaults to 80
+	// +optional
+	Port string `json:"port,omitempty"`
+	// Protocol is the protocol to use when probing ToPodSelector defaults to TCP
+	// +optional
+	Protocol string `json:"protocol,omitempty"`
+}
+
+type IncludedItem struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// FromPodSelector is a selector for the origin Pod or a set of pods
+	FromPodSelector string `json:"fromPodSelector,omitempty"`
+	// ToPodSelector is a selector for the destination Pod or a set of pods
+	ToPodSelector string `json:"toPodSelector,omitempty"`
+	// Port is the probing port for ToPodSelector defaults to 80
+	// +optional
+	Port string `json:"port,omitempty"`
+	// Protocol is the protocol to use when probing ToPodSelector defaults to TCP
+	// +optional
+	Protocol string `json:"protocol,omitempty"`
+
+	// ExpectedAction describes the expected outcome of the probe
+	// +optional
+	ExpectedAction ActionType `json:"expected,omitempty"`
+}
+
 // KubesondeSpec defines the desired state of Kubesonde
 type KubesondeSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Namespace indicates the target namespace for the probe
-	// +optional
 	Namespace string `json:"namespace,omitempty"`
-	// Actions is the set of rules to be tested
+	// Probe describes if the default behavior is to probe all or none
 	// +optional
-	Actions []ProbingAction `json:"actions,omitempty"`
+	Probe string `json:"probe,omitempty"`
+	// Exclude is the set of probes to be excluded
+	// +optional
+	Exclude []ExcludedItem `json:"exclude,omitempty"`
+	// Include is the set of probes to be included
+	// +optional
+	Include []IncludedItem `json:"include,omitempty"`
 }
 
 // KubesondeStatus defines the observed state of Kubesonde
