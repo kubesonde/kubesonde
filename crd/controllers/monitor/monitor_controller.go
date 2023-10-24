@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v12 "kubesonde.io/api/v1"
 	debug_container "kubesonde.io/controllers/debug-container"
+	kubesondeDispatcher "kubesonde.io/controllers/dispatcher"
 	eventstorage "kubesonde.io/controllers/event-storage"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"

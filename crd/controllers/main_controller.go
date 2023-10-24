@@ -21,8 +21,10 @@ import (
 	"time"
 
 	kubesondev1 "kubesonde.io/api/v1"
+	kubesondeDispatcher "kubesonde.io/controllers/dispatcher"
 	kubesondeEvents "kubesonde.io/controllers/events"
 	kubesondemetrics "kubesonde.io/controllers/metrics"
+	kubesondemonitor "kubesonde.io/controllers/monitor"
 
 	"github.com/go-logr/logr"
 	"github.com/samber/lo"

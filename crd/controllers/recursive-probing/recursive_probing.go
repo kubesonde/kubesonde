@@ -4,6 +4,7 @@ import (
 	"time"
 
 	kubesondev1 "kubesonde.io/api/v1"
+	kubesondeDispatcher "kubesonde.io/controllers/dispatcher"
 	eventstorage "kubesonde.io/controllers/event-storage"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
