@@ -3,7 +3,7 @@ package recursiveprobing
 import (
 	"time"
 
-	securityv1 "kubesonde.io/api/v1"
+	kubesondev1 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/dispatcher"
 	eventstorage "kubesonde.io/controllers/event-storage"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -13,7 +13,7 @@ var log = logf.Log.WithName("Recursive probing")
 
 // This function starts an infinite loop that runs all the probes at regular
 // intervals
-func RecursiveProbing(Kubesonde securityv1.Kubesonde, when time.Duration) {
+func RecursiveProbing(Kubesonde kubesondev1.Kubesonde, when time.Duration) {
 	var task = func() {
 		go RunProbing()
 		RecursiveProbing(Kubesonde, when)

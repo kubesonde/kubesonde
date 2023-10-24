@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	securityv1 "kubesonde.io/api/v1"
+	kubesondev1 "kubesonde.io/api/v1"
 	eventstorage "kubesonde.io/controllers/event-storage"
 
 	v1 "k8s.io/api/core/v1"
@@ -15,7 +15,7 @@ import (
 	"kubesonde.io/controllers/utils"
 )
 
-func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
+func podEventHandler(client kubernetes.Interface, Kubesonde kubesondev1.Kubesonde) cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			pod := obj.(*v1.Pod)
@@ -45,7 +45,7 @@ func podEventHandler(client kubernetes.Interface, Kubesonde securityv1.Kubesonde
 	}
 }
 
-func svcEventHandler(Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler {
+func svcEventHandler(Kubesonde kubesondev1.Kubesonde) cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			srv := obj.(*v1.Service)
@@ -74,7 +74,7 @@ func svcEventHandler(Kubesonde securityv1.Kubesonde) cache.ResourceEventHandler 
 
 // Setup event listener for pods and services. When a new event is received, probes
 // and ephemeral containers will be generated
-func InitEventListener(client kubernetes.Interface, Kubesonde securityv1.Kubesonde) {
+func InitEventListener(client kubernetes.Interface, Kubesonde kubesondev1.Kubesonde) {
 	fmt.Printf("Setting up the event listener...")
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(client, time.Second*5)
 	podInformer := kubeInformerFactory.Core().V1().Pods().Informer()

@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	securityv1 "kubesonde.io/api/v1"
+	kubesondev1 "kubesonde.io/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -58,7 +58,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	err = securityv1.AddToScheme(scheme.Scheme)
+	err = kubesondev1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme

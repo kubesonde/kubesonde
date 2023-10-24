@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	securityv1 "kubesonde.io/api/v1"
+	kubesondev1 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/dispatcher"
 	kubesondeEvents "kubesonde.io/controllers/events"
 	kubesondemetrics "kubesonde.io/controllers/metrics"
@@ -52,7 +52,7 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	clusterConfig := config.GetConfigOrDie()
 	apiClient := lo.Must1(kubernetes.NewForConfig(clusterConfig))
 
-	var Kubesonde securityv1.Kubesonde
+	var Kubesonde kubesondev1.Kubesonde
 	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
 		log.Error(err, "unable to fetch Kubesonde")
 		// Ignore not found errors as we do not want to support this usecase
@@ -83,7 +83,7 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 func (r *KubesondeReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&securityv1.Kubesonde{}).
+		For(&kubesondev1.Kubesonde{}).
 		Complete(r)
 }
 
