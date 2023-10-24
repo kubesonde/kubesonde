@@ -7,19 +7,11 @@
 
 ![Kubesonde logo](frontend/public/logo257.png "Kubesonde logo")
 
-Logo from [Elisabetta Russo](stelladigitale.it) info@stelladigitale.it
 # Kubesonde
 
-Kubesonde is a tool to probe and test network security policies in a Kubernetes cluster.
+Kubesonde is a tool to probe and test network security policies in a Kubernetes.
 
-A common problem when enabling security policies in cloud environments is to verify their correctness
-and to avoid any misconfiguration. This task becomes even more complex when the amount of rules increases
-and when load-balancing effects can cause dynamic changes in the infrastructure. Another scenario is when
-multi-tenancy is enabled in cloud environments. 
- 
-kubesonde leverages Kubernetes APIs to probe the container rules and access policies.
-
-![kubesonde infra](docs/infrastructure.svg "kubesonde infrastructure")
+![kubesonde infra](docs/kubesonde.png "kubesonde infrastructure")
 
 ## Structure of the project
 Folders are organised as follows: 
@@ -32,9 +24,9 @@ Folders are organised as follows:
 ### 1. Start the kubernetes engine
 
 You can run kubernetes on the cloud, bare-metal or via minikube or kind.
-### 2. Run the app to test
+### 2. Install the app to test
 
-Run the application you want to test (e.g., `helm install wordpress bitnami/wordpress`). Make sure that the app is running with no errors.
+Install the application you want to test (e.g., `helm install wordpress bitnami/wordpress`). Make sure that the app is running with no errors.
 
 ### 3. Install Kubesonde
 
@@ -58,47 +50,7 @@ To fetch the results, you need to use the following commands:
 ### 5. View results
 
 Navigate to the [current kubesonde website](https://testksonde.netlify.app/) and upload the generated file to see the results.
-
-## Development tools
-
-All the tooling required to run kubesonde is in the `crd` folder.
-
-To create a k8s cluster, the recommended option is Minikube:
  
- `minikube start`
+## Credits
 
-Alternatively one can use [kind](https://github.com/kubernetes-sigs/kind).
-
-`kind create cluster --image kindest/node:v1.16.5`
-
-There is an already-made recipe to run the whole stack: 
-` cd crd && make run-test-env`
-
-> Note: 
-> If you are planning to use another Kubernetes implementation, please take a look
-> at the features that need to be added when creating the api client.
-
-### Additional tools used
-
-- [debug containers](https://kubernetes.io/docs/tasks/debug-application-cluster/debug-running-pod/)
-- [kubebuilder apis](https://github.com/weaveworks/cluster-api-provider-existinginfra/blob/master/main.go) to connect
-with controller and govern the cluster.
-
-## Tests
-
-Every folder containing code has its own README.md and test suites.
-
-## Roadmap
-
-Features to be implemented: 
-
-- Make kubesonde extendable
-
-## LEGACY - Project bootstrapping
-The project was bootstrapped with [kubebuilder](https://book.kubebuilder.io/). This is also a
-good place where to understand how to build plugins.
-
-I used the commands:
- - `kubebuilder init --domain kubesonde.io`
- - `kubebuilder create api --group security --version v1 --kind kubesonde`
- 
+Logo from [Elisabetta Russo](stelladigitale.it) info@stelladigitale.it
