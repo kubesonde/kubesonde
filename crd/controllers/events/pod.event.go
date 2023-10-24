@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v12 "kubesonde.io/api/v1"
 	debugcontainer "kubesonde.io/controllers/debug-container"
-	"kubesonde.io/controllers/dispatcher"
 	. "kubesonde.io/controllers/event-storage"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
@@ -70,7 +69,7 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 
 		AddProbes(probes)
 		AddProbes(probes_from_pods)
-		dispatcher.SendToQueue(probes, dispatcher.HIGH)
+		kubesondeDispatcher.SendToQueue(probes, kubesondeDispatcher.HIGH)
 	}
 	// TODO: Maybe there should be an event listener on the services to do the same thing.
 	curr_services, err := client.CoreV1().Services(pod.Namespace).List(context.TODO(), metav1.ListOptions{})

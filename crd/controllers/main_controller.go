@@ -21,10 +21,8 @@ import (
 	"time"
 
 	kubesondev1 "kubesonde.io/api/v1"
-	"kubesonde.io/controllers/dispatcher"
 	kubesondeEvents "kubesonde.io/controllers/events"
 	kubesondemetrics "kubesonde.io/controllers/metrics"
-	"kubesonde.io/controllers/monitor"
 
 	"github.com/go-logr/logr"
 	"github.com/samber/lo"
@@ -67,7 +65,7 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	*/
 
 	// Dispatcher
-	go dispatcher.Run(apiClient)
+	go kubesondeDispatcher.Run(apiClient)
 
 	// Events
 	go kubesondeEvents.InitEventListener(apiClient, Kubesonde)
@@ -76,7 +74,7 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	go recursiveprobing.RecursiveProbing(Kubesonde, 20*time.Second)
 
 	// Monitor
-	go monitor.RunMonitorContainers(apiClient)
+	go kubesondemonitor.RunMonitorContainers(apiClient)
 
 	return ctrl.Result{}, nil
 }

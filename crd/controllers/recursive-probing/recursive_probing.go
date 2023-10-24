@@ -4,7 +4,6 @@ import (
 	"time"
 
 	kubesondev1 "kubesonde.io/api/v1"
-	"kubesonde.io/controllers/dispatcher"
 	eventstorage "kubesonde.io/controllers/event-storage"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -30,6 +29,6 @@ func RunProbing() {
 	}
 
 	log.Info("Running all probes again")
-	dispatcher.SendToQueue(probes, dispatcher.LOW)
+	kubesondeDispatcher.SendToQueue(probes, kubesondeDispatcher.LOW)
 
 }

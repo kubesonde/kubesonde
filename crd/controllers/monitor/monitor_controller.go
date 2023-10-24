@@ -17,7 +17,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v12 "kubesonde.io/api/v1"
 	debug_container "kubesonde.io/controllers/debug-container"
-	"kubesonde.io/controllers/dispatcher"
 	eventstorage "kubesonde.io/controllers/event-storage"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
@@ -133,7 +132,7 @@ func PostNestatInfoController(apiClient kubernetes.Interface, payload types.Nest
 	filteredProbes := buildProbesFromMonitorContainer(apiClient, payload, podname)
 	if len(filteredProbes) > 0 {
 		eventstorage.AddProbes(filteredProbes)
-		dispatcher.SendToQueue(filteredProbes, dispatcher.HIGH)
+		kubesondeDispatcher.SendToQueue(filteredProbes, kubesondeDispatcher.HIGH)
 	}
 
 }
