@@ -3,13 +3,17 @@ package utils
 import (
 	"context"
 	"errors"
+	"strings"
 
 	lo "github.com/samber/lo"
 	v1 "k8s.io/api/apps/v1"
 	k8sAPI "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	kubesondev1 "kubesonde.io/api/v1"
 )
+
+var ALLOW_ALL = "all"
 
 func FilterPodsByStatus(pods *k8sAPI.PodList, status k8sAPI.PodPhase) k8sAPI.PodList {
 	filteredPods := lo.Filter(pods.Items, func(p k8sAPI.Pod, i int) bool {
@@ -34,13 +38,39 @@ func contains(s []string, str string) bool {
 }
 
 func InNamespace(configurationNamespace string, podNamespace string) bool {
-	var acceptedGlobNamespace = []string{"", "all"}
+	var acceptedGlobNamespace = []string{"", ALLOW_ALL}
 	if contains(acceptedGlobNamespace, configurationNamespace) {
 		return true
 	} else {
 		return configurationNamespace == podNamespace
 	}
 
+}
+
+func SourcePodMatchesKubesondeSpec(Kubesonde kubesondev1.Kubesonde, pod k8sAPI.Pod) bool {
+
+	// If within include, allow
+	for _, item := range Kubesonde.Spec.Include {
+		if item.FromPodSelector == ALLOW_ALL { // Keyword
+			return true
+		}
+		// Split key-value
+		kv := strings.Split(item.FromPodSelector, "=") // TODO: Error handling
+		key := kv[0]
+		value := kv[1]
+		podValue, ok := pod.ObjectMeta.Labels[key]
+		if ok && podValue == value { // If key and value match
+			return true
+		}
+	}
+	// Exclude does not give information about source Pod.
+
+	// If allow by default check in namespace
+	if Kubesonde.Spec.Probe == ALLOW_ALL {
+		return InNamespace(Kubesonde.Spec.Namespace, pod.Namespace)
+	}
+	// Otherwise we only accepts the included items.
+	return false
 }
 
 func GetDeployment(replica v1.ReplicaSet) (string, error) {

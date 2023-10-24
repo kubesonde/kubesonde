@@ -7,6 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+	kubesondev1 "kubesonde.io/api/v1"
 )
 
 var _ = Describe("FilterPodsByStatus", func() {
@@ -115,5 +116,58 @@ var _ = Describe("GetReplicaSet", func() {
 		Expect(err).To(BeNil())
 		Expect(depname).To(Equal("myreplica-abcdefg"))
 
+	})
+})
+
+var _ = Describe("SourcePodMatchesKubesondeSpec", func() {
+	It("Returns True when Pod from different namespace is included", func() {
+		ksonde := kubesondev1.Kubesonde{
+			Spec: kubesondev1.KubesondeSpec{
+				Namespace: "test",
+				Probe:     "all",
+				Include: []kubesondev1.IncludedItem{
+					{
+						FromPodSelector: "app=frontend",
+					},
+				},
+			},
+		}
+		pod := v1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "another",
+				Labels:    map[string]string{"app": "frontend"},
+			},
+		}
+		Expect(SourcePodMatchesKubesondeSpec(ksonde, pod)).To(BeTrue())
+	})
+	It("Returns True for a Pod from the same namespace if probe all", func() {
+		ksonde := kubesondev1.Kubesonde{
+			Spec: kubesondev1.KubesondeSpec{
+				Namespace: "test",
+				Probe:     "all",
+			},
+		}
+		pod := v1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "test",
+				Labels:    map[string]string{"app": "frontend"},
+			},
+		}
+		Expect(SourcePodMatchesKubesondeSpec(ksonde, pod)).To(BeTrue())
+	})
+	It("Returns False for a Pod from the same namespace if probe none", func() {
+		ksonde := kubesondev1.Kubesonde{
+			Spec: kubesondev1.KubesondeSpec{
+				Namespace: "test",
+				Probe:     "none",
+			},
+		}
+		pod := v1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "test",
+				Labels:    map[string]string{"app": "frontend"},
+			},
+		}
+		Expect(SourcePodMatchesKubesondeSpec(ksonde, pod)).To(BeFalse())
 	})
 })
