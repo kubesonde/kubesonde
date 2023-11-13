@@ -73,6 +73,32 @@ func SourcePodMatchesKubesondeSpec(Kubesonde kubesondev1.Kubesonde, pod k8sAPI.P
 	return false
 }
 
+func ServiceMatchesKubesondeSpec(Kubesonde kubesondev1.Kubesonde, srv k8sAPI.Service) bool {
+
+	// If within include, allow
+	for _, item := range Kubesonde.Spec.Include {
+		if item.FromPodSelector == ALLOW_ALL { // Keyword
+			return true
+		}
+		// Split key-value
+		kv := strings.Split(item.FromPodSelector, "=") // TODO: Error handling
+		key := kv[0]
+		value := kv[1]
+		podValue, ok := srv.Spec.Selector[key]
+		if ok && podValue == value { // If key and value match service selector
+			return true
+		}
+	}
+	// Exclude does not give information about source Pod.
+
+	// If allow by default check in namespace
+	if Kubesonde.Spec.Probe == ALLOW_ALL {
+		return InNamespace(Kubesonde.Spec.Namespace, srv.Namespace)
+	}
+	// Otherwise we only accepts the included items.
+	return false
+}
+
 func GetDeployment(replica v1.ReplicaSet) (string, error) {
 
 	refs := replica.OwnerReferences

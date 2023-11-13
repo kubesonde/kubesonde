@@ -20,14 +20,14 @@ func podEventHandler(client kubernetes.Interface, Kubesonde kubesondev1.Kubesond
 		AddFunc: func(obj interface{}) {
 			pod := obj.(*v1.Pod)
 
-			if utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
+			if utils.SourcePodMatchesKubesondeSpec(Kubesonde, *pod) {
 
 				addPodEvent(client, *pod)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			pod := obj.(*v1.Pod)
-			if !utils.InNamespace(Kubesonde.Spec.Namespace, pod.Namespace) {
+			if utils.SourcePodMatchesKubesondeSpec(Kubesonde, *pod) {
 				return
 			}
 			deletePodEvent(*pod)
@@ -35,7 +35,7 @@ func podEventHandler(client kubernetes.Interface, Kubesonde kubesondev1.Kubesond
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			newPod := newObj.(*v1.Pod)
 			oldPod := oldObj.(*v1.Pod)
-			if !utils.InNamespace(Kubesonde.Spec.Namespace, oldPod.Namespace) {
+			if !utils.SourcePodMatchesKubesondeSpec(Kubesonde, *oldPod) {
 				return
 			}
 			if oldPod.Status.Phase == v1.PodRunning && newPod.Status.Phase != v1.PodRunning {
@@ -49,7 +49,7 @@ func svcEventHandler(Kubesonde kubesondev1.Kubesonde) cache.ResourceEventHandler
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			srv := obj.(*v1.Service)
-			if utils.InNamespace(Kubesonde.Spec.Namespace, srv.Namespace) { // Services are namespaced
+			if utils.ServiceMatchesKubesondeSpec(Kubesonde, *srv) { // Services are namespaced
 				currPods := eventstorage.GetActivePods()
 				if len(currPods) == 0 {
 					return
