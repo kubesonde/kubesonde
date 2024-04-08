@@ -38,6 +38,7 @@ metadata:
   name: kubesonde-sample
 spec:
   namespace: default
+  probe: all
 ```
 ### 4. Fetching the results
 

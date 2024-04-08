@@ -309,7 +309,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: registry.cs.aalto.fi/kubesonde/controller:latest
+        image: jackops93/kubesonde_controller:latest
         imagePullPolicy: IfNotPresent
         name: manager
         ports:

@@ -1,7 +1,7 @@
 
 SHELL := /bin/bash
 # Image URL to use all building/pushing image targets
-IMG ?= registry.cs.aalto.fi/kubesonde/controller:latest
+IMG ?= jackops93/kubesonde_controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 

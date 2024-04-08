@@ -1,4 +1,4 @@
-IMG ?= registry.cs.aalto.fi/kubesonde/monitor:latest
+IMG ?= jackops93/kubesonde_monitor:latest
 
 all:
 	docker build ./gonetstat -t ${IMG} > /dev/null
