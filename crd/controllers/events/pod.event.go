@@ -15,6 +15,7 @@ import (
 	debugcontainer "kubesonde.io/controllers/debug-container"
 	kubesondeDispatcher "kubesonde.io/controllers/dispatcher"
 	. "kubesonde.io/controllers/event-storage"
+	eventstorage "kubesonde.io/controllers/event-storage"
 	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
 	"kubesonde.io/controllers/utils"
@@ -40,7 +41,7 @@ func IsProcessingEvent() bool {
 }
 
 // TODO: Add resilience mechanism to to unlock the resource when pending for too long.
-func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
+func AddPodEvent(client kubernetes.Interface, pod v1.Pod) {
 	pods := v1.PodList{
 		Items: []v1.Pod{pod},
 	}
@@ -55,7 +56,7 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 		log.Info(fmt.Sprintf("Containers: %v", pod.Spec.Containers))
 
 	}
-
+	//log.Info(fmt.Sprintf("Pod: %s (%s)", pod.Name, pod.Status.PodIP))
 	var timestamp = time.Now().Unix()
 
 	/**
@@ -73,11 +74,8 @@ func addPodEvent(client kubernetes.Interface, pod v1.Pod) {
 		kubesondeDispatcher.SendToQueue(probes, kubesondeDispatcher.HIGH)
 	}
 	// TODO: Maybe there should be an event listener on the services to do the same thing.
-	curr_services, err := client.CoreV1().Services(pod.Namespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		log.Info("Cannot get services")
-	}
-	services_probes := probe_command.BuildCommandsToServices(pod, curr_services.Items)
+	curr_services := eventstorage.GetServices()
+	services_probes := probe_command.BuildCommandsToServices(pod, curr_services)
 	AddProbes(services_probes)
 	other_probes := probe_command.BuildCommandsToOutsideWorld(pod)
 	AddProbes(other_probes)

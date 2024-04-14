@@ -26,7 +26,7 @@ func InstallEphameralContainers(client kubernetes.Interface, pods *v1.PodList) {
 	for i := range podList {
 		if !EphemeralContainerExists(&podList[i]) {
 			installContainers(client, &podList[i])
-			log.V(1).Info(fmt.Sprintf("ephemeral container installed in %s pod", podList[i].Name))
+			log.V(1).Info(fmt.Sprintf("Installing debug containers in %s pod", podList[i].Name))
 		}
 
 	}
@@ -44,9 +44,9 @@ func EphemeralContainerExists(pod *v1.Pod) bool {
 		return s == "monitor"
 	})
 	ok := ok1 && ok2
-	if len(ephNames) != 2 {
+	/*if len(ephNames) != 2 {
 		log.Info(fmt.Sprintf("Pod %s has %v ephemeral containers", pod.Name, ephNames))
-	}
+	}*/
 	return ok
 }
 

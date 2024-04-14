@@ -22,6 +22,7 @@ type KubesondeMode interface {
 }
 
 func runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error) {
+	//log.Info(fmt.Sprintf("Probing from %s to  %s", command.SourcePodName, command.Destination))
 	req := client.
 		CoreV1().
 		RESTClient().
@@ -58,7 +59,8 @@ func runGenericCommand(client kubernetes.Interface, namespace string, command pr
 		Stderr: &stderr,
 		Tty:    false,
 	})
-	if err != nil {
+	if err != nil && !strings.Contains(command.Command, "wget") {
+		log.Info(fmt.Sprintf("Connection from %s to  %s (%s) returned an error code: %s", command.SourcePodName, command.Destination, command.DestinationIPAddress, command.Command))
 		/*log.Info(fmt.Sprintf(`
 		Namespace: %s,
 		Endpoint: %s

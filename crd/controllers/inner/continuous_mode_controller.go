@@ -90,7 +90,7 @@ func toProbeItem(kubesondeCommand probe_command.KubesondeCommand, result v12.Act
 }
 
 func withDeploymentInformationSlow(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
-	log.Info("Getting information about deployment, slowly...")
+	//log.Info("Getting information about deployment, slowly...")
 	source_pod, err_source := client.CoreV1().Pods(output.Source.Namespace).Get(context.TODO(), output.Source.Name, metav1.GetOptions{})
 	dest_pod, err_dest := client.CoreV1().Pods(output.Destination.Namespace).Get(context.TODO(), output.Destination.Name, metav1.GetOptions{})
 	if err_source == nil {
@@ -170,15 +170,18 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 			}
 		}
 		result, err := mode.runCommand(client, kubesondeCommand.Namespace, kubesondeCommand, kubesondeCommand.ProbeChecker)
-
-		command := fmt.Sprintf("wget --server-response -O- http://%s:%s", kubesondeCommand.DestinationIPAddress, kubesondeCommand.DestinationPort)
+		command := fmt.Sprintf("wget --server-response --timeout=3 -O- http://%s:%s", kubesondeCommand.DestinationIPAddress, kubesondeCommand.DestinationPort)
 		debug_info := fmt.Sprintf("From: %s - Command: %s", kubesondeCommand.SourcePodName, command)
-		genericCommand := probe_command.KubesondeCommand{
-			ContainerName: kubesondeCommand.ContainerName,
-			SourcePodName: kubesondeCommand.SourcePodName,
-			Command:       command,
+
+		var output string
+
+		if kubesondeCommand.Protocol == "TCP" && kubesondeCommand.DestinationPort != "53" && kubesondeCommand.DestinationType != v12.INTERNET {
+			genericCommand := kubesondeCommand
+			genericCommand.Command = command
+			output, _ = mode.runGenericCommand(client, kubesondeCommand.Namespace, genericCommand)
+		} else {
+			output = "SKIP"
 		}
-		output, _ := mode.runGenericCommand(client, kubesondeCommand.Namespace, genericCommand)
 		if err != nil {
 			errors := []v12.ProbeOutputError{toProbeError(kubesondeCommand, err)}
 			state.AppendErrors(&errors)

@@ -158,3 +158,18 @@ func GetReplicaSetsNamesInNamespace(client kubernetes.Interface, namespace strin
 	})
 	return names
 }
+
+// TODO: Make sure pods are not terminating
+func GetPodsInNamespace(client kubernetes.Interface, namespace string) []k8sAPI.Pod {
+	pods, _ := client.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+
+	return lo.Filter(pods.Items, func(pod k8sAPI.Pod, _ int) bool {
+		return pod.Status.Phase == k8sAPI.PodRunning
+	})
+}
+
+func GetServicesInNamespace(client kubernetes.Interface, namespace string) []k8sAPI.Service {
+	services, _ := client.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
+
+	return services.Items
+}

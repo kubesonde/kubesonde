@@ -4,10 +4,8 @@ package dispatcher
 
 import (
 	"container/heap"
-	"context"
 	"time"
 
-	"github.com/samber/lo"
 	"golang.org/x/sync/semaphore"
 	"k8s.io/client-go/kubernetes"
 	"kubesonde.io/controllers/inner"
@@ -28,7 +26,11 @@ var (
 
 // Add probes to queue
 func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
-	lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
+
+	for result := dispatcherSemaphore.TryAcquire(1); !result; result = dispatcherSemaphore.TryAcquire(1) {
+		// Keep trying to acquire
+	}
+
 	for index, probe := range probes {
 		heap.Push(&pq, &Item{
 			value:    probe,
@@ -39,13 +41,24 @@ func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
 	dispatcherSemaphore.Release(1)
 
 }
+func QueueSize() int {
+	for result := dispatcherSemaphore.TryAcquire(1); !result; result = dispatcherSemaphore.TryAcquire(1) {
+		// Keep trying to acquire
+	}
+	size := pq.Len()
+	dispatcherSemaphore.Release(1)
+	return size
+}
 
 // Main routine. Starts the probe running loop.
 func Run(apiClient kubernetes.Interface) {
-	const probesPerSecond = time.Second / 10
+	const probesPerSecond = 300 * time.Millisecond
 	heap.Init(&pq)
 	for { // FIXME: this could also be event based maybe
-		lo.Must0(dispatcherSemaphore.Acquire(context.Background(), 1))
+		result := dispatcherSemaphore.TryAcquire(1)
+		if result == false {
+			continue
+		}
 		for pq.Len() > 0 {
 			start := time.Now()
 			item := heap.Pop(&pq).(*Item)
