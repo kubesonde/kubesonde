@@ -19,17 +19,9 @@ require (
 
 require (
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/fatih/color v1.7.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/gobuffalo/flect v0.2.0 // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
-	github.com/mattn/go-colorable v0.1.2 // indirect
-	github.com/mattn/go-isatty v0.0.8 // indirect
-	github.com/spf13/cobra v1.6.0 // indirect
-	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
-	sigs.k8s.io/controller-tools v0.4.1 // indirect
 )
 
 require (
