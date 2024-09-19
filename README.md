@@ -1,6 +1,6 @@
-![workflow](https://github.com/jackap/kubesonde/actions/workflows/go_main.yaml/badge.svg)
-![frontend_test](https://github.com/jackap/kubesonde/actions/workflows/frontend_dev.yaml/badge.svg)
-![frontend_deployment](https://github.com/jackap/kubesonde/actions/workflows/deploy_frontend.yaml/badge.svg)
+![workflow](https://github.com/kubesonde/kubesonde/actions/workflows/go_main.yaml/badge.svg)
+![frontend_test](https://github.com/kubesonde/kubesonde/actions/workflows/frontend_dev.yaml/badge.svg)
+![frontend_deployment](https://github.com/kubesonde/kubesonde/actions/workflows/deploy_frontend.yaml/badge.svg)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/454a0209-6077-4bc3-ba46-bf52f8711407/deploy-status)](https://app.netlify.com/sites/kubesonde/deploys)
 
 
