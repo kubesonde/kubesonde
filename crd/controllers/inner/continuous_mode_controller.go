@@ -2,6 +2,8 @@ package inner
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -88,7 +90,7 @@ func toProbeItem(kubesondeCommand probe_command.KubesondeCommand, result v12.Act
 }
 
 func withDeploymentInformationSlow(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
-	log.Info("Getting information about deployment, slowly...")
+	//log.Info("Getting information about deployment, slowly...")
 	source_pod, err_source := client.CoreV1().Pods(output.Source.Namespace).Get(context.TODO(), output.Source.Name, metav1.GetOptions{})
 	dest_pod, err_dest := client.CoreV1().Pods(output.Destination.Namespace).Get(context.TODO(), output.Destination.Name, metav1.GetOptions{})
 	if err_source == nil {
@@ -133,6 +135,22 @@ func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutp
 
 	return withDeploymentInformationSlow(client, output)
 }
+
+func fixOutput(s string) string {
+	splits := strings.Split(s, "andstderr")
+	if len(splits) == 1 {
+		return limitStringLength(s)
+	}
+	return fmt.Sprintf("%s -- %s", limitStringLength(splits[0]), limitStringLength(splits[1]))
+}
+
+func limitStringLength(s string) string {
+	if len(s) > 200 {
+		return s[:200]
+	}
+	return s
+}
+
 func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.KubesondeCommand) v12.ProbeOutput {
 	// runCommand, client := state.runCommand, state.getClient()
 	client := mode.getClient()
@@ -152,16 +170,31 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 			}
 		}
 		result, err := mode.runCommand(client, kubesondeCommand.Namespace, kubesondeCommand, kubesondeCommand.ProbeChecker)
+		command := fmt.Sprintf("wget --server-response --timeout=3 -O- http://%s:%s", kubesondeCommand.DestinationIPAddress, kubesondeCommand.DestinationPort)
+		debug_info := fmt.Sprintf("From: %s - Command: %s", kubesondeCommand.SourcePodName, command)
 
+		var output string
+
+		if kubesondeCommand.Protocol == "TCP" && kubesondeCommand.DestinationPort != "53" && kubesondeCommand.DestinationType != v12.INTERNET {
+			genericCommand := kubesondeCommand
+			genericCommand.Command = command
+			output, _ = mode.runGenericCommand(client, kubesondeCommand.Namespace, genericCommand)
+		} else {
+			output = "SKIP"
+		}
 		if err != nil {
 			errors := []v12.ProbeOutputError{toProbeError(kubesondeCommand, err)}
 			state.AppendErrors(&errors)
 			log.Info("Error when Probing...")
-		} else if err == nil && result {
-			probes := []v12.ProbeOutputItem{withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.ALLOW))}
+		} else if result {
+			probe_output := withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.ALLOW))
+			probe_output.DebugOutput = fixOutput(fmt.Sprintf("%s %s", debug_info, output))
+			probes := []v12.ProbeOutputItem{probe_output}
 			state.AppendProbes(&probes)
-		} else if err == nil && !result {
-			probes := []v12.ProbeOutputItem{withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.DENY))}
+		} else if !result {
+			probe_output := withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.DENY))
+			probe_output.DebugOutput = fixOutput(fmt.Sprintf("%s %s", debug_info, output))
+			probes := []v12.ProbeOutputItem{probe_output}
 			state.AppendProbes(&probes)
 		}
 	}

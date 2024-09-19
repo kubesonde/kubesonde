@@ -1,6 +1,7 @@
 package recursiveprobing
 
 import (
+	"fmt"
 	"time"
 
 	kubesondev1 "kubesonde.io/api/v1"
@@ -15,7 +16,12 @@ var log = logf.Log.WithName("Recursive probing")
 // intervals
 func RecursiveProbing(Kubesonde kubesondev1.Kubesonde, when time.Duration) {
 	var task = func() {
-		go RunProbing()
+		size := kubesondeDispatcher.QueueSize()
+		log.Info(fmt.Sprintf("Probe queue size: %d", size))
+		if size == 0 {
+			go RunProbing()
+		}
+
 		RecursiveProbing(Kubesonde, when)
 	}
 	time.AfterFunc(when, task)

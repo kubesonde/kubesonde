@@ -12,7 +12,7 @@ var (
 )
 
 func AddProbe(command probe_command.KubesondeCommand) {
-	key := fmt.Sprintf("%s-%s-%s-%s", command.SourcePodName, command.DestinationIPAddress, command.DestinationPort, command.Protocol)
+	key := fmt.Sprintf("%s-%s-%s-%s-%s", command.SourcePodName, command.Command, command.DestinationIPAddress, command.DestinationPort, command.Protocol)
 	_, ok := commands[key]
 	if ok {
 		return
@@ -32,7 +32,7 @@ func GetProbes() []probe_command.KubesondeCommand {
 }
 
 func ProbeAvailable(command probe_command.KubesondeCommand) bool {
-	key := fmt.Sprintf("%s-%s-%s-%s", command.SourcePodName, command.DestinationIPAddress, command.DestinationPort, command.Protocol)
+	key := fmt.Sprintf("%s-%s-%s-%s-%s", command.SourcePodName, command.Command, command.DestinationIPAddress, command.DestinationPort, command.Protocol)
 	_, ok := commands[key]
 	return ok
 }

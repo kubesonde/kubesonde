@@ -2,6 +2,7 @@ package inner
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ type KubesondeMode interface {
 }
 
 func runGenericCommand(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand) (string, error) {
+	//log.Info(fmt.Sprintf("Probing from %s to  %s", command.SourcePodName, command.Destination))
 	req := client.
 		CoreV1().
 		RESTClient().
@@ -57,7 +59,8 @@ func runGenericCommand(client kubernetes.Interface, namespace string, command pr
 		Stderr: &stderr,
 		Tty:    false,
 	})
-	if err != nil {
+	if err != nil && !strings.Contains(command.Command, "wget") {
+		log.Info(fmt.Sprintf("Connection from %s to  %s (%s) returned an error code: %s", command.SourcePodName, command.Destination, command.DestinationIPAddress, command.Command))
 		/*log.Info(fmt.Sprintf(`
 		Namespace: %s,
 		Endpoint: %s
@@ -72,8 +75,8 @@ func runGenericCommand(client kubernetes.Interface, namespace string, command pr
 	}
 	// log.Info(fmt.Sprintf("Output for command: %s\nSource Pod: %s\nDestination : %s:%s\nStdout:\n%s\n---------\nStderr:\n%s\n",
 	//	command.Command, command.SourcePodName, command.Destination, command.DestinationPort, stdout.String(), stderr.String()))
-
-	return stdout.String(), nil
+	return fmt.Sprintf("%s andstderr %s", stdout.String(), stderr.String()), nil
+	//return stdout.String(), nil
 }
 
 func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error) {

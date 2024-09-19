@@ -61,6 +61,8 @@ type ProbeOutputItem struct {
 	Port          string `json:"port,omitempty"`
 	ForwardedPort string `json:"forwardedPort,omitempty"`
 	Timestamp     int64  `json:"timestamp,omitempty"`
+	// DebugOutput returns the http code of the request (assuming is TCP)
+	DebugOutput string `json:"debugOutput,omitempty"`
 }
 
 type ProbeEndpointInfo struct {
