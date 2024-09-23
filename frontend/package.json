@@ -5,7 +5,7 @@
   "dependencies": {
     "cytoscape": "^3.21.0",
     "cytoscape-popper": "^2.0.0",
-    "immutable": "^4.0.0",
+    "immutable": "^4.3.7",
     "javascript-algorithms-and-data-structures": "github:trekhleb/javascript-algorithms",
     "js-graph-algorithms": "^1.0.18",
     "random-seed": "^0.3.0",
