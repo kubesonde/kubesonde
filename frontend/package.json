@@ -33,7 +33,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/cytoscape": "^3.19.4",
     "@types/cytoscape-popper": "^2.0.0",
-    "@types/jest": "^27.4.1",
+    "@types/jest": "^29.5.14",
     "@types/node": "^16.11.26",
     "@types/random-seed": "^0.3.3",
     "@types/react": "^17.0.39",
