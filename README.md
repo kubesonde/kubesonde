@@ -30,7 +30,7 @@ Install the application you want to test (e.g., `helm install wordpress bitnami/
 
 ### 3. Install Kubesonde
 
-To install kubesonde run `kubectl apply -f kubesonde.yaml`. This creates all the required resources to run Kubesonde on your cluster. After that, you can install a scanner object for Kubesonde. For example, targeting only the default namespace is available. Then, you can create a Kubesonde object, for instance: 
+To install kubesonde run `kubectl apply -f kubesonde.yaml`. This creates all the required resources to run Kubesonde on your cluster. After that, you can install a scanner object for Kubesonde. The following is a Kubesonde object example that targets the default namespace: 
 ```yaml
 apiVersion: security.kubesonde.io/v1
 kind: Kubesonde
@@ -40,6 +40,7 @@ spec:
   namespace: default
   probe: all
 ```
+You can save it in a file `probe.yaml` and then apply it with `kubectl apply -f probe.yaml`
 ### 4. Fetching the results
 
 To fetch the results, you need to use the following commands:
@@ -48,6 +49,7 @@ To fetch the results, you need to use the following commands:
 
 `curl localhost:2709/probes > <output-file>.json`. This command gets the probe result and stores it in an output file.
 
+:warning: If you try to get the results of the probe just after applying it in the cluster the results may be empty or incomplete. Wait a few minutes (depending on the amount of pods) to get better results.
 ### 5. View results
 
 Navigate to the [kubesonde website](https://kubesonde.jackops.dev) and upload the generated file to see the results.
