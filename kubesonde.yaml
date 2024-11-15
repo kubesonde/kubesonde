@@ -41,16 +41,35 @@ spec:
           spec:
             description: KubesondeSpec defines the desired state of Kubesonde
             properties:
-              actions:
-                description: Actions is the set of rules to be tested
+              exclude:
+                description: Exclude is the set of probes to be excluded
                 items:
                   properties:
-                    action:
-                      description: Action is the expected outcome of the probe. It
-                        might have values "allow" or "deny"
+                    fromPodSelector:
+                      description: FromPodSelector is a selector for the origin Pod
+                        or a set of pods
                       type: string
-                    endpoint:
-                      description: Endpoint to probe
+                    port:
+                      description: Port is the probing port for ToPodSelector defaults
+                        to 80
+                      type: string
+                    protocol:
+                      description: Protocol is the protocol to use when probing ToPodSelector
+                        defaults to TCP
+                      type: string
+                    toPodSelector:
+                      description: ToPodSelector is a selector for the destination
+                        Pod or a set of pods
+                      type: string
+                  type: object
+                type: array
+              include:
+                description: Include is the set of probes to be included
+                items:
+                  properties:
+                    expected:
+                      description: ExpectedAction describes the expected outcome of
+                        the probe
                       type: string
                     fromPodSelector:
                       description: FromPodSelector is a selector for the origin Pod
@@ -62,18 +81,20 @@ spec:
                       type: string
                     protocol:
                       description: Protocol is the protocol to use when probing ToPodSelector
+                        defaults to TCP
                       type: string
                     toPodSelector:
                       description: ToPodSelector is a selector for the destination
                         Pod or a set of pods
                       type: string
-                    url:
-                      description: Url to probe
-                      type: string
                   type: object
                 type: array
               namespace:
                 description: Namespace indicates the target namespace for the probe
+                type: string
+              probe:
+                description: Probe describes if the default behavior is to probe all
+                  or none
                 type: string
             type: object
           status:
@@ -158,42 +179,6 @@ rules:
   verbs:
   - create
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: kubesonde-metrics-reader
-rules:
-- apiGroups:
-  - '*'
-  resources:
-  - nodes
-  - nodes/metrics
-  - services
-  - endpoints
-  - pods
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - '*'
-  resources:
-  - configmaps
-  verbs:
-  - get
-- apiGroups:
-  - networking.k8s.io
-  resources:
-  - ingresses
-  verbs:
-  - get
-  - list
-  - watch
-- nonResourceURLs:
-  - /metrics
-  verbs:
-  - get
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -273,7 +258,7 @@ spec:
     port: 2709
     targetPort: 2709
   selector:
-    name: kubesonde-controller-manager
+    control-plane: controller-manager
   type: NodePort
 ---
 apiVersion: apps/v1
@@ -314,29 +299,4 @@ spec:
         name: manager
         ports:
         - containerPort: 2709
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  labels:
-    control-plane: controller-manager
-  name: kubesonde-controller-manager-metrics-monitor
-  namespace: kubesonde
-spec:
-  endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    honorLabels: true
-    interval: 30s
-    path: /metrics
-    port: https
-    relabelings:
-    - sourceLabels:
-      - __metrics_path__
-      targetLabel: metrics_path
-    scheme: https
-    targetPort: 8080
-    tlsConfig:
-      insecureSkipVerify: true
-  selector:
-    matchLabels:
-      control-plane: controller-manager
+
