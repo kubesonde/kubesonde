@@ -11,6 +11,8 @@
 
 Kubesonde is a tool to probe and test network security policies in Kubernetes.
 
+:warning: Check out our paper on FSE-3023 [Analyzing Microservice Connectivity with Kubesonde](https://dl.acm.org/doi/10.1145/3611643.3613899)
+
 ![kubesonde infra](docs/kubesonde.png "kubesonde infrastructure")
 
 ## Structure of the project
