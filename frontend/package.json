@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "cytoscape": "^3.30.3",
-    "cytoscape-popper": "^2.0.0",
+    "cytoscape-popper": "^4.0.1",
     "immutable": "^4.0.0",
     "javascript-algorithms-and-data-structures": "github:trekhleb/javascript-algorithms",
     "js-graph-algorithms": "^1.0.18",
