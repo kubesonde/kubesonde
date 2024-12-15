@@ -22,6 +22,17 @@ Folders are organized as follows:
 - `frontend`: contains the UI for analyzing the probe outputs
 - `examples`: sample output from Kubesonde
 
+## Prerequisite: Clone the Repository
+
+Before applying Kubesonde, you need to clone the repository, as the required configuration files (`kubesonde.yaml`, etc.) are located in the root of the repository:
+
+```bash
+git clone https://github.com/kubesonde/kubesonde.git
+cd kubesonde
+```
+
+This ensures that you have all the necessary files and configurations for setting up Kubesonde.
+
 ## Run Kubesonde
 ### 1. Start the Kubernetes engine
 
@@ -55,6 +66,25 @@ To fetch the results, you need to use the following commands:
 ### 5. View results
 
 Navigate to the [kubesonde website](https://kubesonde.jackops.dev) and upload the generated file to see the results.
+
+
+## Deleting Kubesonde Resources
+
+To delete the resources created by Kubesonde, use the following commands:
+
+1. Delete the Kubesonde scanner object:
+
+```bash
+kubectl delete -f probe.yaml
+```
+
+2. Delete the Kubesonde deployment and associated resources:
+
+```bash
+kubectl delete -f kubesonde.yaml
+```
+
+This will remove all resources created by Kubesonde from your cluster.
  
 ## Credits
 
