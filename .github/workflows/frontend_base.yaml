@@ -67,12 +67,12 @@ jobs:
           mkdir -p /home/runner/work/_temp/_github_home
           printf "[safe]\ndirectory = /github/workspace" > /home/runner/work/_temp/_github_home/.gitconfig
 
-      - name: Send coverage results
-        uses: deepsourcelabs/test-coverage-action@master
-        with:
-          key: javascript
-          coverage-file: coverage/clover.xml
-          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+      # - name: Send coverage results
+      #   uses: deepsourcelabs/test-coverage-action@master
+      #   with:
+      #     key: javascript
+      #     coverage-file: coverage/clover.xml
+      #     dsn: ${{ secrets.DEEPSOURCE_DSN }}
 
   build:
     runs-on: ubuntu-latest
