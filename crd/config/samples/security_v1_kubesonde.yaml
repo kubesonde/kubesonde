@@ -1,7 +1,10 @@
 apiVersion: security.kubesonde.io/v1
 kind: Kubesonde
 metadata:
+  labels:
+    app.kubernetes.io/name: kubesonde
+    app.kubernetes.io/managed-by: kustomize
   name: kubesonde-sample
 spec:
-  # Add fields here
   namespace: default
+  probe: all

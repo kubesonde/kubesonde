@@ -10,7 +10,7 @@ on:
 
 jobs:
   prepare:
-    uses: jackap/kubesonde/.github/workflows/frontend_base.yaml@main
+    uses: kubesonde/kubesonde/.github/workflows/frontend_base.yaml@main
 
   deploy:
     runs-on: ubuntu-latest

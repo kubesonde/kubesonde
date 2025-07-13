@@ -86,6 +86,11 @@ kubectl delete -f kubesonde.yaml
 
 This will remove all resources created by Kubesonde from your cluster.
  
+
+
+## Contributing
+
+Contributions to the project are welcome. Create a PR and let's discuss the changes.
 ## Credits
 
 Logo from [Elisabetta Russo](stelladigitale.it) info@stelladigitale.it
