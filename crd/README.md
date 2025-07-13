@@ -1,8 +1,6 @@
-# Kubesonde crd
-// TODO(user): Add simple overview of use/purpose
+# Kubesonde Custom Resource Definition
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+This CRD installs Kubesonde and prepares the ground for port scanning.
 
 ## Getting Started
 
@@ -88,9 +86,6 @@ Users can just run kubectl apply -f <URL for YAML BUNDLE> to install the project
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/<org>/kubesonde/<tag or branch>/dist/install.yaml
 ```
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
 
 **NOTE:** Run `make help` for more information on all potential `make` targets
 
