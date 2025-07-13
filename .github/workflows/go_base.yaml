@@ -23,11 +23,11 @@ jobs:
 
       - name: Build
         working-directory: crd
-        run: go build -v ./...
+        run: make build
 
       - name: Test
         working-directory: crd
-        run: go test -v ./... -coverprofile cover.out
+        run: make test 
 
       - name: Add git safe.directory for container
         run: |
