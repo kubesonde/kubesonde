@@ -33,10 +33,3 @@ jobs:
         run: |
           mkdir -p /home/runner/work/_temp/_github_home
           printf "[safe]\ndirectory = /github/workspace" > /home/runner/work/_temp/_github_home/.gitconfig
-
-      # - name: Send coverage results
-      #   uses: deepsourcelabs/test-coverage-action@master
-      #   with:
-      #     key: go
-      #     coverage-file: cover.out
-      #     dsn: ${{ secrets.DEEPSOURCE_DSN }}
