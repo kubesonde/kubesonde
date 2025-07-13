@@ -16,4 +16,4 @@ on:
 
 jobs:
   prepare:
-    uses: jackap/kubesonde/.github/workflows/go_base.yaml@main
+    uses: kubesonde/kubesonde/.github/workflows/go_base.yaml@main
