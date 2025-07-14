@@ -31,7 +31,7 @@ jobs:
           
       - name: Create artifact
         working-directory: crd
-        run: make artifact IMG=ghcr.io/kubesonde/controller:${{ github.ref }}
+        run: TAG_NAME=${GITHUB_REF#refs/tags/} make artifact IMG=ghcr.io/kubesonde/controller:${TAG_NAME}
 
       - name: Create Release
         id: create_release
@@ -52,14 +52,14 @@ jobs:
           
       - name: Build controller with tag
         working-directory: crd
-        run: make docker-buildx IMG=ghcr.io/kubesonde/controller:${{ github.ref }} 
+        run: TAG_NAME=${GITHUB_REF#refs/tags/} make docker-buildx IMG=ghcr.io/kubesonde/controller:${TAG_NAME} 
       - name: Build controller with latest
         working-directory: crd
         run: make docker-buildx IMG=ghcr.io/kubesonde/controller:latest
       
       - name: Build gonetstat with tag
         working-directory: docker
-        run: make IMG=ghcr.io/kubesonde/gonetstat:${{ github.ref }} 
+        run: TAG_NAME=${GITHUB_REF#refs/tags/} make IMG=ghcr.io/kubesonde/gonetstat:${TAG_NAME} 
       - name: Build gonetstat with latest
         working-directory: docker
         run: make IMG=ghcr.io/kubesonde/gonetstat:latest
