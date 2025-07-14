@@ -2,15 +2,15 @@ name: Deploy containers
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
     paths:
       - crd/**
       - .github/**
 
 permissions:
   contents: write
-  
+
 jobs:
   prepare:
     uses: kubesonde/kubesonde/.github/workflows/go_base.yaml@main
