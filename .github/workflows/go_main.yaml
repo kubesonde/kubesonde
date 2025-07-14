@@ -11,26 +11,51 @@ on:
 jobs:
   prepare:
     uses: kubesonde/kubesonde/.github/workflows/go_base.yaml@main
-#
-#  deploy:
-#    needs:
-#      - prepare
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Login to github registry
-#        uses: actions-hub/docker/login@master
-#        env:
-#          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-#         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#          DOCKER_REGISTRY_URL: registry.cs.aalto.fi:5000
-#
-#      - name: Build :latest
-#        working-directory: crd
-#        if: success()
-#        run: make docker-build
-#
-#      - name: Push to Repository :latest
-#        if: success()
-#        run: make docker-push
+
+
+  build-and-publish:
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+          
+      - name: Create artifact
+        run: make artifact IMG=ghcr.io/kubesonde/controller:${{ github.ref }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref }}  # Use the tag that triggered the workflow
+          files: crd/kubesonde.yaml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build controller with tag
+        working-directory: crd
+        run: make docker-buildx IMG=ghcr.io/kubesonde/controller:${{ github.ref }} 
+      - name: Build controller with latest
+        working-directory: crd
+        run: make docker-buildx IMG=ghcr.io/kubesonde/controller:latest
+      
+      - name: Build gonetstat with tag
+        working-directory: docker
+        run: make IMG=ghcr.io/kubesonde/gonetstat:${{ github.ref }} 
+      - name: Build gonetstat with latest
+        working-directory: docker
+        run: make IMG=ghcr.io/kubesonde/gonetstat:latest
