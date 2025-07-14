@@ -27,6 +27,7 @@ jobs:
           go-version: 1.21
           
       - name: Create artifact
+        working-directory: crd
         run: make artifact IMG=ghcr.io/kubesonde/controller:${{ github.ref }}
 
       - name: Create Release
