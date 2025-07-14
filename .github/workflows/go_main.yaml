@@ -52,14 +52,14 @@ jobs:
           
       - name: Build controller with tag
         working-directory: crd
-        run: TAG_NAME=${GITHUB_REF#refs/tags/} make docker-buildx IMG=ghcr.io/kubesonde/controller:${TAG_NAME} 
+        run: make docker-buildx IMG=ghcr.io/kubesonde/controller:${GITHUB_REF#refs/tags/}
       - name: Build controller with latest
         working-directory: crd
         run: make docker-buildx IMG=ghcr.io/kubesonde/controller:latest
       
       - name: Build gonetstat with tag
         working-directory: docker
-        run: TAG_NAME=${GITHUB_REF#refs/tags/} make IMG=ghcr.io/kubesonde/gonetstat:${TAG_NAME} 
+        run: make IMG=ghcr.io/kubesonde/gonetstat:${GITHUB_REF#refs/tags/}
       - name: Build gonetstat with latest
         working-directory: docker
         run: make IMG=ghcr.io/kubesonde/gonetstat:latest
