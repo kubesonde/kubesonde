@@ -1,6 +1,6 @@
 module kubesonde.io
 
-go 1.21
+go 1.23.0
 
 require (
 	bou.ke/monkey v1.0.2
@@ -11,7 +11,7 @@ require (
 	github.com/prometheus/client_golang v1.18.0
 	github.com/samber/lo v1.51.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.16.0
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/client-go v0.29.0
