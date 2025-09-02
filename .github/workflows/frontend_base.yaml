@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-
       - uses: actions/setup-node@v4
         with:
-          node-version: 16.15.1
+          node-version: 24.7.0
       - name: Install
         run: npm install
 
@@ -59,7 +59,7 @@ jobs:
             ${{ runner.os }}-
       - uses: actions/setup-node@v4
         with:
-          node-version: 16.15.1
+          node-version: 24.7.0
       - name: Install
         run: npm install
       - name: Add git safe.directory for container
@@ -88,7 +88,7 @@ jobs:
                   - uses: actions/cache@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 16.15.1
+          node-version: 24.7.0
       - name: Install
         run: npm install
       - name: Get version
