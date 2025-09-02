@@ -365,7 +365,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: jackops93/kubesonde_controller:latest
+        image: ghcr.io/kubesonde/controller:latest
         livenessProbe:
           httpGet:
             path: /healthz
