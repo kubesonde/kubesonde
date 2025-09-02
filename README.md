@@ -58,7 +58,10 @@ You can save it in a file `probe.yaml` and then apply it with `kubectl apply -f 
 
 To fetch the results, you need to use the following commands:
 
-`kubectl --namespace kubesonde port-forward deployment.apps/kubesonde-controller-manager 2709`. This command creates a port mapping between your local computer and the Kubesonde deployment.
+```bash
+kubectl --namespace kubesonde-system port-forward deployment.apps/kubesonde-controller-manager 2709
+```
+This command creates a port mapping between your local computer and the Kubesonde deployment.
 
 `curl localhost:2709/probes > <output-file>.json`. This command gets the probe result and stores it in an output file.
 
