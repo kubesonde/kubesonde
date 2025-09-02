@@ -1,5 +1,5 @@
 # Image URL to use all building/pushing image targets
-IMG ?= jackops93/kubesonde_controller:latest
+IMG ?= ghcr.io/kubesonde/controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29.0
 
@@ -187,7 +187,7 @@ $(GOLANGCI_LINT): $(LOCALBIN)
 artifact: manifests
 	echo "Creating controller"
 	cd config/manager && kustomize edit set image controller=${IMG}
-	kustomize build config/default > kubesonde.yaml
+	kustomize build config/default > ../kubesonde.yaml
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)

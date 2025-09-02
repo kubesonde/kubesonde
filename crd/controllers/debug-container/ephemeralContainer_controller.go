@@ -106,7 +106,7 @@ func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
 	ec2 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
 			Name:                     "monitor",
-			Image:                    "jackops93/kubesonde_monitor:latest",
+			Image:                    "ghcr.io/kubesonde/gonetstat:latest",
 			ImagePullPolicy:          v1.PullIfNotPresent,
 			Stdin:                    true,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
