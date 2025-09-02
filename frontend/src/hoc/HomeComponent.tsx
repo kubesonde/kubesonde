@@ -1,25 +1,40 @@
 import { FaDownload } from "react-icons/fa";
 import "./Home.scss";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFilePicker } from "use-file-picker";
 import { useNavigate } from "react-router-dom";
 import { ProbeOutput } from "src/entities/probeOutput";
+
 export const HomeComponent = () => {
   const navigate = useNavigate();
   const [openFileSelector, { filesContent, clear }] = useFilePicker({
     accept: ".json",
   });
 
-  if (filesContent.length) {
-    const data = filesContent[0].content;
-    const parsedData: ProbeOutput = JSON.parse(data);
-    const filenameRaw = filesContent[0].name.replace(".json", "");
-    const filename = filenameRaw.charAt(0).toUpperCase() + filenameRaw.slice(1);
-    clear();
-    navigate(`/graph/${filesContent[0].name}`, {
-      state: { data: parsedData, title: filename },
-    });
-  }
+  // 👇 move navigation into an effect
+  useEffect(() => {
+    let isMounted = true;
+  
+    if (filesContent.length && isMounted) {
+      const data = filesContent[0].content;
+      const parsedData: ProbeOutput = JSON.parse(data);
+      const filenameRaw = filesContent[0].name.replace(".json", "");
+      const filename =
+        filenameRaw.charAt(0).toUpperCase() + filenameRaw.slice(1);
+  
+      // clear file picker before navigating
+      clear();
+  
+      navigate(`/graph/${filesContent[0].name}`, {
+        state: { data: parsedData, title: filename },
+      });
+    }
+  
+    return () => {
+      isMounted = false;
+    };
+  }, [filesContent, clear, navigate]);
+  
 
   return (
     <div className="form-container">
