@@ -73,7 +73,7 @@ export const Sidebar: React.FC = () => {
           </SidebarContent>
           <SidebarFooter>
             <Menu iconShape="square">
-              <MenuItem>Version: {process.env.REACT_APP_VERSION}</MenuItem>
+              <MenuItem>Version: {import.meta.env.REACT_APP_VERSION}</MenuItem>
             </Menu>
           </SidebarFooter>
         </ProSidebar>

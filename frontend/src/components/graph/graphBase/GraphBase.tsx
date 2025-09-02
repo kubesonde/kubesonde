@@ -49,7 +49,7 @@ export interface BasicGraphProps {
   declarativeConfiguration?: PodNetworkingInfoV2;
 }
 
-const headless = process.env.NODE_ENV === "test";
+const headless = import.meta.env.NODE_ENV === "test";
 
 /**
  * Component for showing Kubesonde graph.

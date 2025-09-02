@@ -1,4 +1,4 @@
-import {linux} from './probesWrapped'
+import {linux} from './probesWrapped.js'
 
 export interface NetstatInterface {
     protocol: string,
