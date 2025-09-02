@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.7.29",
+  "version": "0.8.4",
   "private": true,
   "dependencies": {
     "cytoscape": "^3.30.3",
