@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/onsi/ginkgo/v2 v2.25.2
 	github.com/onsi/gomega v1.38.2
-	github.com/prometheus/client_golang v1.23.0
+	github.com/prometheus/client_golang v1.23.2
 	github.com/samber/lo v1.51.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.16.0
@@ -62,7 +62,7 @@ require (
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.65.0 // indirect
+	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
