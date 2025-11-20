@@ -173,7 +173,7 @@ func GetServicesInNamespace(client kubernetes.Interface, namespace string) []k8s
 func MapToString(m map[string]string) string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
-		if k == "pod-template-hash" {
+		if k == "pod-template-hash" { // FIXME: should probably keep it and remove it in the client application
 			continue
 		}
 		keys = append(keys, k)

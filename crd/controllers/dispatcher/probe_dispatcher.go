@@ -52,11 +52,11 @@ func QueueSize() int {
 
 // Main routine. Starts the probe running loop.
 func Run(apiClient kubernetes.Interface) {
-	const probesPerSecond = 50 * time.Millisecond
+	const probeInterval = 50 * time.Millisecond // 20 probes per second
 	heap.Init(&pq)
 	for { // FIXME: this could also be event based maybe
 		result := dispatcherSemaphore.TryAcquire(1)
-		if result == false {
+		if !result {
 			continue
 		}
 		for pq.Len() > 0 {
@@ -64,8 +64,8 @@ func Run(apiClient kubernetes.Interface) {
 			item := heap.Pop(&pq).(*Item)
 			inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{item.value})
 			duration := time.Since(start)
-			if duration < probesPerSecond {
-				time.Sleep(probesPerSecond - duration)
+			if duration < probeInterval {
+				time.Sleep(probeInterval - duration)
 			}
 
 		}
