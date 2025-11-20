@@ -10,6 +10,7 @@ import (
 	"github.com/samber/lo"
 	v1 "k8s.io/api/core/v1"
 	v12 "kubesonde.io/api/v1"
+	"kubesonde.io/controllers/utils"
 )
 
 var (
@@ -158,13 +159,14 @@ func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol st
 	}
 
 	var cmd string
-	if protocol == "TCP" {
+	switch protocol {
+	case "TCP":
 		cmd = generateNmapCommand(nmapTCPCommand, destinationAddressForService, port)
-	} else if protocol == "UDP" {
+	case "UDP":
 		cmd = generateNmapCommand(nmapUDPCommand, destinationAddressForService, port)
-	} else if protocol == "SCTP" {
+	case "SCTP":
 		cmd = generateNmapCommand(nmapSCTPCommand, destinationAddressForService, port)
-	} else {
+	default:
 		cmd = generateNmapCommand(nmapCommand, destinationAddressForService, port)
 	}
 	return KubesondeCommand{
@@ -179,8 +181,10 @@ func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol st
 		DestinationNamespace: dest.Namespace,
 		DestinationIPAddress: destinationAddressForService,
 		DestinationType:      destType,
+		DestinationLabels:    utils.MapToString(dest.Labels),
 		SourcePodName:        source.Name,
 		SourceIPAddress:      source.Status.PodIP,
+		SourceLabels:         utils.MapToString(source.Labels),
 		SourceType:           srcType,
 		ProbeChecker:         NmapSucceded,
 	}
@@ -215,9 +219,11 @@ func buildCommand(source v1.Pod, dest v1.Pod, port int32, protocol string, destT
 		DestinationHostnames: addresses,
 		DestinationNamespace: dest.Namespace,
 		DestinationIPAddress: dest.Status.PodIP,
+		DestinationLabels:    utils.MapToString(dest.Labels),
 		DestinationType:      destType,
 		SourcePodName:        source.Name,
 		SourceIPAddress:      source.Status.PodIP,
+		SourceLabels:         utils.MapToString(source.Labels),
 		SourceType:           srcType,
 		ProbeChecker:         NmapSucceded,
 	}
@@ -248,6 +254,7 @@ func buildCommandBase(source v1.Pod,
 	default:
 		cmd = generateNmapCommand(nmapCommand, destIP, destPort)
 	}
+
 	return KubesondeCommand{
 		Action:               v12.DENY,
 		ContainerName:        "debugger",
@@ -264,6 +271,7 @@ func buildCommandBase(source v1.Pod,
 		SourceIPAddress:      source.Status.PodIP,
 		SourceType:           srcType,
 		ProbeChecker:         NmapSucceded,
+		SourceLabels:         utils.MapToString(source.Labels),
 	}
 }
 
@@ -273,14 +281,16 @@ func BuildCommandsFromSpec(actions []v12.ProbingAction, namespace string) []Kube
 	for _, action := range actions {
 
 		command := KubesondeCommand{
-			Action:          action.Action,
-			SourcePodName:   action.FromPodSelector,
-			ContainerName:   "debugger",
-			Namespace:       namespace,
-			Command:         generateCurlCommand(action),
-			Destination:     generateDestination(action),
-			DestinationPort: generateDestinationPort(action),
-			ProbeChecker:    NmapSucceded,
+			Action:            action.Action,
+			SourcePodName:     action.FromPodSelector,
+			SourceLabels:      action.FromPodSelector,
+			ContainerName:     "debugger",
+			Namespace:         namespace,
+			Command:           generateCurlCommand(action),
+			Destination:       generateDestination(action),
+			DestinationPort:   generateDestinationPort(action),
+			DestinationLabels: action.ToPodSelector,
+			ProbeChecker:      NmapSucceded,
 		}
 		commands = append(commands, command)
 	}
@@ -328,6 +338,7 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 
 		Action:               v12.DENY,
 		SourcePodName:        target.Name,
+		SourceLabels:         utils.MapToString(target.Labels),
 		ContainerName:        "debugger",
 		Namespace:            target.Namespace,
 		Command:              fmt.Sprintf(nmapTCPCommand, 53, "8.8.8.8"),
@@ -345,6 +356,7 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 		Action:               v12.DENY,
 		SourcePodName:        target.Name,
 		ContainerName:        "debugger",
+		SourceLabels:         utils.MapToString(target.Labels),
 		Namespace:            target.Namespace,
 		Command:              fmt.Sprintf(dnsUDPCommand, "google.com", "8.8.8.8"),
 		Destination:          "Google DNS",
@@ -368,6 +380,7 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 		DestinationIPAddress: "google.com",
 		Protocol:             "TCP",
 		SourceIPAddress:      target.Status.PodIP,
+		SourceLabels:         utils.MapToString(target.Labels),
 		SourceType:           v12.POD,
 		DestinationType:      v12.INTERNET,
 		ProbeChecker:         NmapSucceded,
@@ -377,6 +390,7 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 		Action:               v12.DENY,
 		SourcePodName:        target.Name,
 		ContainerName:        "debugger",
+		SourceLabels:         utils.MapToString(target.Labels),
 		Namespace:            target.Namespace,
 		Command:              fmt.Sprintf(nmapTCPCommand, 443, "google.com"),
 		Destination:          "Google",

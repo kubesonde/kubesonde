@@ -52,7 +52,7 @@ func QueueSize() int {
 
 // Main routine. Starts the probe running loop.
 func Run(apiClient kubernetes.Interface) {
-	const probesPerSecond = 300 * time.Millisecond
+	const probesPerSecond = 50 * time.Millisecond
 	heap.Init(&pq)
 	for { // FIXME: this could also be event based maybe
 		result := dispatcherSemaphore.TryAcquire(1)
