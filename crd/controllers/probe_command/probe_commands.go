@@ -194,13 +194,14 @@ func buildCommand(source v1.Pod, dest v1.Pod, port int32, protocol string, destT
 	}
 
 	var cmd string
-	if protocol == "TCP" {
+	switch protocol {
+	case "TCP":
 		cmd = generateNmapCommand(nmapTCPCommand, dest.Status.PodIP, port)
-	} else if protocol == "UDP" {
+	case "UDP":
 		cmd = generateNmapCommand(nmapUDPCommand, dest.Status.PodIP, port)
-	} else if protocol == "SCTP" {
+	case "SCTP":
 		cmd = generateNmapCommand(nmapSCTPCommand, dest.Status.PodIP, port)
-	} else {
+	default:
 		cmd = generateNmapCommand(nmapCommand, dest.Status.PodIP, port)
 	}
 	return KubesondeCommand{
@@ -237,13 +238,14 @@ func buildCommandBase(source v1.Pod,
 	}
 
 	var cmd string
-	if protocol == "TCP" {
+	switch protocol {
+	case "TCP":
 		cmd = generateNmapCommand(nmapTCPCommand, destIP, destPort)
-	} else if protocol == "UDP" {
+	case "UDP":
 		cmd = generateNmapCommand(nmapUDPCommand, destIP, destPort)
-	} else if protocol == "SCTP" {
+	case "SCTP":
 		cmd = generateNmapCommand(nmapSCTPCommand, destIP, destPort)
-	} else {
+	default:
 		cmd = generateNmapCommand(nmapCommand, destIP, destPort)
 	}
 	return KubesondeCommand{
