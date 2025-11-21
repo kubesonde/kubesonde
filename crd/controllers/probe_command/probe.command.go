@@ -14,8 +14,10 @@ type KubesondeCommand struct {
 	DestinationIPAddress string               `json:"destinationIPAddress"`
 	DestinationNamespace string               `json:"destinationNamespace"`
 	DestinationPort      string               `json:"destinationPort"`
+	DestinationLabels    string               `json:"destinationLabels"`
 	DestinationType      v1.ProbeEndpointType `json:"destinationType"`
 	SourcePodName        string               `json:"source"`
 	SourceIPAddress      string               `json:"sourceIPAddress"`
 	SourceType           v1.ProbeEndpointType `json:"sourceType"`
+	SourceLabels         string               `json:"sourceLabels"`
 }
