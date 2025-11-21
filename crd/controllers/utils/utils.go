@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"errors"
+	"slices"
+	"sort"
 	"strings"
 
 	lo "github.com/samber/lo"
@@ -28,13 +30,7 @@ func FilterPodsByStatus(pods *k8sAPI.PodList, status k8sAPI.PodPhase) k8sAPI.Pod
 }
 
 func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(s, str)
 }
 
 func InNamespace(configurationNamespace string, podNamespace string) bool {
@@ -172,4 +168,21 @@ func GetServicesInNamespace(client kubernetes.Interface, namespace string) []k8s
 	services, _ := client.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
 
 	return services.Items
+}
+
+func MapToString(m map[string]string) string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		if k == "pod-template-hash" { // FIXME: should probably keep it and remove it in the client application
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var sb strings.Builder
+	for _, k := range keys {
+		sb.WriteString(k + "=" + m[k] + ";")
+	}
+	return sb.String()
 }

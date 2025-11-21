@@ -77,6 +77,7 @@ type ProbeEndpointInfo struct {
 	// ReplicaSetName is the protocol to use when probing ToPodSelector
 	// +optional
 	ReplicaSetName string `json:"replicaSetName,omitempty"`
+	Labels         string `json:"labels,omitempty"`
 }
 
 type ProbeOutputError struct {
