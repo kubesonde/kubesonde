@@ -2,7 +2,6 @@ package restapis
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"kubesonde.io/controllers/state"
@@ -11,16 +10,31 @@ import (
 const GET_PROBES_PATH = "/probes"
 
 func GetProbesHandler() http.Handler {
-	handerFun := func(w http.ResponseWriter, r *http.Request) {
-		var currState = state.GetProbeState()
+	return GetProbesHandlerWithManager(state.GetDefaultManager())
+}
+
+func GetProbesHandlerWithManager(sm *state.StateManager) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		currState := sm.GetProbeState()
+		w.Header().Set("Content-Type", "application/json")
+
+		// Marshal state to JSON with indentation
 		data, err := json.MarshalIndent(currState, "", "  ")
 		if err != nil {
-			log.Error(err, "[GET /probes]Could not not return data")
-			fmt.Fprintf(w, "Error")
+			log.Error(err, "[GET /probes] Failed to marshal probe state")
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
 		}
-		fmt.Fprintf(w, "%s", string(data))
-	}
-	handler := http.HandlerFunc(handerFun)
-	return handler
 
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(data); err != nil {
+			log.Error(err, "[GET /probes] Failed to write response")
+		}
+	})
 }
