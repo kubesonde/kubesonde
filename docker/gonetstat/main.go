@@ -26,6 +26,11 @@ type NestatInfoRequestBodyItem struct {
 }
 
 func toNetstatInfoRequestBodyItem(data netstat.SockTabEntry, item_type int) NestatInfoRequestBodyItem {
+	pid := 0
+	if data.Process != nil {
+		pid = data.Process.Pid
+	}
+
 	return NestatInfoRequestBodyItem{
 		Fd:     int(data.UID),
 		Family: 4,
@@ -33,7 +38,7 @@ func toNetstatInfoRequestBodyItem(data netstat.SockTabEntry, item_type int) Nest
 		Laddr:  []string{data.LocalAddr.IP.String(), fmt.Sprint(data.LocalAddr.Port)},
 		Raddr:  []string{data.RemoteAddr.IP.String(), fmt.Sprint(data.RemoteAddr.Port)},
 		Status: "Open",
-		Pid:    0,
+		Pid:    pid,
 	}
 }
 
@@ -61,7 +66,7 @@ func display_socks() {
 	}
 
 	udp_tabs, err := netstat.UDPSocks(func(s *netstat.SockTabEntry) bool {
-		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
+		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.Process != nil && s.Process.Pid > 0
 	})
 	if err != nil {
 		return
@@ -71,7 +76,7 @@ func display_socks() {
 	}
 
 	udpv6_tabs, err := netstat.UDP6Socks(func(s *netstat.SockTabEntry) bool {
-		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1"
+		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.Process != nil && s.Process.Pid > 0
 	})
 	if err != nil {
 		return
