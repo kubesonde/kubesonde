@@ -10,6 +10,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
+	kubesondev1 "kubesonde.io/api/v1"
 )
 
 func TestEphemeralContainers(t *testing.T) {
@@ -91,9 +92,79 @@ func TestInstallContainers(t *testing.T) {
 	client := testclient.NewSimpleClientset()
 	client.CoreV1().Pods("default").Create(context.TODO(), &pod, metav1.CreateOptions{})
 	// When
-	installContainers(client, &pod)
+	// Create a kubesonde object to be used in the test
+	kubesonde := &kubesondev1.Kubesonde{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Kubesonde",
+			APIVersion: "kubesonde.io/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-kubesonde",
+			Namespace: "default",
+		},
+		Spec: kubesondev1.KubesondeSpec{},
+	}
+	client.CoreV1().Pods("default").Create(context.TODO(), &pod, metav1.CreateOptions{})
+	installContainers(client, *kubesonde, &pod)
 	// Then
 	updatedPod, err := client.CoreV1().Pods("default").Get(context.TODO(), "test", metav1.GetOptions{})
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(updatedPod.Spec.EphemeralContainers), updatedPod)
+}
+
+func TestEphemeralContainerNamesAndImages(t *testing.T) {
+	// Given
+	pod := v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "default",
+		},
+	}
+	client := testclient.NewSimpleClientset()
+	client.CoreV1().Pods("default").Create(context.TODO(), &pod, metav1.CreateOptions{})
+
+	// Create a kubesonde object with specific images
+	kubesonde := &kubesondev1.Kubesonde{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Kubesonde",
+			APIVersion: "kubesonde.io/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-kubesonde",
+			Namespace: "default",
+		},
+		Spec: kubesondev1.KubesondeSpec{
+			DebuggerImage: "instrumentisto/nmap:latest",
+			MonitorImage:  "jackops93/kubesonde_monitor:latest",
+		},
+	}
+
+	// When
+	installContainers(client, *kubesonde, &pod)
+
+	// Then
+	updatedPod, err := client.CoreV1().Pods("default").Get(context.TODO(), "test", metav1.GetOptions{})
+	assert.Nil(t, err)
+
+	// Check that we have exactly 2 ephemeral containers
+	assert.Equal(t, 2, len(updatedPod.Spec.EphemeralContainers), "Should have exactly 2 ephemeral containers")
+
+	// Check that the containers have the expected names and images
+	containerMap := make(map[string]v1.EphemeralContainer)
+	for _, container := range updatedPod.Spec.EphemeralContainers {
+		containerMap[container.Name] = container
+	}
+
+	// Verify debugger container
+	debuggerContainer, exists := containerMap["debugger"]
+	assert.True(t, exists, "Debugger container should exist")
+	assert.Equal(t, "instrumentisto/nmap:latest", debuggerContainer.Image, "Debugger container should have correct image")
+
+	// Verify monitor container
+	monitorContainer, exists := containerMap["monitor"]
+	assert.True(t, exists, "Monitor container should exist")
+	assert.Equal(t, "jackops93/kubesonde_monitor:latest", monitorContainer.Image, "Monitor container should have correct image")
+
+	// Verify no other container names exist
+	assert.Len(t, containerMap, 2, "Should have exactly 2 containers")
 }

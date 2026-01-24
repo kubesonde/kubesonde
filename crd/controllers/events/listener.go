@@ -22,7 +22,7 @@ func podEventHandler(client kubernetes.Interface, Kubesonde kubesondev1.Kubesond
 
 			if utils.SourcePodMatchesKubesondeSpec(Kubesonde, *pod) {
 				log.Info(fmt.Sprintf("EventHandler::AddPodEvent %s", pod.Name))
-				AddPodEvent(client, *pod)
+				AddPodEvent(client, Kubesonde, *pod)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
@@ -107,14 +107,5 @@ func InitEventListener(client kubernetes.Interface, Kubesonde kubesondev1.Kubeso
 		activePodsStored := getActivePodsEvent()
 		log.Info(fmt.Sprintf("Active pods: %v", activePodsStored))
 		log.Info(fmt.Sprintf("Number of probes in State: %d", len(eventstorage.GetProbes())))
-		// First run proper stuff
-		/*var activePods = utils.GetPodsInNamespace(client, Kubesonde.Spec.Namespace)
-		if len(activePods) > 0 {
-			// Build probes
-			for _, pod := range activePods {
-				AddPodEvent(client, pod)
-			}
-
-		}*/
 	}
 }

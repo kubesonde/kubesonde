@@ -39,6 +39,9 @@ spec:
           spec:
             description: KubesondeSpec defines the desired state of Kubesonde
             properties:
+              debuggerImage:
+                description: DebuggerImage is the image to use for the debugger container
+                type: string
               exclude:
                 description: Exclude is the set of probes to be excluded
                 items:
@@ -87,6 +90,9 @@ spec:
                       type: string
                   type: object
                 type: array
+              monitorImage:
+                description: MonitorImage is the image to use for the monitor container
+                type: string
               namespace:
                 description: Namespace indicates the target namespace for the probe
                 type: string

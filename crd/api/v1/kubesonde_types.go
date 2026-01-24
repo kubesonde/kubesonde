@@ -99,6 +99,14 @@ type KubesondeSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
+	// DebuggerImage is the image to use for the debugger container
+	// +optional
+	DebuggerImage string `json:"debuggerImage,omitempty"`
+
+	// MonitorImage is the image to use for the monitor container
+	// +optional
+	MonitorImage string `json:"monitorImage,omitempty"`
+
 	// Namespace indicates the target namespace for the probe
 	Namespace string `json:"namespace,omitempty"`
 	// Probe describes if the default behavior is to probe all or none
