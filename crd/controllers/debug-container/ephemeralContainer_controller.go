@@ -15,17 +15,18 @@ import (
 	"k8s.io/client-go/kubernetes"
 	scheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
+	kubesondev1 "kubesonde.io/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("controllers.state")
 
-func InstallEphameralContainers(client kubernetes.Interface, pods *v1.PodList) {
+func InstallEphameralContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, pods *v1.PodList) {
 	podList := pods.Items
 	for i := range podList {
 		if !EphemeralContainerExists(&podList[i]) {
-			installContainers(client, &podList[i])
+			installContainers(client, kubesonde, &podList[i])
 			log.V(1).Info(fmt.Sprintf("Installing debug containers in %s pod", podList[i].Name))
 		}
 
@@ -60,12 +61,12 @@ func EphemeralContainersRunning(pod *v1.Pod) bool {
 	return len(ready) == 2
 }
 
-func installContainers(client kubernetes.Interface, pod *v1.Pod) {
+func installContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, pod *v1.Pod) {
 	podJS, err := json.Marshal(pod)
 	if err != nil {
 		log.Error(err, "error creating JSON for pod: %s", pod.Name)
 	}
-	debugPod, err := generateDebugContainers(pod)
+	debugPod, err := generateDebugContainers(kubesonde, pod)
 	if err != nil {
 		log.Error(err, "something went wrong")
 	}
@@ -87,12 +88,12 @@ func installContainers(client kubernetes.Interface, pod *v1.Pod) {
 
 }
 
-func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
+func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.Pod, error) {
 	privileged := true
 	ec1 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
 			Name:                     "debugger",
-			Image:                    "instrumentisto/nmap:latest",
+			Image:                    kubesonde.Spec.DebuggerImage,
 			ImagePullPolicy:          v1.PullIfNotPresent,
 			Stdin:                    true,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -106,7 +107,7 @@ func generateDebugContainers(pod *v1.Pod) (*v1.Pod, error) {
 	ec2 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
 			Name:                     "monitor",
-			Image:                    "ghcr.io/kubesonde/gonetstat:latest",
+			Image:                    kubesonde.Spec.MonitorImage,
 			ImagePullPolicy:          v1.PullIfNotPresent,
 			Stdin:                    true,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,

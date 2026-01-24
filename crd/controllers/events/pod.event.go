@@ -11,6 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	kubesondev1 "kubesonde.io/api/v1"
 	v12 "kubesonde.io/api/v1"
 	debugcontainer "kubesonde.io/controllers/debug-container"
 	kubesondeDispatcher "kubesonde.io/controllers/dispatcher"
@@ -41,7 +42,7 @@ func IsProcessingEvent() bool {
 }
 
 // TODO: Add resilience mechanism to to unlock the resource when pending for too long.
-func AddPodEvent(client kubernetes.Interface, pod v1.Pod) {
+func AddPodEvent(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, pod v1.Pod) {
 	pods := v1.PodList{
 		Items: []v1.Pod{pod},
 	}
@@ -49,7 +50,7 @@ func AddPodEvent(client kubernetes.Interface, pod v1.Pod) {
 		return s == pod.Name
 	})
 	if !isnotDebuggable {
-		debugcontainer.InstallEphameralContainers(client, &pods)
+		debugcontainer.InstallEphameralContainers(client, kubesonde, &pods)
 	} else {
 		log.Info(fmt.Sprintf("Non debuggable pod: %s", pod.Name))
 		log.Info(fmt.Sprintf("IP: %s", pod.Status.PodIP))
