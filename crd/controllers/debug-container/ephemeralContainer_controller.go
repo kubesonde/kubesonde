@@ -90,10 +90,23 @@ func installContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubeso
 
 func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.Pod, error) {
 	privileged := true
+
+	// Use configurable images from the spec
+	debuggerImage := kubesonde.Spec.DebuggerImage
+
+	if debuggerImage == "" {
+		debuggerImage = "instrumentisto/nmap:latest"
+	}
+
+	monitorImage := kubesonde.Spec.MonitorImage
+	if monitorImage == "" {
+		monitorImage = "ghcr.io/kubesonde/gonetstat:latest"
+	}
+
 	ec1 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
 			Name:                     "debugger",
-			Image:                    kubesonde.Spec.DebuggerImage,
+			Image:                    debuggerImage,
 			ImagePullPolicy:          v1.PullIfNotPresent,
 			Stdin:                    true,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
@@ -107,7 +120,7 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 	ec2 := &v1.EphemeralContainer{
 		EphemeralContainerCommon: v1.EphemeralContainerCommon{
 			Name:                     "monitor",
-			Image:                    kubesonde.Spec.MonitorImage,
+			Image:                    monitorImage,
 			ImagePullPolicy:          v1.PullIfNotPresent,
 			Stdin:                    true,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,

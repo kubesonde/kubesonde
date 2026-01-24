@@ -60,18 +60,6 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Use configurable images from the spec
-	debuggerImage := Kubesonde.Spec.DebuggerImage
-
-	if debuggerImage == "" {
-		Kubesonde.Spec.DebuggerImage = "instrumentisto/nmap:latest"
-	}
-
-	monitorImage := Kubesonde.Spec.MonitorImage
-	if monitorImage == "" {
-		Kubesonde.Spec.DebuggerImage = "ghcr.io/kubesonde/gonetstat:latest"
-	}
-
 	// TODOs
 	/*
 		1) Handle pod deletion. When a pod is deleted also the probes that regard that pod should be removed
