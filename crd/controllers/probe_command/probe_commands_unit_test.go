@@ -105,7 +105,7 @@ var _ = Describe("Build commands from pod", func() {
 		// 8. PodB -> Internet:443
 		// 9. PodB -> Internet:80
 		// 10. PodB -> DNS
-		Expect(len(output)).To(Equal(14))
+		Expect(len(output)).To(Equal(16))
 	})
 })
 
@@ -130,6 +130,6 @@ var _ = Describe("Build targeted commands from pod", func() {
 			Google HTTP
 			Google HTTPS
 		*/
-		Expect(len(output)).To(Equal(13))
+		Expect(len(output)).To(Equal(15))
 	})
 })

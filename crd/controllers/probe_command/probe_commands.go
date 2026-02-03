@@ -387,6 +387,24 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 		ProbeChecker:         NslookupSucceded,
 	}
 
+	kubeDNSTCP := KubesondeCommand{
+
+		Action:               v12.DENY,
+		SourcePodName:        target.Name,
+		ContainerName:        "debugger",
+		SourceLabels:         utils.MapToString(target.Labels),
+		Namespace:            target.Namespace,
+		Command:              fmt.Sprintf(nmapTCPCommand, 53, "kube-dns.kube-system.svc.cluster.local"),
+		Destination:          "KUBE DNS",
+		DestinationPort:      "53",
+		DestinationIPAddress: "kube-dns.kube-system.svc.cluster.local",
+		SourceIPAddress:      target.Status.PodIP,
+		Protocol:             "TCP",
+		SourceType:           v12.POD,
+		DestinationType:      v12.INTERNET,
+		ProbeChecker:         NslookupSucceded,
+	}
+
 	googleHTTP := KubesondeCommand{
 
 		Action:               v12.DENY,
@@ -421,7 +439,7 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 		DestinationType:      v12.INTERNET,
 		ProbeChecker:         NmapSucceded,
 	}
-	commands = append(commands /*cloudflareDNS,*/, googleDNSTCP, googleDNSUDP, googleHTTPS, googleHTTP, kubeDNSUDP)
+	commands = append(commands /*cloudflareDNS,*/, googleDNSTCP, googleDNSUDP, googleHTTPS, googleHTTP, kubeDNSUDP, kubeDNSTCP)
 
 	return commands
 }
