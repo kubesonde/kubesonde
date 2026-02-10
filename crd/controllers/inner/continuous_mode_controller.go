@@ -189,7 +189,7 @@ func InspectWithContinuousMode(mode KubesondeMode, commands []probe_command.Kube
 		if err != nil {
 			errors := []v12.ProbeOutputError{toProbeError(kubesondeCommand, err)}
 			state.AppendErrors(&errors)
-			log.Info(fmt.Sprintf("Error when Probing: %s", errors[0].Reason))
+			log.Info(fmt.Sprintf("Error when Probing: %s %s", kubesondeCommand.Command, errors[0].Reason))
 		} else if result {
 			probe_output := withDeploymentInformation(client, toProbeItem(kubesondeCommand, v12.ALLOW))
 			probe_output.DebugOutput = fixOutput(fmt.Sprintf("%s %s", debug_info, output))

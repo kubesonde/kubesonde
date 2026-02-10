@@ -23,6 +23,7 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	kubesondeHTTPServer "kubesonde.io/rest_apis"
 
@@ -123,9 +124,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create the Kubernetes client
+	clusterConfig := ctrl.GetConfigOrDie()
+	kubernetesClient, err := kubernetes.NewForConfig(clusterConfig)
+	if err != nil {
+		setupLog.Error(err, "unable to create kubernetes client")
+		os.Exit(1)
+	}
+
 	if err = (&controller.KubesondeReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		Scheme:           mgr.GetScheme(),
+		KubernetesClient: kubernetesClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Kubesonde")
 		os.Exit(1)
