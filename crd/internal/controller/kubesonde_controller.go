@@ -27,21 +27,20 @@ import (
 	kubesondemonitor "kubesonde.io/controllers/monitor"
 
 	"github.com/go-logr/logr"
-	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	recursiveprobing "kubesonde.io/controllers/recursive-probing"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 // KubesondeReconciler reconciles a Kubesonde object
 type KubesondeReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log              logr.Logger
+	Scheme           *runtime.Scheme
+	KubernetesClient kubernetes.Interface
 	// TODO: Add fake clock  for testing purposes
 }
 
@@ -49,8 +48,7 @@ type KubesondeReconciler struct {
 
 func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("Kubesonde-controller", req.NamespacedName)
-	clusterConfig := config.GetConfigOrDie()
-	apiClient := lo.Must1(kubernetes.NewForConfig(clusterConfig))
+	apiClient := r.KubernetesClient
 
 	var Kubesonde kubesondev1.Kubesonde
 	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
