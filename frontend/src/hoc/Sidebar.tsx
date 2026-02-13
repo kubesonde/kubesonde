@@ -9,6 +9,7 @@ import {
 } from "react-pro-sidebar";
 import { Link } from "react-router-dom";
 import { FiHome, FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
+import { FaGithub } from "react-icons/fa";
 
 //menuCollapse state using useState hook
 import { GrGraphQl } from "react-icons/gr";
@@ -74,6 +75,10 @@ export const Sidebar: React.FC = () => {
           <SidebarFooter>
             <Menu iconShape="square">
               <MenuItem>Version: {import.meta.env.REACT_APP_VERSION}</MenuItem>
+              <MenuItem icon={<FaGithub />}>
+                 <a href="https://github.com/kubesonde/kubesonde" target="_blank" rel="noopener noreferrer">
+                </a>
+              </MenuItem>
             </Menu>
           </SidebarFooter>
         </ProSidebar>
