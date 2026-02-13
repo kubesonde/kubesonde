@@ -7,6 +7,19 @@ export const cytoscapeStylesheet = [
             color: "black",
             "border-width": 2,
             "border-color": 'black',
+            "min-width": "50px",
+            "min-height": "50px",
+            "text-wrap": "wrap",
+            "text-max-width": "40px",
+            "text-events": "yes",
+            "text-background-color": "transparent",
+            "text-background-opacity": 0,
+            "text-background-padding": "0px",
+            "text-margin-x": "0px",
+            "text-margin-y": "0px",
+            "text-valign": "center",
+            "text-halign": "center",
+            "text-overflow-wrap": "break-word",
         }
     },
     {
@@ -43,10 +56,16 @@ export const cytoscapeStylesheet = [
         selector: "node[label]",
         style: {
             label: "data(label)",
-            "font-size": "12",
+            "font-size": "7",
             color: "black",
             "text-halign": "center",
-            "text-valign": "center"
+            "text-valign": "center",
+            "text-margin-x": "0px",
+            "text-margin-y": "0px",
+            "text-background-color": "transparent",
+            "text-background-opacity": 0,
+            "text-background-padding": "0px",
+            "text-overflow-wrap": "break-word",
         }
     },
     {
@@ -62,10 +81,10 @@ export const cytoscapeStylesheet = [
         selector: "edge[label]",
         style: {
             "target-label": "data(label)",
-            "font-size": "8",
+            "font-size": "6",
             "text-background-color": "white",
             "text-background-opacity": 1,
-            "text-background-padding": "2px",
+            "text-background-padding": "1px",
             "text-border-color": "black",
             "text-border-style": "solid",
             "text-border-width": 0.5,
@@ -103,7 +122,20 @@ export const cytoscapeStylesheetPrintMode = [
             padding: "6px",
             "border-width": 2,
             "border-color": 'black',
-            color: "black"
+            color: "black",
+            "min-width": "50px",
+            "min-height": "50px",
+            "text-wrap": "wrap",
+            "text-max-width": "40px",
+            "text-events": "yes",
+            "text-background-color": "transparent",
+            "text-background-opacity": 0,
+            "text-background-padding": "0px",
+            "text-margin-x": "0px",
+            "text-margin-y": "0px",
+            "text-valign": "center",
+            "text-halign": "center",
+            "text-overflow-wrap": "break-word",
         }
     },
     {
@@ -122,10 +154,16 @@ export const cytoscapeStylesheetPrintMode = [
         selector: "node[label]",
         style: {
             label: "data(label)",
-            "font-size": "12",
+            "font-size": "7",
             color: "black",
             "text-halign": "center",
-            "text-valign": "center"
+            "text-valign": "center",
+            "text-margin-x": "0px",
+            "text-margin-y": "0px",
+            "text-background-color": "transparent",
+            "text-background-opacity": 0,
+            "text-background-padding": "0px",
+            "text-overflow-wrap": "break-word",
         }
     },
     {
@@ -141,10 +179,10 @@ export const cytoscapeStylesheetPrintMode = [
         selector: "edge[label]",
         style: {
             "target-label": "data(label)",
-            "font-size": "8",
+            "font-size": "6",
             "text-background-color": "white",
             "text-background-opacity": 1,
-            "text-background-padding": "2px",
+            "text-background-padding": "1px",
             "text-border-color": "black",
             "text-border-style": "solid",
             "text-border-width": 0.5,

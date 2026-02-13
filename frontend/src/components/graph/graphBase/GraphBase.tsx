@@ -244,12 +244,6 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const maxW = Math.max(...data.nodes.map((node) => node.id.length));
-    cyRef.current?.nodes().style("width", () => {
-      return maxW * 8 + "px;"; // return x._private.data.id.length * 6 + "px;"; //  x.data('name').length + 'px;'
-    });
-  });
 
   const layout = {
     name: "concentric",
@@ -278,6 +272,18 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
       .map((value) => value[0]),
     onPortClickHandler: handlePortClick,
   };
+
+  useEffect(() => {
+    if (cyRef.current) {
+      cyRef.current.nodes().forEach(node => {
+        const originalLabel = node.data('label');
+        if (originalLabel && originalLabel.includes('-')) {
+          const newLabel = originalLabel.replace(/-/g, '\n');
+          node.data('label', newLabel);
+        }
+      });
+    }
+  }, [data]);
 
   const cytoscapeComponentProps = {
     id: printMode ? "graphIdPrintMode" : "graphId",
