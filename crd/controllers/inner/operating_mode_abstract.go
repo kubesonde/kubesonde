@@ -2,6 +2,7 @@ package inner
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -80,6 +81,9 @@ func runGenericCommand(client kubernetes.Interface, namespace string, command pr
 }
 
 func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace string, command probe_command.KubesondeCommand, checker func(string) bool) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	req := client.
 		CoreV1().
 		RESTClient().
@@ -87,14 +91,15 @@ func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace str
 		Resource("pods").
 		Namespace(namespace).
 		Name(command.SourcePodName).
-		SubResource("exec").Timeout(time.Second * 5)
+		SubResource("exec")
 
 	scheme := runtime.NewScheme()
 	if err := v1.AddToScheme(scheme); err != nil {
-		log.Error(err, "error adding to scheme")
 		return false, err
 	}
+
 	parameterCodec := runtime.NewParameterCodec(scheme)
+
 	req.VersionedParams(&v1.PodExecOptions{
 		Command:   strings.Fields(command.Command),
 		Container: command.ContainerName,
@@ -109,13 +114,17 @@ func runRemoteCommandWithErrorHandler(client kubernetes.Interface, namespace str
 		log.Error(err, "Remote Command failed")
 		return false, err
 	}
+
 	var stdout, stderr bytes.Buffer
-	err = exec.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
+
+	err = exec.StreamWithContext(ctx, remotecommand.StreamOptions{
 		Stdout: &stdout,
 		Stderr: &stderr,
-		Tty:    false,
 	})
+
+	if ctx.Err() == context.DeadlineExceeded {
+		return false, ctx.Err()
+	}
 	if err != nil {
 		/*log.Info(fmt.Sprintf(`
 		Namespace: %s,
