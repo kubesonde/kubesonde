@@ -31,10 +31,9 @@ func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
 		// Keep trying to acquire
 	}
 
-	for index, probe := range probes {
+	for _, probe := range probes {
 		heap.Push(&pq, &Item{
 			value:    probe,
-			index:    index,
 			priority: int(priority),
 		})
 	}
