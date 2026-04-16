@@ -126,8 +126,8 @@ func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutp
 	dst, dst_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Source.Name == output.Destination.Name })
 	dst_2, dst_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Destination.Name == output.Destination.Name })
 	if dst_in_state {
-		output.Source.ReplicaSetName = dst.Source.ReplicaSetName
-		output.Source.DeploymentName = dst.Source.DeploymentName
+		output.Destination.ReplicaSetName = dst.Source.ReplicaSetName
+		output.Destination.DeploymentName = dst.Source.DeploymentName
 	} else if dst_in_state_2 {
 		output.Destination.ReplicaSetName = dst_2.Destination.ReplicaSetName
 		output.Destination.DeploymentName = dst_2.Destination.DeploymentName
