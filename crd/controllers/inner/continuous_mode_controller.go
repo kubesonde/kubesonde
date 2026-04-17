@@ -101,11 +101,13 @@ func withDeploymentInformationSlow(client kubernetes.Interface, output v12.Probe
 		s_replica, s_deployment := utils.GetReplicaAndDeployment(client, *source_pod)
 		output.Source.ReplicaSetName = s_replica
 		output.Source.DeploymentName = s_deployment
+		output.Source.Labels = utils.MapToString(source_pod.Labels)
 	}
 	if err_dest == nil {
 		d_replica, d_deployment := utils.GetReplicaAndDeployment(client, *dest_pod)
 		output.Destination.ReplicaSetName = d_replica
 		output.Destination.DeploymentName = d_deployment
+		output.Destination.Labels = utils.MapToString(dest_pod.Labels)
 	}
 
 	return output
@@ -118,9 +120,11 @@ func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutp
 	if source_in_state {
 		output.Source.ReplicaSetName = src.Source.ReplicaSetName
 		output.Source.DeploymentName = src.Source.DeploymentName
+		output.Source.Labels = src.Source.Labels
 	} else if source_in_state_2 {
 		output.Source.ReplicaSetName = src_2.Destination.ReplicaSetName
 		output.Source.DeploymentName = src_2.Destination.DeploymentName
+		output.Source.Labels = src_2.Destination.Labels
 	}
 
 	dst, dst_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Source.Name == output.Destination.Name })
@@ -128,9 +132,11 @@ func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutp
 	if dst_in_state {
 		output.Destination.ReplicaSetName = dst.Source.ReplicaSetName
 		output.Destination.DeploymentName = dst.Source.DeploymentName
+		output.Destination.Labels = dst.Source.Labels
 	} else if dst_in_state_2 {
 		output.Destination.ReplicaSetName = dst_2.Destination.ReplicaSetName
 		output.Destination.DeploymentName = dst_2.Destination.DeploymentName
+		output.Destination.Labels = dst_2.Destination.Labels
 	}
 
 	if (source_in_state || source_in_state_2) && (dst_in_state || dst_in_state_2) {

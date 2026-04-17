@@ -20,12 +20,14 @@ func TestWithDeploymentInformationFast(t *testing.T) {
 					Name:           "FirstPod-replica-pod",
 					DeploymentName: "FirstPod",
 					ReplicaSetName: "FirstPod-replica",
+					Labels:         "key=val;k3y=v4l",
 				},
 				Destination: v1.ProbeEndpointInfo{
 					Type:           v1.POD,
 					Name:           "SecondPod-replica-pod",
 					DeploymentName: "SecondPod",
 					ReplicaSetName: "SecondPod-replica",
+					Labels:         "anotherkey=val2",
 				},
 				Protocol:        "TCP",
 				Port:            "80",
@@ -65,5 +67,7 @@ func TestWithDeploymentInformationFast(t *testing.T) {
 	assert.Equal(t, "FirstPod-replica-pod", updated.Destination.Name)
 	assert.Equal(t, "FirstPod", updated.Destination.DeploymentName)
 	assert.Equal(t, "FirstPod-replica", updated.Destination.ReplicaSetName)
+	assert.Equal(t, "key=val;k3y=v4l", updated.Destination.Labels)
+	assert.Equal(t, "anotherkey=val2", updated.Source.Labels)
 
 }
