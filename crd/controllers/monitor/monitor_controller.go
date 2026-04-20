@@ -28,6 +28,15 @@ import (
 var log = logf.Log.WithName("Monitor controller")
 var MAX_CONNECT_RETRIES = 6
 
+func rebuildProbesForPod(pod v1.Pod) {
+
+	currServices := eventstorage.GetServices()
+
+	serviceProbes := probe_command.BuildCommandsToServices(pod, currServices)
+
+	kubesondeDispatcher.SendToQueue(serviceProbes, kubesondeDispatcher.HIGH)
+}
+
 // This function starts an infinite loop
 func RunMonitorContainers(client kubernetes.Interface) {
 	for {
@@ -53,6 +62,8 @@ func RunMonitorContainers(client kubernetes.Interface) {
 				return
 			}
 			// log.Info(fmt.Sprintf("Running monitor on pod %s", p.Name))
+
+			rebuildProbesForPod(p)
 
 			var stdout, stderr, err = debug_container.RunMonitorContainerProcess(client, p.Namespace, p.Name)
 			if err != nil {
