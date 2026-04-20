@@ -4,6 +4,7 @@ package dispatcher
 
 import (
 	"container/heap"
+	"context"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -25,21 +26,23 @@ var (
 )
 
 // Add probes to queue
-func SendToQueue(probes []probe_command.KubesondeCommand, priority Priority) {
+func SendToQueue(commands []probe_command.KubesondeCommand, priority Priority) {
+	dispatcherSemaphore.Acquire(context.Background(), 1)
+	defer dispatcherSemaphore.Release(1)
 
-	for result := dispatcherSemaphore.TryAcquire(1); !result; result = dispatcherSemaphore.TryAcquire(1) {
-		// Keep trying to acquire
+	inQueue := make(map[probe_command.ComparableKubesondeCommand]bool, len(pq))
+	for _, item := range pq {
+		inQueue[item.value.ToComparableCommand()] = true
 	}
 
-	for index, probe := range probes {
-		heap.Push(&pq, &Item{
-			value:    probe,
-			index:    index,
-			priority: int(priority),
-		})
+	for _, command := range commands {
+		if !inQueue[command.ToComparableCommand()] {
+			heap.Push(&pq, &Item{
+				value:    command,
+				priority: int(priority),
+			})
+		}
 	}
-	dispatcherSemaphore.Release(1)
-
 }
 func QueueSize() int {
 	for result := dispatcherSemaphore.TryAcquire(1); !result; result = dispatcherSemaphore.TryAcquire(1) {
@@ -52,23 +55,23 @@ func QueueSize() int {
 
 // Main routine. Starts the probe running loop.
 func Run(apiClient kubernetes.Interface) {
-	const probeInterval = 50 * time.Millisecond // 20 probes per second
+	const probeInterval = 50 * time.Millisecond
 	heap.Init(&pq)
-	for { // FIXME: this could also be event based maybe
-		result := dispatcherSemaphore.TryAcquire(1)
-		if !result {
+	for {
+		dispatcherSemaphore.Acquire(context.Background(), 1)
+		if pq.Len() == 0 {
+			dispatcherSemaphore.Release(1)
+			time.Sleep(probeInterval)
 			continue
 		}
-		for pq.Len() > 0 {
-			start := time.Now()
-			item := heap.Pop(&pq).(*Item)
-			inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{item.value})
-			duration := time.Since(start)
-			if duration < probeInterval {
-				time.Sleep(probeInterval - duration)
-			}
-
-		}
+		item := heap.Pop(&pq).(*Item)
 		dispatcherSemaphore.Release(1)
+
+		start := time.Now()
+		inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{item.value})
+		duration := time.Since(start)
+		if duration < probeInterval {
+			time.Sleep(probeInterval - duration)
+		}
 	}
 }
