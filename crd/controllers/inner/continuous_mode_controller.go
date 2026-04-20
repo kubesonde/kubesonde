@@ -101,12 +101,14 @@ func withDeploymentInformationSlow(client kubernetes.Interface, output v12.Probe
 		s_replica, s_deployment := utils.GetReplicaAndDeployment(client, *source_pod)
 		output.Source.ReplicaSetName = s_replica
 		output.Source.DeploymentName = s_deployment
+		output.Source.Namespace = source_pod.Namespace
 		output.Source.Labels = utils.MapToString(source_pod.Labels)
 	}
 	if err_dest == nil {
 		d_replica, d_deployment := utils.GetReplicaAndDeployment(client, *dest_pod)
 		output.Destination.ReplicaSetName = d_replica
 		output.Destination.DeploymentName = d_deployment
+		output.Destination.Namespace = dest_pod.Namespace
 		output.Destination.Labels = utils.MapToString(dest_pod.Labels)
 	}
 
@@ -115,25 +117,38 @@ func withDeploymentInformationSlow(client kubernetes.Interface, output v12.Probe
 func withDeploymentInformation(client kubernetes.Interface, output v12.ProbeOutputItem) v12.ProbeOutputItem {
 	// Source is always a pod
 	curr_state := state.GetProbeState().Items
-	src, source_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Source.Name == output.Source.Name })
-	src_2, source_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Destination.Name == output.Source.Name })
+	src, source_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool {
+		return item.Source.Name == output.Source.Name &&
+			item.Source.Namespace == output.Source.Namespace
+	})
+	src_2, source_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool {
+		return item.Destination.Name == output.Source.Name && item.Destination.Namespace == output.Source.Namespace
+	})
 	if source_in_state {
+		output.Source.Namespace = src.Source.Namespace
 		output.Source.ReplicaSetName = src.Source.ReplicaSetName
 		output.Source.DeploymentName = src.Source.DeploymentName
 		output.Source.Labels = src.Source.Labels
 	} else if source_in_state_2 {
+		output.Source.Namespace = src_2.Destination.Namespace
 		output.Source.ReplicaSetName = src_2.Destination.ReplicaSetName
 		output.Source.DeploymentName = src_2.Destination.DeploymentName
 		output.Source.Labels = src_2.Destination.Labels
 	}
 
-	dst, dst_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Source.Name == output.Destination.Name })
-	dst_2, dst_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool { return item.Destination.Name == output.Destination.Name })
+	dst, dst_in_state := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool {
+		return item.Source.Name == output.Destination.Name && item.Source.Namespace == output.Destination.Namespace
+	})
+	dst_2, dst_in_state_2 := lo.Find(curr_state, func(item v12.ProbeOutputItem) bool {
+		return item.Destination.Name == output.Destination.Name && item.Destination.Namespace == output.Destination.Namespace
+	})
 	if dst_in_state {
+		output.Destination.Namespace = dst.Source.Namespace
 		output.Destination.ReplicaSetName = dst.Source.ReplicaSetName
 		output.Destination.DeploymentName = dst.Source.DeploymentName
 		output.Destination.Labels = dst.Source.Labels
 	} else if dst_in_state_2 {
+		output.Destination.Namespace = dst_2.Destination.Namespace
 		output.Destination.ReplicaSetName = dst_2.Destination.ReplicaSetName
 		output.Destination.DeploymentName = dst_2.Destination.DeploymentName
 		output.Destination.Labels = dst_2.Destination.Labels
