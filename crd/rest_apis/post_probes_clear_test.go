@@ -2,18 +2,12 @@ package restapis
 
 import (
 	"net/http/httptest"
-	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	v1 "kubesonde.io/api/v1"
 	"kubesonde.io/controllers/state"
 )
-
-func TestPostProbesClear(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "PostProbesClear")
-}
 
 var _ = Describe("PostProbesClear", func() {
 	var stateManager *state.StateManager
