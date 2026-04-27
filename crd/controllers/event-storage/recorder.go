@@ -71,3 +71,13 @@ func GetDeletedPodNames() []string {
 	}
 	return keys
 }
+
+func ClearEventStorage() {
+	for k := range _activePods {
+		delete(_activePods, k)
+	}
+	for k := range _deletedPods {
+		delete(_deletedPods, k)
+	}
+	_services = nil
+}

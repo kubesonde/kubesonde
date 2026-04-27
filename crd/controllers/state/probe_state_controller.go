@@ -7,6 +7,7 @@ import (
 
 	"github.com/samber/lo"
 	v1 "kubesonde.io/api/v1"
+	eventstorage "kubesonde.io/controllers/event-storage"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -42,6 +43,12 @@ func NewStateManager() *StateManager {
 		podsWithNetstat: []string{},
 		lockTimeout:     defaultLockTimeout,
 	}
+}
+
+// Reset state
+func ResetDefaultManager() {
+	once = sync.Once{}
+	defaultManager = nil
 }
 
 // GetDefaultManager returns the singleton state manager instance
@@ -192,6 +199,32 @@ func (sm *StateManager) SetNetInfoV2(key string, items *[]v1.PodNetworkingItem) 
 	return nil
 }
 
+// ClearState resets all probe state, networking info, and netstat pod tracking
+func (sm *StateManager) ClearState() {
+	sm.Clear()
+}
+
+// Clear resets all probe state, networking info, and netstat pod tracking
+func (sm *StateManager) Clear() {
+	log.Info("Clearing all probe state")
+
+	sm.mu.Lock()
+	sm.probeOutput = v1.ProbeOutput{
+		Items:                      []v1.ProbeOutputItem{},
+		Errors:                     []v1.ProbeOutputError{},
+		PodNetworking:              []v1.PodNetworkingInfo{},
+		PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
+		PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+	}
+	sm.mu.Unlock()
+
+	sm.podsWithNetstatLock.Lock()
+	sm.podsWithNetstat = []string{}
+	sm.podsWithNetstatLock.Unlock()
+
+	eventstorage.ClearEventStorage()
+}
+
 // Helper function to deep copy networking map
 func copyNetworkingMapV2(src v1.PodNetworkingInfoV2) v1.PodNetworkingInfoV2 {
 	if src == nil {
@@ -256,4 +289,8 @@ func SetNetInfoV2(key string, items *[]v1.PodNetworkingItem) {
 	if err := GetDefaultManager().SetNetInfoV2(key, items); err != nil {
 		log.Error(err, "Failed to set net info v2")
 	}
+}
+
+func ClearState() {
+	GetDefaultManager().ClearState()
 }
