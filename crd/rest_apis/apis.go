@@ -14,13 +14,14 @@ func ServeHTTP() {
 
 	mux := http.NewServeMux()
 	mux.Handle(GET_PROBES_PATH, GetProbesHandler())
+	mux.Handle(POST_PROBES_CLEAR_PATH, PostProbesClearHandler())
 	server := http.Server{
 		Handler:           mux,
 		ReadHeaderTimeout: 2 * time.Second,
 	}
 	// Run the server
 	go func() {
-		log.Info("starting probes server", "path", GET_PROBES_PATH)
+		log.Info("starting probes server", "paths", []string{GET_PROBES_PATH, POST_PROBES_CLEAR_PATH})
 		listener, err := net.Listen("tcp", ":2709") // #nosec G102
 		if err != nil {
 			log.Error(err, "Could not listen the given address")

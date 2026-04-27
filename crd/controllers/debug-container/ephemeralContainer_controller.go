@@ -138,7 +138,6 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 
 // This function creates a shell on an already existing debug container named `monitor`
 func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, sourcePodName string) (*bytes.Buffer, *bytes.Buffer, error) {
-
 	pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), sourcePodName, metav1.GetOptions{})
 	if err != nil {
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
@@ -171,16 +170,26 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 		return bytes.NewBuffer(nil), bytes.NewBuffer(nil), err
 	}
 	var stdout, stderr bytes.Buffer
+
 	go func() { // On the background try to enstablish again connection
 		for {
+
 			err = exec.Stream(remotecommand.StreamOptions{
 				Stdin:  nil,
 				Stdout: &stdout,
 				Stderr: &stderr,
+				Tty:    false,
 			})
 			if err != nil {
-				log.Info(fmt.Sprintf("Monitor container not found in Pod %s", sourcePodName))
+				log.Info(fmt.Sprintf("Monitor container not found in Pod %s - %s", sourcePodName, err.Error()))
 				time.Sleep(3 * time.Second)
+				_, getErr := client.CoreV1().
+					Pods(namespace).
+					Get(context.Background(), sourcePodName, metav1.GetOptions{})
+				if getErr != nil {
+					log.Info(fmt.Sprintf("Pod %s does not exist, stopping monitor process %s", sourcePodName, getErr.Error()))
+					return
+				}
 			}
 		}
 	}()
