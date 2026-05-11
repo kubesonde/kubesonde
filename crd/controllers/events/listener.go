@@ -70,7 +70,7 @@ func AddServiceToProbes(srv v1.Service) {
 	}
 	log.V(1).Info(fmt.Sprintf("Service %s Probed", srv.Name))
 
-	srvProbes := getServicesAsProbes(srv.Spec.Ports, currPods, srv.Spec.ClusterIP, srv.Namespace, srv.Name) // This should be an information event that tells that external connections can reach this service
+	srvProbes := getServicesAsProbes(srv, currPods) // This should be an information event that tells that external connections can reach this service
 	state.AppendProbes(&srvProbes)
 }
 func svcEventHandler(Kubesonde kubesondev1.Kubesonde) cache.ResourceEventHandler {
