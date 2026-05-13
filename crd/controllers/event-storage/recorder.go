@@ -1,6 +1,10 @@
 package eventstorage
 
-import v1 "k8s.io/api/core/v1"
+import (
+	"sync"
+
+	v1 "k8s.io/api/core/v1"
+)
 
 type CreatedPodRecord struct {
 	Pod               v1.Pod
@@ -16,35 +20,53 @@ type DeletedPodRecord struct {
 	DeletionTimestamp int64
 }
 
-var _activePods = make(map[string]CreatedPodRecord)
-var _deletedPods = make(map[string]DeletedPodRecord)
-var _services []v1.Service
+var (
+	_activePods  = make(map[string]CreatedPodRecord)
+	_deletedPods = make(map[string]DeletedPodRecord)
+	_services    []v1.Service
+	storageMu    sync.RWMutex
+)
 
 func AddActivePod(key string, value CreatedPodRecord) {
+	storageMu.Lock()
 	_activePods[key] = value
+	storageMu.Unlock()
 }
 
 func AddService(value v1.Service) {
+	storageMu.Lock()
 	_services = append(_services, value)
+	storageMu.Unlock()
 }
 
 func GetServices() []v1.Service {
+	storageMu.RLock()
+	defer storageMu.RUnlock()
 	return _services
 }
+
 func DeleteActivePod(key string) {
+	storageMu.Lock()
 	delete(_activePods, key)
+	storageMu.Unlock()
 }
 
 func AddDeletedPod(key string, value DeletedPodRecord) {
+	storageMu.Lock()
 	_deletedPods[key] = value
+	storageMu.Unlock()
 }
 
 func GetActivePodByName(key string) CreatedPodRecord {
+	storageMu.RLock()
+	defer storageMu.RUnlock()
 	return _activePods[key]
 }
-func GetActivePods() []v1.Pod {
-	v := make([]v1.Pod, 0, len(_activePods))
 
+func GetActivePods() []v1.Pod {
+	storageMu.RLock()
+	defer storageMu.RUnlock()
+	v := make([]v1.Pod, 0, len(_activePods))
 	for _, value := range _activePods {
 		v = append(v, value.Pod)
 	}
@@ -52,8 +74,9 @@ func GetActivePods() []v1.Pod {
 }
 
 func GetActivePodNames() []string {
+	storageMu.RLock()
+	defer storageMu.RUnlock()
 	keys := make([]string, len(_activePods))
-
 	i := 0
 	for k := range _activePods {
 		keys[i] = k
@@ -61,9 +84,11 @@ func GetActivePodNames() []string {
 	}
 	return keys
 }
-func GetDeletedPodNames() []string {
-	keys := make([]string, len(_deletedPods))
 
+func GetDeletedPodNames() []string {
+	storageMu.RLock()
+	defer storageMu.RUnlock()
+	keys := make([]string, len(_deletedPods))
 	i := 0
 	for k := range _deletedPods {
 		keys[i] = k
@@ -73,6 +98,7 @@ func GetDeletedPodNames() []string {
 }
 
 func ClearEventStorage() {
+	storageMu.Lock()
 	for k := range _activePods {
 		delete(_activePods, k)
 	}
@@ -80,4 +106,5 @@ func ClearEventStorage() {
 		delete(_deletedPods, k)
 	}
 	_services = nil
+	storageMu.Unlock()
 }
