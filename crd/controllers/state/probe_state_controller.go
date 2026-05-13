@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/samber/lo"
@@ -16,10 +17,37 @@ const (
 )
 
 var (
-	log            = logf.Log.WithName("controllers.state")
-	defaultManager *StateManager
-	once           sync.Once
+	log               = logf.Log.WithName("controllers.state")
+	defaultManagerPtr atomic.Pointer[StateManager]
+	managerMu         sync.Mutex
 )
+
+// GetDefaultManager returns the singleton state manager instance.
+// Thread-safe: atomic load for lock-free reads, mutex for initialization.
+func GetDefaultManager() *StateManager {
+	if sm := defaultManagerPtr.Load(); sm != nil {
+		return sm
+	}
+
+	managerMu.Lock()
+	defer managerMu.Unlock()
+
+	if sm := defaultManagerPtr.Load(); sm != nil {
+		return sm
+	}
+
+	defaultManager := NewStateManager()
+	defaultManagerPtr.Store(defaultManager)
+	return defaultManager
+}
+
+// ResetDefaultManager resets the singleton state manager.
+// Thread-safe: acquires exclusive lock to prevent concurrent access.
+func ResetDefaultManager() {
+	managerMu.Lock()
+	defer managerMu.Unlock()
+	defaultManagerPtr.Store(nil)
+}
 
 // StateManager handles concurrent access to probe state
 type StateManager struct {
@@ -45,20 +73,6 @@ func NewStateManager() *StateManager {
 	}
 }
 
-// Reset state
-func ResetDefaultManager() {
-	once = sync.Once{}
-	defaultManager = nil
-}
-
-// GetDefaultManager returns the singleton state manager instance
-func GetDefaultManager() *StateManager {
-	once.Do(func() {
-		defaultManager = NewStateManager()
-	})
-	return defaultManager
-}
-
 // SetNestatPod adds a pod to the netstat tracking list
 func (sm *StateManager) SetNestatPod(pod string) {
 	sm.podsWithNetstatLock.Lock()
@@ -79,7 +93,6 @@ func (sm *StateManager) DeleteNetstatPod(pod string) {
 func (sm *StateManager) GetNetstatPods() []string {
 	sm.podsWithNetstatLock.RLock()
 	defer sm.podsWithNetstatLock.RUnlock()
-	// Return a copy to prevent external modifications
 	pods := make([]string, len(sm.podsWithNetstat))
 	copy(pods, sm.podsWithNetstat)
 	return pods
@@ -105,7 +118,6 @@ func (sm *StateManager) GetProbeState() v1.ProbeOutput {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
 
-	// Deep copy to prevent external modifications
 	return v1.ProbeOutput{
 		Items:                      append([]v1.ProbeOutputItem{}, sm.probeOutput.Items...),
 		Errors:                     append([]v1.ProbeOutputError{}, sm.probeOutput.Errors...),
