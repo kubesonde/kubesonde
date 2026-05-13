@@ -58,9 +58,9 @@ jobs:
         working-directory: crd
         run: make docker-buildx IMG=ghcr.io/kubesonde/controller:latest
       
-      - name: Build gonetstat with tag
+      - name: Build monitor and prober with tag
         working-directory: docker
-        run: make IMG=ghcr.io/kubesonde/gonetstat:${GITHUB_REF#refs/tags/}
-      - name: Build gonetstat with latest
+        run: make IMG_MONITOR=ghcr.io/kubesonde/gonetstat:${GITHUB_REF#refs/tags/} IMG_PROBER=ghcr.io/kubesonde/prober:${GITHUB_REF#refs/tags/}
+      - name: Build monitor and prober with latest
         working-directory: docker
-        run: make IMG=ghcr.io/kubesonde/gonetstat:latest
+        run: make IMG_MONITOR=ghcr.io/kubesonde/gonetstat:latest IMG_PROBER=ghcr.io/kubesonde/prober:latest
