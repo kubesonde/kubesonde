@@ -54,9 +54,10 @@ func toProbeError(kubesondeCommand probe_command.KubesondeCommand, err error) v1
 			Destination: v12.ProbeEndpointInfo{
 				Type:      kubesondeCommand.DestinationType,
 				Name:      kubesondeCommand.Destination,
-				Namespace: kubesondeCommand.Namespace,
+				Namespace: kubesondeCommand.DestinationNamespace,
 				IPAddress: kubesondeCommand.DestinationIPAddress,
 				Labels:    kubesondeCommand.DestinationLabels,
+				Selector:  kubesondeCommand.DestinationSelector,
 			},
 			DestinationHostnames: kubesondeCommand.DestinationHostnames,
 			Protocol:             kubesondeCommand.Protocol,
@@ -83,9 +84,10 @@ func toProbeItem(kubesondeCommand probe_command.KubesondeCommand, result v12.Act
 		Destination: v12.ProbeEndpointInfo{
 			Type:      kubesondeCommand.DestinationType,
 			Name:      kubesondeCommand.Destination,
-			Namespace: kubesondeCommand.Namespace,
+			Namespace: kubesondeCommand.DestinationNamespace,
 			IPAddress: kubesondeCommand.DestinationIPAddress,
 			Labels:    kubesondeCommand.DestinationLabels,
+			Selector:  kubesondeCommand.DestinationSelector,
 		},
 		Port:      kubesondeCommand.DestinationPort,
 		Protocol:  kubesondeCommand.Protocol,

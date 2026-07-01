@@ -147,6 +147,77 @@ describe('Edge creation', function () {
     })
 });
 
+describe('Service endpoint selector', () => {
+    it('includes selector field on SERVICE type endpoints', () => {
+        const output: ProbeOutput = {
+            podConfigurationNetworking: {},
+            podNetworkingv2: {},
+            start: "start",
+            end: "end",
+            errors: [],
+            items: [
+                {
+                    type: ProbeOutputType.PROBE,
+                    expectedAction: "Allow",
+                    resultingAction: "Allow",
+                    destinationHostnames: [],
+                    source: {
+                        type: ProbeEndpointType.POD,
+                        name: "pod1",
+                        namespace: "default"
+                    },
+                    destination: {
+                        type: ProbeEndpointType.SERVICE,
+                        name: "web-svc",
+                        namespace: "default",
+                        selector: "app=web"
+                     },
+                    port: "80",
+                    protocol: "TCP",
+                    timestamp: 1234
+                }
+            ]
+        }
+
+        const item = output.items[0]
+        expect(item.destination.type).toBe(ProbeEndpointType.SERVICE)
+        expect(item.destination.selector).toBe("app=web")
+    })
+
+    it('selector is optional on SERVICE type endpoints', () => {
+        const output: ProbeOutput = {
+            podConfigurationNetworking: {},
+            podNetworkingv2: {},
+            start: "start",
+            end: "end",
+            errors: [],
+            items: [
+                {
+                    type: ProbeOutputType.PROBE,
+                    expectedAction: "Allow",
+                    resultingAction: "Allow",
+                    destinationHostnames: [],
+                    source: {
+                        type: ProbeEndpointType.POD,
+                        name: "pod1",
+                        namespace: "default"
+                    },
+                    destination: {
+                        type: ProbeEndpointType.SERVICE,
+                        name: "headless-svc",
+                        namespace: "default"
+                     },
+                    port: "80",
+                    protocol: "TCP",
+                    timestamp: 1234
+                }
+            ]
+        }
+
+        expect(output.items[0].destination.selector).toBeUndefined()
+    })
+})
+
 describe('Cleanup functions', () => {
     it('removes localhost interfaces from netinfo', () => {
         const netinfo: PodNetworkingInfoV2 = {

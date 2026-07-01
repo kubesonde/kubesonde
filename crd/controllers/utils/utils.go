@@ -196,10 +196,9 @@ func MapToString(m map[string]string) string {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-
-	var sb strings.Builder
+	pairs := make([]string, 0, len(keys))
 	for _, k := range keys {
-		sb.WriteString(k + "=" + m[k] + ";")
+		pairs = append(pairs, k+"="+m[k])
 	}
-	return sb.String()
+	return strings.Join(pairs, ";")
 }

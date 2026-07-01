@@ -56,4 +56,5 @@ export interface ProbeEndpointInfo {
     IPAddress?: string,
     deploymentName?: string,
     replicaSetName?: string,
+    selector?: string,
 }

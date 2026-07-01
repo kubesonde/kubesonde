@@ -39,10 +39,11 @@ func TestKubesondeCommand(t *testing.T) {
 			DestinationNamespace: "dest-namespace",
 			DestinationPort:      "8080",
 			DestinationLabels:    "label1=value1",
-			DestinationType:      kubesondev1.POD,
+			DestinationType:      kubesondev1.SERVICE,
+			DestinationSelector:  "app=web",
 			SourcePodName:        "source-pod",
 			SourceIPAddress:      "192.168.1.2",
-			SourceType:           kubesondev1.SERVICE,
+			SourceType:           kubesondev1.POD,
 			SourceLabels:         "label2=value2",
 		}
 
@@ -58,6 +59,7 @@ func TestKubesondeCommand(t *testing.T) {
 		assert.Equal(t, "dest-namespace", command.DestinationNamespace)
 		assert.Equal(t, "8080", command.DestinationPort)
 		assert.Equal(t, "label1=value1", command.DestinationLabels)
+		assert.Equal(t, "app=web", command.DestinationSelector)
 		assert.Equal(t, "source-pod", command.SourcePodName)
 		assert.Equal(t, "192.168.1.2", command.SourceIPAddress)
 		assert.Equal(t, "label2=value2", command.SourceLabels)

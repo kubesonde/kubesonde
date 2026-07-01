@@ -5,7 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/kubernetes/fake"
+	kubesondev1 "kubesonde.io/api/v1"
 	v1 "kubesonde.io/api/v1"
+	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/controllers/state"
 )
 
@@ -70,4 +72,39 @@ func TestWithDeploymentInformationFast(t *testing.T) {
 	assert.Equal(t, "key=val;k3y=v4l", updated.Destination.Labels)
 	assert.Equal(t, "anotherkey=val2", updated.Source.Labels)
 
+}
+
+func TestCommandToProbe(t *testing.T) {
+	// Create a command with all fields
+	command := probe_command.KubesondeCommand{
+		Action:               kubesondev1.ALLOW,
+		Command:              "test command",
+		ContainerName:        "test-container",
+		ProbeChecker:         func(string) bool { return true },
+		Namespace:            "test-namespace",
+		Protocol:             "TCP",
+		Destination:          "test-destination",
+		DestinationHostnames: []string{"host1", "host2"},
+		DestinationIPAddress: "192.168.1.1",
+		DestinationNamespace: "dest-namespace",
+		DestinationPort:      "8080",
+		DestinationLabels:    "label1=value1",
+		DestinationType:      kubesondev1.SERVICE,
+		DestinationSelector:  "app=web",
+		SourcePodName:        "source-pod",
+		SourceIPAddress:      "192.168.1.2",
+		SourceType:           kubesondev1.POD,
+		SourceLabels:         "label2=value2",
+	}
+
+	output := toProbeItem(command, kubesondev1.ALLOW)
+
+	assert.Equal(t, kubesondev1.ALLOW, output.ExpectedAction)
+	assert.Equal(t, "test-destination", output.Destination.Name)
+	assert.Equal(t, "dest-namespace", output.Destination.Namespace)
+	assert.Equal(t, "label1=value1", output.Destination.Labels)
+	assert.Equal(t, "app=web", output.Destination.Selector)
+	assert.Equal(t, "source-pod", output.Source.Name)
+	assert.Equal(t, "test-namespace", output.Source.Namespace)
+	assert.Equal(t, "label2=value2", output.Source.Labels)
 }

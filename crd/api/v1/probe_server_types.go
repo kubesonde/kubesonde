@@ -77,7 +77,12 @@ type ProbeEndpointInfo struct {
 	// ReplicaSetName is the protocol to use when probing ToPodSelector
 	// +optional
 	ReplicaSetName string `json:"replicaSetName,omitempty"`
-	Labels         string `json:"labels,omitempty"`
+	// Labels is a comma-separated string of key=value pairs describing the endpoint's labels
+	// +optional
+	Labels string `json:"labels,omitempty"`
+	// Selector is a comma-separated string of key=value pairs used to select the endpoint (populated when Type is Service)
+	// +optional
+	Selector string `json:"selector,omitempty"`
 }
 
 type ProbeOutputError struct {

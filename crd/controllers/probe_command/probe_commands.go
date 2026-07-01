@@ -182,6 +182,7 @@ func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol st
 		DestinationIPAddress: destinationAddressForService,
 		DestinationType:      destType,
 		DestinationLabels:    utils.MapToString(dest.Labels),
+		DestinationSelector:  utils.MapToString(dest.Spec.Selector),
 		SourcePodName:        source.Name,
 		SourceIPAddress:      source.Status.PodIP,
 		SourceLabels:         utils.MapToString(source.Labels),
