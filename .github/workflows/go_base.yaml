@@ -34,10 +34,11 @@ jobs:
         working-directory: crd
         run: |
           go install github.com/securego/gosec/v2/cmd/gosec@latest
-          gosec -exclude-dir=vendor ./...
-          gosec -fmt sarif -exclude-dir=vendor -out gosec.sarif ./...
+          $(go env GOPATH)/bin/gosec -exclude-dir=vendor ./...
+          $(go env GOPATH)/bin/gosec -fmt sarif -exclude-dir=vendor -out gosec.sarif ./...
 
       - name: Upload SARIF file
+        if: github.ref == 'refs/heads/main'
         uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e  # v4
         with:
           sarif_file: gosec.sarif
@@ -51,6 +52,6 @@ jobs:
         working-directory: crd
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-      - name: Run govulncheck (root module)
+      - name: Run govulncheck
         working-directory: crd
         run: $(go env GOPATH)/bin/govulncheck ./...
