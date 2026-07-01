@@ -10,6 +10,10 @@ import (
 	"kubesonde.io/controllers/utils"
 )
 
+// getServicesAsProbes converts a Kubernetes Service and its backing pods into ProbeOutputItem(s),
+// one per service port. Each item describes the internet-to-service port mapping with
+// ExpectedAction: DENY and ResultingAction: ALLOW, serving as informational documentation
+// of how traffic reaches the service.
 func getServicesAsProbes(service v1.Service, pods []v1.Pod) []v12.ProbeOutputItem {
 	srvNamespace := service.Namespace
 	srvName := service.Name
@@ -43,9 +47,6 @@ func getServicesAsProbes(service v1.Service, pods []v1.Pod) []v12.ProbeOutputIte
 	return newItems
 }
 func isSamePort(podPort v1.ContainerPort, servicePort v1.ServicePort) bool {
-	if servicePort.TargetPort.StrVal == "" {
-		return podPort.ContainerPort == servicePort.Port
-	}
 	if podPort.Name == servicePort.TargetPort.String() {
 		return true
 	}
@@ -54,6 +55,12 @@ func isSamePort(podPort v1.ContainerPort, servicePort v1.ServicePort) bool {
 	}
 	return false
 }
+
+// getDestinationAndPort finds the first pod whose container ports match the given service port,
+// returning the forwarded port and a ProbeEndpointInfo describing the service endpoint.
+// When a matching pod is found, the ProbeEndpointInfo contains the pod's name/namespace and the
+// service's ClusterIP, labels, and selector. When no match is found, it returns a fallback
+// ProbeEndpointInfo with name "Unknown - <serviceName>".
 func getDestinationAndPort(service v1.Service, pods []v1.Pod, servicePort v1.ServicePort) (string, v12.ProbeEndpointInfo) {
 	srvNamespace := service.Namespace
 	srvName := service.Name
@@ -73,6 +80,7 @@ func getDestinationAndPort(service v1.Service, pods []v1.Pod, servicePort v1.Ser
 						Namespace: pod.Namespace,
 						IPAddress: service.Spec.ClusterIP,
 						Labels:    utils.MapToString(service.Labels),
+						Selector:  utils.MapToString(service.Spec.Selector),
 					}
 				}
 			}
@@ -87,6 +95,7 @@ func getDestinationAndPort(service v1.Service, pods []v1.Pod, servicePort v1.Ser
 			Namespace: srvNamespace,
 			IPAddress: service.Spec.ClusterIP,
 			Labels:    utils.MapToString(service.Labels),
+			Selector:  utils.MapToString(service.Spec.Selector),
 		}
 	}
 	return forwardedPort, dst

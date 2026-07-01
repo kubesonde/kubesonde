@@ -15,6 +15,7 @@ type KubesondeCommand struct {
 	DestinationNamespace string               `json:"destinationNamespace"`
 	DestinationPort      string               `json:"destinationPort"`
 	DestinationLabels    string               `json:"destinationLabels"`
+	DestinationSelector  string               `json:"destinationSelector"`
 	DestinationType      v1.ProbeEndpointType `json:"destinationType"`
 	SourcePodName        string               `json:"source"`
 	SourceIPAddress      string               `json:"sourceIPAddress"`
@@ -32,6 +33,7 @@ type ComparableKubesondeCommand struct {
 	DestinationNamespace string               `json:"destinationNamespace"`
 	DestinationPort      string               `json:"destinationPort"`
 	DestinationLabels    string               `json:"destinationLabels"`
+	DestinationSelector  string               `json:"destinationSelector"`
 	DestinationType      v1.ProbeEndpointType `json:"destinationType"`
 	SourcePodName        string               `json:"source"`
 	SourceIPAddress      string               `json:"sourceIPAddress"`
@@ -50,6 +52,7 @@ func (item KubesondeCommand) ToComparableCommand() ComparableKubesondeCommand {
 		DestinationNamespace: item.DestinationNamespace,
 		DestinationPort:      item.DestinationPort,
 		DestinationLabels:    item.DestinationLabels,
+		DestinationSelector:  item.DestinationSelector,
 		DestinationType:      item.DestinationType,
 		SourcePodName:        item.SourcePodName,
 		SourceIPAddress:      item.SourceIPAddress,
