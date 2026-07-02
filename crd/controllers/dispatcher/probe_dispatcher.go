@@ -5,6 +5,7 @@ package dispatcher
 import (
 	"container/heap"
 	"context"
+	"log"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -12,6 +13,8 @@ import (
 	"kubesonde.io/controllers/inner"
 	"kubesonde.io/controllers/probe_command"
 )
+
+var dispatcherLog = log.New(log.Writer(), "dispatcher: ", log.LstdFlags)
 
 type Priority int
 
@@ -27,7 +30,10 @@ var (
 
 // Add probes to queue
 func SendToQueue(commands []probe_command.KubesondeCommand, priority Priority) {
-	dispatcherSemaphore.Acquire(context.Background(), 1)
+	if err := dispatcherSemaphore.Acquire(context.Background(), 1); err != nil {
+		dispatcherLog.Printf("Failed to acquire semaphore: %v", err)
+		return
+	}
 	defer dispatcherSemaphore.Release(1)
 
 	inQueue := make(map[probe_command.ComparableKubesondeCommand]bool, len(pq))
@@ -58,7 +64,10 @@ func Run(apiClient kubernetes.Interface) {
 	const probeInterval = 50 * time.Millisecond
 	heap.Init(&pq)
 	for {
-		dispatcherSemaphore.Acquire(context.Background(), 1)
+		if err := dispatcherSemaphore.Acquire(context.Background(), 1); err != nil {
+			dispatcherLog.Printf("Failed to acquire semaphore: %v", err)
+			continue
+		}
 		if pq.Len() == 0 {
 			dispatcherSemaphore.Release(1)
 			time.Sleep(probeInterval)

@@ -96,8 +96,12 @@ func InitEventListener(client kubernetes.Interface, Kubesonde kubesondev1.Kubeso
 	podInformer := kubeInformerFactory.Core().V1().Pods().Informer()
 	svcInformer := kubeInformerFactory.Core().V1().Services().Informer()
 
-	podInformer.AddEventHandler(podEventHandler(client, Kubesonde))
-	svcInformer.AddEventHandler(svcEventHandler(Kubesonde))
+	if _, err := podInformer.AddEventHandler(podEventHandler(client, Kubesonde)); err != nil {
+		log.Error(err, "Failed to add pod event handler")
+	}
+	if _, err := svcInformer.AddEventHandler(svcEventHandler(Kubesonde)); err != nil {
+		log.Error(err, "Failed to add service event handler")
+	}
 
 	stop := make(chan struct{})
 	defer close(stop)

@@ -163,7 +163,11 @@ func buildProbesFromMonitorContainer(apiClient kubernetes.Interface, payload typ
 
 	var initVal = map[int32]string{}
 	monitorMapping := lo.Reduce(netInfoNotLoopback, func(acc map[int32]string, item v12.PodNetworkingItem, i int) map[int32]string {
-		intport := lo.Must1(strconv.ParseInt(item.Port, 10, 32))
+		intport, err := strconv.ParseInt(item.Port, 10, 32)
+		if err != nil {
+			log.Error(err, "Invalid port number", "port", item.Port)
+			return acc
+		}
 		acc[int32(intport)] = item.Protocol
 		return acc
 	}, initVal)

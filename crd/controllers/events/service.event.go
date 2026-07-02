@@ -50,7 +50,8 @@ func isSamePort(podPort v1.ContainerPort, servicePort v1.ServicePort) bool {
 	if podPort.Name == servicePort.TargetPort.String() {
 		return true
 	}
-	if podPort.ContainerPort == int32(servicePort.TargetPort.IntValue()) {
+	targetPort := servicePort.TargetPort.IntValue()
+	if targetPort >= 0 && targetPort <= 65535 && podPort.ContainerPort == int32(targetPort) {
 		return true
 	}
 	return false
