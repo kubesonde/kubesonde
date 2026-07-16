@@ -19,7 +19,9 @@ func podEventHandler(client kubernetes.Interface, Kubesonde kubesondev1.Kubesond
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			pod := obj.(*v1.Pod)
-
+			if pod.Status.Phase != v1.PodRunning || pod.Status.PodIP == "" {
+				return
+			}
 			if utils.SourcePodMatchesKubesondeSpec(Kubesonde, *pod) {
 				log.Info(fmt.Sprintf("EventHandler::AddPodEvent %s", pod.Name))
 				AddPodEvent(client, Kubesonde, *pod)
@@ -40,6 +42,10 @@ func podEventHandler(client kubernetes.Interface, Kubesonde kubesondev1.Kubesond
 			}
 			if oldPod.Status.Phase == v1.PodRunning && newPod.Status.Phase != v1.PodRunning {
 				deletePodEvent(*oldPod)
+			}
+			if oldPod.Status.Phase != v1.PodRunning && newPod.Status.Phase == v1.PodRunning && newPod.Status.PodIP != "" {
+				log.Info(fmt.Sprintf("EventHandler::AddPodEvent (via UpdateFunc) %s", newPod.Name))
+				AddPodEvent(client, Kubesonde, *newPod)
 			}
 		},
 	}
