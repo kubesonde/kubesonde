@@ -9,5 +9,12 @@ export default defineConfig(() => {
       outDir: 'build',
     },
     plugins: [react(),viteTsconfigPaths()],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          silenceDeprecations: ['import'],
+        },
+      },
+    },
   };
 });

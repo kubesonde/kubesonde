@@ -79,6 +79,17 @@ export const Sidebar: React.FC = () => {
                  <a href="https://github.com/kubesonde/kubesonde" target="_blank" rel="noopener noreferrer">
                 </a>
               </MenuItem>
+              {!menuCollapse && (
+                <MenuItem className="attribution">
+                  <a
+                    href="https://github.com/jackap"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Developed by Jacopo Bufalino
+                  </a>
+                </MenuItem>
+              )}
             </Menu>
           </SidebarFooter>
         </ProSidebar>

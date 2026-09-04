@@ -7,5 +7,13 @@ import { GraphBase } from "src/components/graph/graphBase/GraphBase";
 export const ExampleGraphComponent: React.FC = () => {
   const nodes = buildNodesFromProbes(CompleteExample);
   const edges = buildEdgesFromProbes(CompleteExample);
-  return <GraphBase title="Example" nodes={nodes} edges={edges} />;
+  return (
+    <GraphBase
+      title="Example"
+      nodes={nodes}
+      edges={edges}
+      podNetworkInfo={CompleteExample.podNetworkingv2}
+      declarativeConfiguration={CompleteExample.podConfigurationNetworking}
+    />
+  );
 };

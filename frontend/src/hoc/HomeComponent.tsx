@@ -38,6 +38,11 @@ export const HomeComponent = () => {
 
   return (
     <div className="form-container">
+      <div className="home-hero">
+        <img src="/logo257.png" alt="Kubesonde logo" className="home-logo" />
+        <h1 className="home-title">Kubesonde</h1>
+        <p className="home-subtitle">Visualize your cluster's network connectivity</p>
+      </div>
       <div id="file-upload-form" className="uploader">
         <div id="file-upload" />
         <label htmlFor="file-upload" id="file-drag">

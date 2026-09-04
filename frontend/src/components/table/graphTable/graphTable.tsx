@@ -44,7 +44,8 @@ const tooltipsMessages: Dict = {
   ports:
     "List of ports open on a given pod.\n" +
     "A port is highlighted in green if appears in the declarative configuration and is open in the pod \n" +
-    "A port is highlighted in red if does not appear in the declarative configuration but is open in the pod",
+    "A port is highlighted in red if does not appear in the declarative configuration but is open in the pod \n" +
+    "A port is highlighted in orange if appears in the declarative configuration but is not open in the pod",
 };
 
 export const GraphTable = ({
