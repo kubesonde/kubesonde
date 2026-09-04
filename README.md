@@ -3,15 +3,15 @@
 ![frontend_deployment](https://github.com/kubesonde/kubesonde/actions/workflows/deploy_frontend.yaml/badge.svg)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/df3643ab-e317-4b96-b5c2-de937837b375/deploy-status)](https://app.netlify.com/sites/testksonde/deploys)
 
-
-
-![Kubesonde logo](frontend/public/logo257.png "Kubesonde logo")
+<p align="center">
+  <img src="frontend/public/logo257.png" alt="Kubesonde logo" width="200">
+</p>
 
 # Kubesonde
 
-Kubesonde is a tool to probe and test network security policies in Kubernetes.
+Kubesonde is a tool that probes and visualizes the *actual* network connectivity of applications running in a Kubernetes cluster, so you can compare it against the network policies you meant to enforce. It works by instrumenting live pods at runtime and reporting every connection attempt observed, rather than relying only on what NetworkPolicy manifests declare.
 
-:warning: Check out our paper on FSE-3023 [Analyzing Microservice Connectivity with Kubesonde](https://dl.acm.org/doi/10.1145/3611643.3613899)
+Kubesonde is **not** a network policy engine, admission controller, or firewall: it does not block or modify traffic, and it does not replace tools like Cilium, Calico, or Kubernetes NetworkPolicies. It is a diagnostic and auditing tool for finding gaps between the connectivity you think you have and the connectivity you actually have.
 
 ![kubesonde infra](docs/kubesonde.png "kubesonde infrastructure")
 
@@ -94,6 +94,14 @@ This will remove all resources created by Kubesonde from your cluster.
 ## Contributing
 
 Contributions to the project are welcome. Create a PR and let's discuss the changes.
+
 ## Credits
 
 Logo from [Elisabetta Russo](stelladigitale.it) info@stelladigitale.it
+
+## Publications
+
+Kubesonde has been described and used in the following peer-reviewed papers:
+
+- Jacopo Bufalino, Mario Di Francesco, Tuomas Aura. **["Analyzing Microservice Connectivity with Kubesonde"](https://dl.acm.org/doi/10.1145/3611643.3613899)**. ESEC/FSE 2023. 
+- Jacopo Bufalino, Jose Luis Martin-Navarro, Mario Di Francesco, Tuomas Aura. **["Inside Job: Defending Kubernetes Clusters Against Network Misconfigurations"](https://dl.acm.org/doi/10.1145/3749220)**. Proceedings of the ACM on Networking, 2025.
