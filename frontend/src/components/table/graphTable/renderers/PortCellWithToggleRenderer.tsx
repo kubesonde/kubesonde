@@ -1,4 +1,4 @@
-import { CellProps } from "react-table";
+import { CellContext } from "@tanstack/react-table";
 import { GraphTableCell } from "../graphTable";
 import { PodNetworkingInfoV2 } from "src/entities/probeOutput";
 
@@ -8,7 +8,7 @@ export const PortCellWithToggleRenderer = (
     declared: PodNetworkingInfoV2;
     probed: PodNetworkingInfoV2;
   },
-  row: CellProps<GraphTableCell>
+  row: CellContext<GraphTableCell, unknown>
 ) => {
   //const [toggle, setToggle] = useState<boolean>(true);
   const pods = row.row.original.pods;

@@ -1,11 +1,11 @@
-import { CellProps } from "react-table";
+import { CellContext } from "@tanstack/react-table";
 import { GraphTableCell } from "../graphTable";
 
 export const DeploymentCellRenderer = (
-  row: CellProps<GraphTableCell>,
+  row: CellContext<GraphTableCell, string>,
   onDeploymentClick: (key: string) => void
 ) => {
-  if (row.cell.row.original.deployment.startsWith("none")) {
+  if (row.row.original.deployment.startsWith("none")) {
     return (
       <div style={{ textAlign: "center" }} className={"deployment"}>
         -
@@ -18,15 +18,15 @@ export const DeploymentCellRenderer = (
       style={{ textAlign: "left" }}
       className={"deployment"}
       onClick={() => {
-        onDeploymentClick(row.cell.row.original.deployment);
+        onDeploymentClick(row.row.original.deployment);
       }}
     >
       <input
         type="checkbox"
         disabled={row.row.original.isEnabled ? false : true}
-        defaultChecked={!row.cell.row.original.isDeploymentExpanded}
+        defaultChecked={!row.row.original.isDeploymentExpanded}
       />
-      {row.value}
+      {row.getValue()}
     </div>
   );
 };

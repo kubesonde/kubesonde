@@ -1,16 +1,17 @@
-import { CellProps } from "react-table";
+import { CellContext } from "@tanstack/react-table";
 //import { useState } from "react";
 import { GraphTableCell } from "../graphTable";
 
 export const PodCellRenderer = (
   onPodClick: (key: string) => boolean,
-  row: CellProps<GraphTableCell>
+  row: CellContext<GraphTableCell, string[]>
 ) => {
   //const [toggle, setToggle] = useState<boolean>(true);
   const toggle = true;
+  const value = row.getValue();
   let rendered;
   if (toggle) {
-    rendered = (row.value as string[]).map((value, index) => (
+    rendered = value.map((value, index) => (
       <div key={"podItem" + index} className="podItem">
         <input
           key={"podItem_checkbox" + index}
@@ -20,7 +21,7 @@ export const PodCellRenderer = (
               ? false
               : !row.row.original.isDeploymentExpanded
           }
-          defaultChecked={!row.cell.row.original.podsExpanded[value]}
+          defaultChecked={!row.row.original.podsExpanded[value]}
           onClick={(e) => {
             e.preventDefault();
             const success = onPodClick(value);
@@ -33,7 +34,7 @@ export const PodCellRenderer = (
       </div>
     ));
   } else {
-    if (row.value.length > 1) {
+    if (value.length > 1) {
       rendered = (
         <div
           key={0}
@@ -47,7 +48,7 @@ export const PodCellRenderer = (
       rendered = (
         <div key={0} className="podItem">
           <input type="checkbox" defaultChecked={true} />
-          {row.value[0]}
+          {value[0]}
         </div>
       );
     }

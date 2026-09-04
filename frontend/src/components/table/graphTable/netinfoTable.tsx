@@ -1,4 +1,10 @@
-import { Column, useExpanded, useTable } from "react-table";
+import {
+  ColumnDef,
+  useReactTable,
+  getCoreRowModel,
+  getExpandedRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
 export interface NetInfoTableEntry {
@@ -10,57 +16,69 @@ export interface NetInfoTableEntry {
 export interface NetInfoTableProps {
   data: NetInfoTableEntry[];
 }
-export const NetInfoTable = ({ data }: NetInfoTableProps): JSX.Element => {
-  const columns: Column<typeof data[0]>[] = useMemo(
+export const NetInfoTable = ({ data }: NetInfoTableProps): React.JSX.Element => {
+  const columns: ColumnDef<NetInfoTableEntry, any>[] = useMemo(
     () => [
       {
-        Header: "Name",
-        accessor: "podName",
+        id: "podName",
+        header: "Name",
+        accessorKey: "podName",
       },
       {
-        Header: "Port",
-        accessor: "port",
+        id: "port",
+        header: "Port",
+        accessorKey: "port",
       },
       {
-        Header: "Protocol",
-        accessor: "protocol",
+        id: "protocol",
+        header: "Protocol",
+        accessorKey: "protocol",
       },
       {
-        Header: "Interface",
-        accessor: "ip",
+        id: "ip",
+        header: "Interface",
+        accessorKey: "ip",
       },
     ],
     []
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-      },
-      useExpanded
-    );
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+  });
 
   // Render Table UI
   return (
-    <table {...getTableProps()}>
+    <table>
       <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <th {...column.getHeaderProps()}>{column.render("Header")}</th>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <th key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+              </th>
             ))}
           </tr>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, i) => {
-          prepareRow(row);
+      <tbody>
+        {table.getRowModel().rows.map((row) => {
           return (
-            <tr {...row.getRowProps()}>
-              {row.cells.map((cell) => {
-                return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => {
+                return (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
               })}
             </tr>
           );

@@ -112,7 +112,7 @@ export const cytoscapeStylesheet = [
 
         }
     }
-] as Array<cytoscape.Stylesheet>;
+] as Array<cytoscape.StylesheetCSS>;
 
 export const cytoscapeStylesheetPrintMode = [
     {
@@ -210,5 +210,5 @@ export const cytoscapeStylesheetPrintMode = [
 
         }
     }
-] as Array<cytoscape.Stylesheet>;
+] as Array<cytoscape.StylesheetCSS>;
 

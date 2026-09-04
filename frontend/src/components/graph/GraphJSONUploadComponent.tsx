@@ -8,7 +8,7 @@ import {
 import { GraphBase } from "src/components/graph/graphBase/GraphBase";
 
 export const GraphJSONUploadComponent: React.FC = () => {
-  const [openFileSelector, { filesContent }] = useFilePicker({
+  const { openFilePicker: openFileSelector, filesContent } = useFilePicker({
     accept: ".json",
   });
 

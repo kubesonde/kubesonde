@@ -7,7 +7,7 @@ import { ProbeOutput } from "src/entities/probeOutput";
 
 export const HomeComponent = () => {
   const navigate = useNavigate();
-  const [openFileSelector, { filesContent, clear }] = useFilePicker({
+  const { openFilePicker: openFileSelector, filesContent, clear } = useFilePicker({
     accept: ".json",
   });
 

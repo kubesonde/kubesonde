@@ -1,7 +1,7 @@
 import tippy from "tippy.js"
 import 'tippy.js/dist/tippy.css';
 
-export const BuildPopup = (clientRect: DOMRect, message: string) => {
+export const BuildPopup = (clientRect: () => DOMRect, message: string) => {
     let dummyDomEle = document.createElement('div');
     // @ts-ignore
     const popup = new tippy(dummyDomEle,{
