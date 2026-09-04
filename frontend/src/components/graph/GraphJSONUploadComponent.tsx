@@ -17,7 +17,15 @@ export const GraphJSONUploadComponent: React.FC = () => {
     const parsedData: ProbeOutput = JSON.parse(data);
     const nodes = buildNodesFromProbes(parsedData);
     const edges = buildEdgesFromProbes(parsedData);
-    return <GraphBase title="JSON example" nodes={nodes} edges={edges} />;
+    return (
+      <GraphBase
+        title="JSON example"
+        nodes={nodes}
+        edges={edges}
+        podNetworkInfo={parsedData.podNetworkingv2}
+        declarativeConfiguration={parsedData.podConfigurationNetworking}
+      />
+    );
   };
   return (
     <>
