@@ -93,7 +93,7 @@ jobs:
         run: npm install
       - name: Get version
         run: |
-          echo "REACT_APP_VERSION=$(grep '"version"' package.json | cut -d '"' -f 4 | head -n 1)" >> $GITHUB_ENV
+          echo "VITE_APP_VERSION=$(grep '"version"' package.json | cut -d '"' -f 4 | head -n 1)" >> $GITHUB_ENV
       - name: Build
         run: npm run build --if-present
       - uses: actions/upload-artifact@v4

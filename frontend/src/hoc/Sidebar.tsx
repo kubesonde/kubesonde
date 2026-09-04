@@ -74,7 +74,7 @@ export const Sidebar: React.FC = () => {
           </SidebarContent>
           <SidebarFooter>
             <Menu iconShape="square">
-              <MenuItem>Version: {import.meta.env.REACT_APP_VERSION}</MenuItem>
+              <MenuItem>Version: {import.meta.env.VITE_APP_VERSION}</MenuItem>
               <MenuItem icon={<FaGithub />}>
                  <a href="https://github.com/kubesonde/kubesonde" target="_blank" rel="noopener noreferrer">
                 </a>
