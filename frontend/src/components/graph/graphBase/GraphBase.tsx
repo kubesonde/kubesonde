@@ -39,7 +39,9 @@ import {
 } from "src/components/graph/graphBase/GraphBaseAPIs";
 import { PodNetworkingInfoV2 } from "src/entities/probeOutput";
 
-cytoscape.use(popper);
+// Only cy.popperRef() is used in this file, which doesn't invoke the factory,
+// so a no-op factory satisfies the registration requirement.
+cytoscape.use(popper(() => ({})));
 
 export type GraphProps = BasicGraphProps & { title: string };
 export interface BasicGraphProps {
@@ -121,7 +123,7 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     buildColorMap(props.nodes)
   );
   const [printMode, setPrintMode] = useState<boolean>(false);
-  const cyRef = useRef<cytoscape.Core>();
+  const cyRef = useRef<cytoscape.Core | undefined>(undefined);
   const graphTableData: GraphTableCell[] = useMemo(
     () =>
       getGraphDataForTable(
@@ -237,8 +239,7 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
       const textToDisplay = data.nodes.find(
         (nod) => nod.id === node.id()
       )?.title;
-      const reference: DOMRect = node.popperRef()
-        .getBoundingClientRect as unknown as DOMRect;
+      const reference = node.popperRef().getBoundingClientRect as () => DOMRect;
       BuildPopup(reference, textToDisplay || "").show();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

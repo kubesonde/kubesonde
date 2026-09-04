@@ -5,7 +5,7 @@ export interface WithSwitchProps {
     title: string
 }
 
-export function WithSwitch<T> (Component: ComponentType<T>,title: string) {
+export function WithSwitch<T extends object> (Component: ComponentType<T>,title: string) {
     const [checked, setChecked] = useState<boolean>(false)
     return (hocProps: ComponentProps<typeof Component>) => {
         return (

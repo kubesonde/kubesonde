@@ -1,4 +1,11 @@
-import {Column, useTable, useExpanded, Renderer, CellProps,} from 'react-table'
+import {
+    ColumnDef,
+    useReactTable,
+    getCoreRowModel,
+    getExpandedRowModel,
+    flexRender,
+    CellContext,
+} from '@tanstack/react-table'
 import React, {useEffect, useMemo, useState} from "react";
 import {computeMetrics} from "../../../utils/graph";
 import "../graphTable/table.css"
@@ -9,11 +16,11 @@ interface StatsTableItem {
 }
 
 
-const ConnectedComponentCell: Renderer<CellProps<string[]>> = (row: CellProps<string[]>) => {
+const ConnectedComponentCell = (info: CellContext<StatsTableItem, string[]>) => {
     return(
         <div style={{textAlign:'left'}} >
             {
-                (row.value as string[])
+                info.getValue()
                     .map((item,index) => (
                         <div
                             key={index}>
@@ -58,50 +65,46 @@ export const StatsTable: React.FC<Graph> = (props: Graph) => {
 
 
 
-    const columns: Column<StatsTableItem>[] = useMemo(() => ([
+    const columns: ColumnDef<StatsTableItem, any>[] = useMemo(() => ([
         {
-            Header: 'Statistics',
-            accessor: 'stat',
+            id: 'stat',
+            header: 'Statistics',
+            accessorKey: 'stat',
         },
         {
             id: 'checkbox-table-column',
-            accessor: 'value',
-            Cell: ConnectedComponentCell
+            accessorKey: 'value',
+            cell: ConnectedComponentCell
         },
     ]), [])
 
 
-    const {
-        getTableProps,
-        getTableBodyProps,
-        headerGroups,
-        rows,
-        prepareRow,
-    } = useTable({
-        columns,
+    const table = useReactTable({
         data,
-    }, useExpanded)
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        getExpandedRowModel: getExpandedRowModel(),
+    })
 
 
     // Render Table UI
     return (
-        <table {...getTableProps()}>
+        <table>
             <thead>
-            {headerGroups.map(headerGroup => (
-                <tr {...headerGroup.getHeaderGroupProps()}>
-                    {headerGroup.headers.map(column => (
-                        <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+            {table.getHeaderGroups().map(headerGroup => (
+                <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                        <th key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>
                     ))}
                 </tr>
             ))}
             </thead>
-            <tbody {...getTableBodyProps()}>
-            {rows.map((row, i) => {
-                prepareRow(row)
+            <tbody>
+            {table.getRowModel().rows.map((row) => {
                 return (
-                    <tr {...row.getRowProps()}>
-                        {row.cells.map(cell => {
-                            return <td {...cell.getCellProps()} >{cell.render('Cell')}</td>
+                    <tr key={row.id}>
+                        {row.getVisibleCells().map(cell => {
+                            return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                         })}
                     </tr>
                 )

@@ -1,5 +1,11 @@
 import { ProbeErrorInfo } from "../../../utils/probes";
-import { Column, useExpanded, useTable } from "react-table";
+import {
+  ColumnDef,
+  useReactTable,
+  getCoreRowModel,
+  getExpandedRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
 export interface ErrorLogTableProps {
@@ -7,54 +13,65 @@ export interface ErrorLogTableProps {
 }
 export const ErrorLogTable = ({
   errorLog,
-}: ErrorLogTableProps): JSX.Element => {
+}: ErrorLogTableProps): React.JSX.Element => {
   const data = errorLog;
-  const columns: Column<ProbeErrorInfo>[] = useMemo(
+  const columns: ColumnDef<ProbeErrorInfo, any>[] = useMemo(
     () => [
       {
-        Header: "Name",
-        accessor: "podName",
+        id: "podName",
+        header: "Name",
+        accessorKey: "podName",
       },
       {
-        Header: "Reason",
-        accessor: "reason",
+        id: "reason",
+        header: "Reason",
+        accessorKey: "reason",
       },
       {
-        Header: "Timestamp",
-        accessor: "timestamp",
+        id: "timestamp",
+        header: "Timestamp",
+        accessorKey: "timestamp",
       },
     ],
     []
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-      },
-      useExpanded
-    );
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+  });
 
   // Render Table UI
   return (
-    <table {...getTableProps()}>
+    <table>
       <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
-              <th {...column.getHeaderProps()}>{column.render("Header")}</th>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <th key={header.id}>
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+              </th>
             ))}
           </tr>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, i) => {
-          prepareRow(row);
+      <tbody>
+        {table.getRowModel().rows.map((row) => {
           return (
-            <tr {...row.getRowProps()}>
-              {row.cells.map((cell) => {
-                return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => {
+                return (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
               })}
             </tr>
           );

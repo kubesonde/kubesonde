@@ -1,4 +1,11 @@
-import { Column, useTable, useExpanded, CellProps } from "react-table";
+import {
+  ColumnDef,
+  useReactTable,
+  getCoreRowModel,
+  getExpandedRowModel,
+  flexRender,
+  CellContext,
+} from "@tanstack/react-table";
 import { useMemo } from "react";
 import "./table.css";
 import { PodCellRenderer } from "./renderers/PodCellRenderer";
@@ -47,13 +54,14 @@ export const GraphTable = ({
   onEnabledClick,
   onPodClick,
 }: GraphTableProps) => {
-  const columns: Column<GraphTableCell>[] = useMemo(
+  const columns: ColumnDef<GraphTableCell, any>[] = useMemo(
     () => [
       {
-        Header: "On",
-        accessor: "isEnabled",
-        Cell: (row) => {
-          if (row.row.original.deployment.startsWith("none")) {
+        id: "isEnabled",
+        header: "On",
+        accessorKey: "isEnabled",
+        cell: (info: CellContext<GraphTableCell, boolean>) => {
+          if (info.row.original.deployment.startsWith("none")) {
             return <div style={{ textAlign: "center" }}>-</div>;
           }
 
@@ -61,11 +69,11 @@ export const GraphTable = ({
             <div style={{ textAlign: "center" }}>
               <input
                 type="checkbox"
-                defaultChecked={row.value}
+                defaultChecked={info.getValue()}
                 onChange={(e) => {
                   onEnabledClick(
-                    row.row.original.deployment,
-                    row.row.original.pods,
+                    info.row.original.deployment,
+                    info.row.original.pods,
                     e.target.checked
                   );
                 }}
@@ -75,79 +83,83 @@ export const GraphTable = ({
         },
       },
       {
-        Header: "Deployment",
-        accessor: "deployment",
-        Cell: (row: CellProps<GraphTableCell>) =>
-          DeploymentCellRenderer(row, onDeploymentClick),
+        id: "deployment",
+        header: "Deployment",
+        accessorKey: "deployment",
+        cell: (info: CellContext<GraphTableCell, string>) =>
+          DeploymentCellRenderer(info, onDeploymentClick),
       },
       {
-        Header: "# Pods",
-        accessor: "podsNumber",
-        Cell: (row) => {
+        id: "podsNumber",
+        header: "# Pods",
+        accessorKey: "podsNumber",
+        cell: (info: CellContext<GraphTableCell, string>) => {
           return (
             <div style={{ textAlign: "center" }}>
-              {row.row.original.podsNumber}
+              {info.row.original.podsNumber}
             </div>
           );
         },
       },
       {
-        Header: "Pods",
-        accessor: "pods",
-        Cell: (row: CellProps<GraphTableCell>) =>
-          PodCellRenderer(onPodClick, row),
+        id: "pods",
+        header: "Pods",
+        accessorKey: "pods",
+        cell: (info: CellContext<GraphTableCell, string[]>) =>
+          PodCellRenderer(onPodClick, info),
       },
       {
-        Header: "Ports exposed",
-        Cell: (row: CellProps<GraphTableCell>) =>
-          PortCellWithToggleRenderer(ports, row),
+        id: "ports",
+        header: "Ports exposed",
+        cell: (info: CellContext<GraphTableCell, unknown>) =>
+          PortCellWithToggleRenderer(ports, info),
       },
     ],
     [onEnabledClick, onDeploymentClick, onPodClick, ports]
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-      },
-      useExpanded
-    );
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+  });
 
   // Render Table UI
   return (
-    <table {...{ ...getTableProps(), role: "graphTable" }}>
+    <table role="graphTable">
       <thead>
-        {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map((column) => (
+        {table.getHeaderGroups().map((headerGroup) => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
               <th
-                {...{
-                  ...column.getHeaderProps(),
-                  "data-tooltip": tooltipsMessages[column.id],
-                }}
+                key={header.id}
+                data-tooltip={tooltipsMessages[header.column.id]}
               >
-                {column.render("Header")}
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
               </th>
             ))}
           </tr>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, i) => {
-          prepareRow(row);
-          const props = {
-            ...row.getRowProps(),
-            style: {
-              ...row.getRowProps().style,
-              backgroundColor: row.original.background,
-            },
-          };
+      <tbody>
+        {table.getRowModel().rows.map((row) => {
           return (
-            <tr {...props}>
-              {row.cells.map((cell) => {
-                return <td {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+            <tr
+              key={row.id}
+              style={{ backgroundColor: row.original.background }}
+            >
+              {row.getVisibleCells().map((cell) => {
+                return (
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
               })}
             </tr>
           );

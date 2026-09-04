@@ -97,8 +97,8 @@ const defineSourceAndDst = (
 export const NetstatGraph = ({
   netstatMappings,
   podIPMappings,
-}: NetstatGraphProps): JSX.Element => {
-  const cyRef = useRef<cytoscape.Core>();
+}: NetstatGraphProps): React.JSX.Element => {
+  const cyRef = useRef<cytoscape.Core | undefined>(undefined);
   const edges = netstatMappings
     .map((mapping) => {
       const entries = mapping.entries

@@ -25,7 +25,7 @@ export const AppearanceController = ({
   printMode,
   onJSONPrint,
   onImagePrint,
-}: AppearanceControllerProps): JSX.Element => {
+}: AppearanceControllerProps): React.JSX.Element => {
   return (
     <>
       <div id={"AppearanceControllerContainer"}>
