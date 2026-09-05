@@ -28,6 +28,12 @@ var (
 	pq                  = make(PriorityQueue, 0, 1000)
 )
 
+// executeProbe runs a single probe command. It is a package-level variable so
+// that tests can substitute a fake executor to observe scheduling behaviour.
+var executeProbe = func(apiClient kubernetes.Interface, command probe_command.KubesondeCommand) {
+	inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{command})
+}
+
 // Add probes to queue
 func SendToQueue(commands []probe_command.KubesondeCommand, priority Priority) {
 	if err := dispatcherSemaphore.Acquire(context.Background(), 1); err != nil {
@@ -77,7 +83,7 @@ func Run(apiClient kubernetes.Interface) {
 		dispatcherSemaphore.Release(1)
 
 		start := time.Now()
-		inner.InspectAndStoreResult(apiClient, []probe_command.KubesondeCommand{item.value})
+		executeProbe(apiClient, item.value)
 		duration := time.Since(start)
 		if duration < probeInterval {
 			time.Sleep(probeInterval - duration)
