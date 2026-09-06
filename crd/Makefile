@@ -185,10 +185,10 @@ $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,${GOLANGCI_LINT_VERSION})
 
 .PHONY: artifact
-artifact: manifests
+artifact: manifests kustomize ## Generate the repo-root kubesonde.yaml installer manifest pinned to IMG.
 	echo "Creating controller"
-	cd config/manager && kustomize edit set image controller=${IMG}
-	kustomize build config/default > ../kubesonde.yaml
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default > ../kubesonde.yaml
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)

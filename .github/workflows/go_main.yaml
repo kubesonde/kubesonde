@@ -1,21 +1,18 @@
-name: Deploy containers
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
-    paths:
-      - crd/**
-      - .github/**
 
 permissions:
   contents: write
   packages: write
 
 jobs:
+  # Build and test the CRD before releasing anything.
   prepare:
     uses: kubesonde/kubesonde/.github/workflows/go_base.yaml@main
-
 
   build-and-publish:
     runs-on: ubuntu-latest
@@ -29,38 +26,49 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: crd/go.mod
-          
+
+      - name: Resolve tag
+        id: tag
+        run: echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      # Generate the installer manifest (repo-root kubesonde.yaml) pinned to the
+      # released controller image tag.
       - name: Create artifact
         working-directory: crd
-        run: TAG_NAME=${GITHUB_REF#refs/tags/} make artifact IMG=ghcr.io/kubesonde/controller:${TAG_NAME}
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref }}  # Use the tag that triggered the workflow
-          files: crd/kubesonde.yaml
+        run: make artifact IMG=ghcr.io/kubesonde/controller:${{ steps.tag.outputs.name }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-        
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Build controller with tag
+
+      # Push images first so the released manifest always points at an image that
+      # actually exists in the registry.
+      - name: Build controller image (tag + latest)
         working-directory: crd
-        run: make docker-buildx IMG=ghcr.io/kubesonde/controller:${GITHUB_REF#refs/tags/}
-      - name: Build controller with latest
-        working-directory: crd
-        run: make docker-buildx IMG=ghcr.io/kubesonde/controller:latest
-      
-      - name: Build gonetstat with tag
+        run: |
+          make docker-buildx IMG=ghcr.io/kubesonde/controller:${{ steps.tag.outputs.name }}
+          make docker-buildx IMG=ghcr.io/kubesonde/controller:latest
+
+      - name: Build gonetstat image (tag + latest)
         working-directory: docker
-        run: make IMG=ghcr.io/kubesonde/gonetstat:${GITHUB_REF#refs/tags/}
-      - name: Build gonetstat with latest
-        working-directory: docker
-        run: make IMG=ghcr.io/kubesonde/gonetstat:latest
+        run: |
+          make IMG=ghcr.io/kubesonde/gonetstat:${{ steps.tag.outputs.name }}
+          make IMG=ghcr.io/kubesonde/gonetstat:latest
+
+      # Create the GitHub Release last, attaching the installer manifest and
+      # auto-generated release notes from merged PRs / commits since the last tag.
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.tag.outputs.name }}
+          generate_release_notes: true
+          prerelease: ${{ contains(steps.tag.outputs.name, '-') }}
+          fail_on_unmatched_files: true
+          files: kubesonde.yaml
