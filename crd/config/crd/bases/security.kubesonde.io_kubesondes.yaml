@@ -14,7 +14,20 @@ spec:
     singular: kubesonde
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.namespace
+      name: Namespace
+      type: string
+    - jsonPath: .status.probeCount
+      name: Probes
+      type: integer
+    - jsonPath: .status.complete
+      name: Complete
+      type: boolean
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
     schema:
       openAPIV3Schema:
         description: Kubesonde is the Schema for the Kubesondes API
@@ -104,11 +117,23 @@ spec:
           status:
             description: KubesondeStatus defines the observed state of Kubesonde
             properties:
+              complete:
+                description: |-
+                  Complete is true when the number of recorded probes has been stable for
+                  the completeness window (no new probes observed), meaning probing has
+                  quiesced. It does not mean Kubesonde has stopped: probing runs continuously.
+                type: boolean
               lastProbeTime:
                 description: Information when was the last time the probe was run.
                 format: date-time
                 type: string
+              probeCount:
+                description: ProbeCount is the number of probes recorded so far for
+                  this Kubesonde.
+                type: integer
             type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
