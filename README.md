@@ -119,6 +119,26 @@ kubesonde-bookinfo   bookinfo    228      true       5m
 ```
 
 Note: a `complete` result does not stop Kubesonde. The controller keeps probing continuously; completeness is only a hint that it is a good time to fetch results.
+
+#### Waiting for completeness before fetching
+
+Because completeness is also exposed as a standard status condition, you can block until probing has quiesced with `kubectl wait` instead of guessing how long to sleep:
+
+```bash
+kubectl wait --for=condition=Complete kubesonde/kubesonde-sample --timeout=300s
+```
+
+This makes it easy to script the whole flow — apply the scanner, wait for it to finish, then fetch the results:
+
+```bash
+kubectl apply -f probe.yaml
+kubectl wait --for=condition=Complete kubesonde/kubesonde-sample --timeout=300s
+kubectl --namespace kubesonde-system port-forward deployment.apps/kubesonde-controller-manager 2709 &
+curl localhost:2709/probes > probes.json
+```
+
+(If your `kubectl` predates condition support you can wait on the field directly: `kubectl wait --for=jsonpath='{.status.complete}'=true kubesonde/kubesonde-sample --timeout=300s`.)
+
 ### 5. View results
 
 Navigate to the [kubesonde website](https://kubesonde.jackops.dev) and upload the generated file to see the results.

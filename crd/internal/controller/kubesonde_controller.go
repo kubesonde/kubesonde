@@ -29,6 +29,7 @@ import (
 	"kubesonde.io/controllers/state"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -107,6 +108,25 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		now := metav1.Now()
 		Kubesonde.Status.LastProbeTime = &now
 	}
+
+	// Mirror completeness into a standard Condition so users can block on it with
+	// `kubectl wait --for=condition=Complete kubesonde/<name>`.
+	condStatus := metav1.ConditionFalse
+	reason := "Probing"
+	message := "Probing is in progress"
+	if completeness.Complete {
+		condStatus = metav1.ConditionTrue
+		reason = "Quiesced"
+		message = "Recorded probe count has been stable for the completeness window"
+	}
+	meta.SetStatusCondition(&Kubesonde.Status.Conditions, metav1.Condition{
+		Type:               kubesondev1.ConditionComplete,
+		Status:             condStatus,
+		ObservedGeneration: Kubesonde.Generation,
+		Reason:             reason,
+		Message:            message,
+	})
+
 	if err := r.Status().Update(ctx, &Kubesonde); err != nil {
 		log.Error(err, "unable to update Kubesonde status")
 		return ctrl.Result{RequeueAfter: statusRefreshInterval}, nil
