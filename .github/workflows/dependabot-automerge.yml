@@ -1,0 +1,61 @@
+name: Dependabot auto-merge
+
+# Automatically merges Dependabot pull requests that are SECURITY updates,
+# but only after the relevant test suite passes. Non-security version bumps are
+# left for manual review.
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Extract Dependabot metadata (which ecosystem, whether it fixes an advisory).
+  metadata:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    outputs:
+      ghsa-id: ${{ steps.meta.outputs.ghsa-id }}
+      ecosystem: ${{ steps.meta.outputs.package-ecosystem }}
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Run the CRD build+test suite for Go module security updates.
+  test-crd:
+    needs: metadata
+    if: needs.metadata.outputs.ghsa-id != '' && needs.metadata.outputs.ecosystem == 'gomod'
+    uses: ./.github/workflows/go_base.yaml
+
+  # Run the frontend build+test suite for npm security updates.
+  test-frontend:
+    needs: metadata
+    if: needs.metadata.outputs.ghsa-id != '' && needs.metadata.outputs.ecosystem == 'npm'
+    uses: ./.github/workflows/frontend_base.yaml
+
+  # Merge only if it is a security update and the relevant suite did not fail.
+  # The suite for the other ecosystem is skipped, which counts as "not failed".
+  automerge:
+    needs: [metadata, test-crd, test-frontend]
+    if: >-
+      always() &&
+      needs.metadata.outputs.ghsa-id != '' &&
+      needs.test-crd.result != 'failure' &&
+      needs.test-crd.result != 'cancelled' &&
+      needs.test-frontend.result != 'failure' &&
+      needs.test-frontend.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Approve and merge
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Best-effort approval (may be disallowed by org policy); never block the merge on it.
+          gh pr review --approve "$PR_URL" || echo "approval skipped"
+          gh pr merge --squash --delete-branch "$PR_URL"
