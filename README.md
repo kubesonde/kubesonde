@@ -82,6 +82,43 @@ This command creates a port mapping between your local computer and the Kubesond
 `curl localhost:2709/probes > <output-file>.json`. This command gets the probe result and stores it in an output file.
 
 :warning: If you try to get the results of the probe just after applying it in the cluster the results may be empty or incomplete. Wait a few minutes (depending on the amount of pods) to get better results.
+
+#### Knowing when probing is "complete"
+
+There is no reliable way to know in advance how many probes will run for a given namespace. Instead, Kubesonde exposes a completeness signal based on **quiescence**: probing is considered complete when the number of recorded probes has not changed for a fixed window (30 seconds by default). In other words, if the count at time `t` equals the count at `t - 30s`, no further probes are assumed to be coming.
+
+Query it via the `/probes/status` endpoint (using the same port-forward as above):
+
+```bash
+curl localhost:2709/probes/status
+```
+
+```json
+{
+  "complete": true,
+  "count": 228,
+  "window": 30000000000,
+  "secondsSinceLastChange": 42.5
+}
+```
+
+- `complete`: `true` once at least one probe has been recorded and the count has been stable for the whole window.
+- `count`: the current number of recorded probe items.
+- `window`: the quiescence window in nanoseconds.
+- `secondsSinceLastChange`: how long the count has been stable (`-1` if no probe has been recorded yet).
+
+The same completeness signal is surfaced on the Kubesonde resource itself, so you can see it without port-forwarding:
+
+```bash
+kubectl get kubesondes
+```
+
+```
+NAME                 NAMESPACE   PROBES   COMPLETE   AGE
+kubesonde-bookinfo   bookinfo    228      true       5m
+```
+
+Note: a `complete` result does not stop Kubesonde. The controller keeps probing continuously; completeness is only a hint that it is a good time to fetch results.
 ### 5. View results
 
 Navigate to the [kubesonde website](https://kubesonde.jackops.dev) and upload the generated file to see the results.
