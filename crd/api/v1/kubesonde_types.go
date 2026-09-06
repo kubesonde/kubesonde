@@ -129,9 +129,24 @@ type KubesondeStatus struct {
 	// Information when was the last time the probe was run.
 	// +optional
 	LastProbeTime *metav1.Time `json:"lastProbeTime,omitempty"`
+
+	// Complete is true when the number of recorded probes has been stable for
+	// the completeness window (no new probes observed), meaning probing has
+	// quiesced. It does not mean Kubesonde has stopped: probing runs continuously.
+	// +optional
+	Complete bool `json:"complete,omitempty"`
+
+	// ProbeCount is the number of probes recorded so far for this Kubesonde.
+	// +optional
+	ProbeCount int `json:"probeCount,omitempty"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.spec.namespace`
+// +kubebuilder:printcolumn:name="Probes",type=integer,JSONPath=`.status.probeCount`
+// +kubebuilder:printcolumn:name="Complete",type=boolean,JSONPath=`.status.complete`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // Kubesonde is the Schema for the Kubesondes API
 type Kubesonde struct {
