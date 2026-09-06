@@ -54,6 +54,22 @@ spec:
   probe: all
 ```
 You can save it in a file `probe.yaml` and then apply it with `kubectl apply -f probe.yaml`
+### Tuning probe concurrency (optional)
+
+Kubesonde dispatches probes through a bounded worker pool. By default it runs **10** probes in parallel. You can override this with the `KUBESONDE_PROBE_WORKERS` environment variable on the controller (any positive integer; invalid or unset values fall back to the default of 10). Increase it to speed up probing on large namespaces, or lower it to reduce load on the cluster:
+
+```yaml
+env:
+  - name: KUBESONDE_PROBE_WORKERS
+    value: "20"
+```
+
+When running the controller locally (`make run`), export it before starting:
+
+```bash
+KUBESONDE_PROBE_WORKERS=20 make run
+```
+
 ### 4. Fetching the results
 
 To fetch the results, you need to use the following commands:
