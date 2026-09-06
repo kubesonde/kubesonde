@@ -21,6 +21,7 @@ limitations under the License.
 package v1
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -161,6 +162,13 @@ func (in *KubesondeStatus) DeepCopyInto(out *KubesondeStatus) {
 	if in.LastProbeTime != nil {
 		in, out := &in.LastProbeTime, &out.LastProbeTime
 		*out = (*in).DeepCopy()
+	}
+	if in.Conditions != nil {
+		in, out := &in.Conditions, &out.Conditions
+		*out = make([]metav1.Condition, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 

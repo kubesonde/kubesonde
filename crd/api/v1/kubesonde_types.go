@@ -139,7 +139,21 @@ type KubesondeStatus struct {
 	// ProbeCount is the number of probes recorded so far for this Kubesonde.
 	// +optional
 	ProbeCount int `json:"probeCount,omitempty"`
+
+	// Conditions represent the latest available observations of the Kubesonde's
+	// state. The "Complete" condition is set to True once probing has quiesced,
+	// enabling `kubectl wait --for=condition=Complete`.
+	// +optional
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
+
+// ConditionComplete is the condition type set to True when probing has quiesced
+// (the recorded probe count has been stable for the completeness window).
+const ConditionComplete = "Complete"
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
