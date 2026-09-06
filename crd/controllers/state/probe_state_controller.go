@@ -14,7 +14,28 @@ import (
 
 const (
 	defaultLockTimeout = 5 * time.Second
+	// defaultCompletenessWindow is how long the recorded probe count must stay
+	// unchanged before probing is considered complete. There is no reliable way
+	// to know in advance how many probes will run, so completeness is inferred
+	// from quiescence: if the count at t equals the count at t-window, we assume
+	// no further probes are coming.
+	// NOTE: the fact that a probe is considered complete does not mean kubesonde will stop working. It will run continuously in a while loop anyways.
+	defaultCompletenessWindow = 30 * time.Second
 )
+
+// Completeness describes whether probing has quiesced.
+type Completeness struct {
+	// Complete is true when at least one probe has been recorded and the count
+	// has not changed for at least Window.
+	Complete bool `json:"complete"`
+	// Count is the current number of recorded probe items.
+	Count int `json:"count"`
+	// Window is the quiescence window used to decide completeness.
+	Window time.Duration `json:"window"`
+	// SecondsSinceLastChange is how long the count has been stable, or -1 if
+	// no probes have been recorded yet.
+	SecondsSinceLastChange float64 `json:"secondsSinceLastChange"`
+}
 
 var (
 	log               = logf.Log.WithName("controllers.state")
@@ -56,6 +77,44 @@ type StateManager struct {
 	podsWithNetstat     []string
 	podsWithNetstatLock sync.RWMutex
 	lockTimeout         time.Duration
+	// lastChangeAt is the time the recorded probe count last increased. Zero
+	// means no probe has been recorded yet. Guarded by mu.
+	lastChangeAt time.Time
+}
+
+// touchLastChange records that the probe count changed. Callers must hold mu.
+func (sm *StateManager) touchLastChange() {
+	sm.lastChangeAt = time.Now()
+}
+
+// Completeness reports whether probing has quiesced, using the default window.
+func (sm *StateManager) Completeness() Completeness {
+	return sm.CompletenessWithin(defaultCompletenessWindow)
+}
+
+// CompletenessWithin reports whether the recorded probe count has been stable
+// for at least window.
+func (sm *StateManager) CompletenessWithin(window time.Duration) Completeness {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	count := len(sm.probeOutput.Items)
+	if sm.lastChangeAt.IsZero() {
+		return Completeness{
+			Complete:               false,
+			Count:                  count,
+			Window:                 window,
+			SecondsSinceLastChange: -1,
+		}
+	}
+
+	elapsed := time.Since(sm.lastChangeAt)
+	return Completeness{
+		Complete:               elapsed >= window,
+		Count:                  count,
+		Window:                 window,
+		SecondsSinceLastChange: elapsed.Seconds(),
+	}
 }
 
 // NewStateManager creates a new state manager instance
@@ -110,6 +169,9 @@ func (sm *StateManager) SetProbeState(probes *v1.ProbeOutput) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 	sm.probeOutput = *probes
+	if len(probes.Items) > 0 {
+		sm.touchLastChange()
+	}
 	return nil
 }
 
@@ -138,10 +200,14 @@ func (sm *StateManager) AppendProbes(items *[]v1.ProbeOutputItem) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
+	before := len(sm.probeOutput.Items)
 	newItems := append(sm.probeOutput.Items, *items...)
 	sm.probeOutput.Items = lo.UniqBy(newItems, func(poi v1.ProbeOutputItem) v1.ComparableProbeOutputItem {
 		return poi.ToComparableProbe()
 	})
+	if len(sm.probeOutput.Items) > before {
+		sm.touchLastChange()
+	}
 
 	return nil
 }
@@ -228,6 +294,7 @@ func (sm *StateManager) Clear() {
 		PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
 		PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
 	}
+	sm.lastChangeAt = time.Time{}
 	sm.mu.Unlock()
 
 	sm.podsWithNetstatLock.Lock()
@@ -305,4 +372,8 @@ func SetNetInfoV2(key string, items *[]v1.PodNetworkingItem) {
 
 func ClearState() {
 	GetDefaultManager().ClearState()
+}
+
+func GetCompleteness() Completeness {
+	return GetDefaultManager().Completeness()
 }

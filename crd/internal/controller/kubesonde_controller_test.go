@@ -113,7 +113,8 @@ func TestKubesondeReconcilerWithValidResource(t *testing.T) {
 			},
 		}
 
-		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(kubesonde).Build()
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(kubesonde).
+			WithStatusSubresource(kubesonde).Build()
 
 		// Create reconciler
 		reconciler := &KubesondeReconciler{
@@ -134,8 +135,8 @@ func TestKubesondeReconcilerWithValidResource(t *testing.T) {
 		// Call Reconcile
 		result, err := reconciler.Reconcile(context.Background(), req)
 
-		// Verify no error and no requeue
+		// Verify no error and that reconcile requeues to refresh status.
 		assert.NoError(t, err)
-		assert.Equal(t, ctrl.Result{}, result)
+		assert.Equal(t, ctrl.Result{RequeueAfter: statusRefreshInterval}, result)
 	})
 }

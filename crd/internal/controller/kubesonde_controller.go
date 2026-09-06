@@ -26,8 +26,10 @@ import (
 	kubesondeEvents "kubesonde.io/controllers/events"
 	kubesondemetrics "kubesonde.io/controllers/metrics"
 	kubesondemonitor "kubesonde.io/controllers/monitor"
+	"kubesonde.io/controllers/state"
 
 	"github.com/go-logr/logr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	recursiveprobing "kubesonde.io/controllers/recursive-probing"
@@ -39,6 +41,15 @@ import (
 // dispatcherOnce ensures the probe worker pool is started only once, regardless
 // of how many times Reconcile runs.
 var dispatcherOnce sync.Once
+
+// startupOnce ensures the per-object probing/events/monitor goroutines are
+// started only once. Reconcile is requeued periodically to refresh status, and
+// those long-running goroutines must not be re-spawned on every requeue.
+var startupOnce sync.Once
+
+// statusRefreshInterval is how often Reconcile is requeued to refresh the
+// completeness status shown by `kubectl get kubesondes`.
+const statusRefreshInterval = 15 * time.Second
 
 // KubesondeReconciler reconciles a Kubesonde object
 type KubesondeReconciler struct {
@@ -75,16 +86,33 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		go kubesondeDispatcher.Run(context.Background(), apiClient)
 	})
 
-	// Events
-	go kubesondeEvents.InitEventListener(apiClient, Kubesonde)
+	// Start the long-running per-object goroutines only once; requeues below are
+	// only for refreshing status and must not re-spawn these loops.
+	startupOnce.Do(func() {
+		// Events
+		go kubesondeEvents.InitEventListener(apiClient, Kubesonde)
 
-	// Probing
-	go recursiveprobing.RecursiveProbing(Kubesonde, 20*time.Second)
+		// Probing
+		go recursiveprobing.RecursiveProbing(Kubesonde, 20*time.Second)
 
-	// Monitor
-	go kubesondemonitor.RunMonitorContainers(apiClient)
+		// Monitor
+		go kubesondemonitor.RunMonitorContainers(apiClient)
+	})
 
-	return ctrl.Result{}, nil
+	// Refresh the completeness status so it is visible via `kubectl get kubesondes`.
+	completeness := state.GetCompleteness()
+	Kubesonde.Status.Complete = completeness.Complete
+	Kubesonde.Status.ProbeCount = completeness.Count
+	if completeness.Count > 0 {
+		now := metav1.Now()
+		Kubesonde.Status.LastProbeTime = &now
+	}
+	if err := r.Status().Update(ctx, &Kubesonde); err != nil {
+		log.Error(err, "unable to update Kubesonde status")
+		return ctrl.Result{RequeueAfter: statusRefreshInterval}, nil
+	}
+
+	return ctrl.Result{RequeueAfter: statusRefreshInterval}, nil
 }
 
 func (r *KubesondeReconciler) SetupWithManager(mgr ctrl.Manager) error {
