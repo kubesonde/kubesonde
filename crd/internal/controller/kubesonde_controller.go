@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	kubesondev1 "kubesonde.io/api/v1"
@@ -34,6 +35,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
+
+// dispatcherOnce ensures the probe worker pool is started only once, regardless
+// of how many times Reconcile runs.
+var dispatcherOnce sync.Once
 
 // KubesondeReconciler reconciles a Kubesonde object
 type KubesondeReconciler struct {
@@ -64,8 +69,11 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		2) Handle resource deletion. When a kubesonde resource is removed, the state should be cleared
 	*/
 
-	// Dispatcher
-	go kubesondeDispatcher.Run(apiClient)
+	// Dispatcher. Start the worker pool only once across reconciles; it drains a
+	// process-wide shared queue and must not be started multiple times.
+	dispatcherOnce.Do(func() {
+		go kubesondeDispatcher.Run(context.Background(), apiClient)
+	})
 
 	// Events
 	go kubesondeEvents.InitEventListener(apiClient, Kubesonde)

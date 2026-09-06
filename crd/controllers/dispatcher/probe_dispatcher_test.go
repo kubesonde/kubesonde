@@ -1,7 +1,7 @@
 package dispatcher
 
 import (
-	"container/heap"
+	"context"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -43,21 +43,18 @@ var _ = Describe("SendToQueue", func() {
 		SendToQueue(commands, LOW)
 
 		// THEN
-		result := heap.Pop(&pq).(*Item).value
-		Expect(result).To(Equal(command))
-		Expect(pq.Len()).To(Equal(0))
+		item, ok := popNext()
+		Expect(ok).To(BeTrue())
+		Expect(item.value).To(Equal(command))
+		Expect(QueueSize()).To(Equal(0))
 	})
 })
 
-// This test documents the bottleneck described in finding #1: the dispatcher
-// executes probes strictly one-at-a-time. With N independent probes that each
-// take a fixed amount of time, a concurrent dispatcher would run them in
-// parallel (observed max concurrency > 1, wall time ~= single probe duration),
-// whereas the serial dispatcher runs them back-to-back (max concurrency == 1,
-// wall time ~= N * probe duration).
-//
-// It is RED against the current serial implementation and should turn GREEN
-// once the dispatcher runs probes through a bounded worker pool.
+// This test guards against the bottleneck described in finding #1: the
+// dispatcher must not execute probes strictly one-at-a-time. With N independent
+// probes that each take a fixed amount of time, the bounded worker pool runs
+// them in parallel (observed max concurrency > 1). Against the previous serial
+// implementation max concurrency was always 1 and this test failed.
 var _ = Describe("Run executes probes concurrently", func() {
 	It("runs independent probes in parallel", func() {
 		const (
@@ -104,7 +101,9 @@ var _ = Describe("Run executes probes concurrently", func() {
 		}
 
 		client := testclient.NewSimpleClientset()
-		go Run(client)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel() // stop the worker pool when the spec ends
+		Run(ctx, client)
 		SendToQueue(commands, LOW)
 
 		// Wait for all probes to be executed (generously).
