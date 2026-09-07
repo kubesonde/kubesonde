@@ -64,7 +64,7 @@ jobs:
       # Create the GitHub Release last, attaching the installer manifest and
       # auto-generated release notes from merged PRs / commits since the last tag.
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.tag.outputs.name }}
