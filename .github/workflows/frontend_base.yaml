@@ -66,6 +66,8 @@ jobs:
         run: |
           mkdir -p /home/runner/work/_temp/_github_home
           printf "[safe]\ndirectory = /github/workspace" > /home/runner/work/_temp/_github_home/.gitconfig
+      - name: Test
+        run: npm test
 
   build:
     runs-on: ubuntu-latest

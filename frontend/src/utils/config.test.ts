@@ -1,7 +1,3 @@
-// `tsconfig` limits `types` to vite/client, so `require` isn't globally typed
-// here; declare it locally for the module-reset re-import pattern below.
-declare const require: (module: string) => unknown;
-
 // `config.ts` reads the env value at module load, so each case re-imports the
 // module with `./env` mocked to a specific raw value.
 const loadConfig = (raw: string | undefined) => {

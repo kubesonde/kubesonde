@@ -33,18 +33,52 @@ export interface UseProbeDataResult {
     refresh: () => void;
 }
 
-const statusUrl = () => `${apiServer}/probes/status`;
-const probesUrl = () => `${apiServer}/probes`;
+/** GET a URL and parse JSON, throwing on a non-2xx response. */
+const getJson = async <T>(url: string, signal: AbortSignal): Promise<T> => {
+    const resp = await fetch(url, { signal });
+    if (!resp.ok) {
+        throw new Error(`request failed: ${resp.status}`);
+    }
+    return (await resp.json()) as T;
+};
+
+/** Fetch the current completeness status. */
+export const fetchProbeStatus = (signal: AbortSignal): Promise<ProbeStatus> =>
+    getJson<ProbeStatus>(`${apiServer}/probes/status`, signal);
+
+/** Fetch the full probe output. */
+export const fetchProbes = (signal: AbortSignal): Promise<ProbeOutput> =>
+    getJson<ProbeOutput>(`${apiServer}/probes`, signal);
+
+/**
+ * A single poll snapshot: the status, plus the full data once the run is
+ * complete. Keeps all network logic out of the hook's state handling.
+ */
+export interface ProbeSnapshot {
+    status: ProbeStatus;
+    data?: ProbeOutput;
+}
+
+/** Fetch status, and the full probe output too if the run has completed. */
+export const fetchProbeSnapshot = async (
+    signal: AbortSignal
+): Promise<ProbeSnapshot> => {
+    const status = await fetchProbeStatus(signal);
+    if (!status.complete) {
+        return { status };
+    }
+    return { status, data: await fetchProbes(signal) };
+};
 
 /**
  * Polls the Kubesonde controller for probe results.
  *
- * Every {@link POLL_INTERVAL_MS} it fetches `/probes/status`. While the run is
- * incomplete it keeps polling and exposes `status.count` for progress display.
- * Once `status.complete` is true it fetches the full `/probes` payload, stops
- * the interval (frontend-only; the controller keeps probing), and exposes the
- * data. Overlapping requests are suppressed and in-flight requests are aborted
- * on unmount.
+ * Every {@link POLL_INTERVAL_MS} it fetches a {@link fetchProbeSnapshot}. While
+ * the run is incomplete it keeps polling and exposes `status.count` for progress
+ * display. Once `status.complete` is true the snapshot includes the full data,
+ * so it stores it and stops the interval (frontend-only; the controller keeps
+ * probing). Overlapping requests are suppressed and in-flight requests are
+ * aborted on unmount.
  */
 export const useProbeData = (): UseProbeDataResult => {
     const [data, setData] = useState<ProbeOutput | undefined>(undefined);
@@ -69,7 +103,7 @@ export const useProbeData = (): UseProbeDataResult => {
         }
     }, []);
 
-    // Performs one poll cycle: status, then /probes when complete.
+    // Performs one poll cycle, delegating all network work to fetchProbeSnapshot.
     const poll = useCallback(async () => {
         if (inFlightRef.current) {
             return;
@@ -84,47 +118,28 @@ export const useProbeData = (): UseProbeDataResult => {
         }
 
         try {
-            const statusResp = await fetch(statusUrl(), { signal: controller.signal });
-            if (!statusResp.ok) {
-                throw new Error(`status request failed: ${statusResp.status}`);
-            }
-            const nextStatus = (await statusResp.json()) as ProbeStatus;
+            const { status: nextStatus, data: nextData } = await fetchProbeSnapshot(
+                controller.signal
+            );
             if (!mountedRef.current) {
                 return;
             }
             setStatus(nextStatus);
-
-            if (nextStatus.complete) {
-                const probesResp = await fetch(probesUrl(), { signal: controller.signal });
-                if (!probesResp.ok) {
-                    throw new Error(`probes request failed: ${probesResp.status}`);
-                }
-                const nextData = (await probesResp.json()) as ProbeOutput;
-                if (!mountedRef.current) {
-                    return;
-                }
+            setError(undefined);
+            if (nextData) {
                 setData(nextData);
                 setReady(true);
-                setError(undefined);
                 // Run is complete: stop polling (frontend-only).
                 clearTimer();
-            } else {
-                if (!mountedRef.current) {
-                    return;
-                }
-                setReady(false);
-                setError(undefined);
             }
         } catch (err) {
             // Ignore aborts caused by unmount / refresh; surface everything else.
-            if (controller.signal.aborted) {
+            if (controller.signal.aborted || !mountedRef.current) {
                 return;
             }
-            if (mountedRef.current) {
-                setError(
-                    err instanceof Error ? err.message : "Failed to fetch probe data"
-                );
-            }
+            setError(
+                err instanceof Error ? err.message : "Failed to fetch probe data"
+            );
         } finally {
             inFlightRef.current = false;
             if (mountedRef.current) {
