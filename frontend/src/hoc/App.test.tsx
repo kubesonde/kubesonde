@@ -12,9 +12,9 @@ test("App runs", () => {
   //const sidebar = screen.getByRole("sidebar")
   expect(screen.getByText("Kubesonde Viewer")).not.toBeUndefined();
   const links = screen.getAllByRole("menuLink") as HTMLLinkElement[];
-  expect(links.length).toBe(1);
+  expect(links.length).toBe(2);
   const names = links.map((link: HTMLLinkElement) => link.textContent);
-  expect(names).toEqual(["Load example probe"]);
+  expect(names).toEqual(["Upload a file", "Load example probe"]);
 
   /* const graphToggle = screen.getByRole("graphLibToggle")
     expect(graphToggle.children.length).toBe(1)

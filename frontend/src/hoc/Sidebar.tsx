@@ -9,21 +9,21 @@ import {
 } from "react-pro-sidebar";
 import { Link } from "react-router-dom";
 import { FiHome, FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaList } from "react-icons/fa";
 
 //menuCollapse state using useState hook
 import { GrGraphQl } from "react-icons/gr";
 
 const routes = [
   /*{
-        name: 'Load from file',
-        path: '/fileUpload',
-        icon: <FaList/>
-    },
-     {
          name: 'Fetch from Kubesonde instance',
          path: '/remote'
      },*/
+  {
+    name: "Upload a file",
+    path: "/upload",
+    icon: <FaList />,
+  },
   {
     name: "Load example probe",
     path: "/example",
