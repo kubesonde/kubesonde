@@ -13,9 +13,9 @@ var log = logf.Log.WithName("controller-runtime.probe-api")
 func ServeHTTP() {
 
 	mux := http.NewServeMux()
-	mux.Handle(GET_PROBES_PATH, GetProbesHandler())
-	mux.Handle(GET_PROBES_STATUS_PATH, GetProbesStatusHandler())
-	mux.Handle(POST_PROBES_CLEAR_PATH, PostProbesClearHandler())
+	mux.Handle(GET_PROBES_PATH, withCORS(GetProbesHandler()))
+	mux.Handle(GET_PROBES_STATUS_PATH, withCORS(GetProbesStatusHandler()))
+	mux.Handle(POST_PROBES_CLEAR_PATH, withCORS(PostProbesClearHandler()))
 	server := http.Server{
 		Handler:           mux,
 		ReadHeaderTimeout: 2 * time.Second,
