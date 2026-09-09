@@ -29,6 +29,7 @@ import (
 	"kubesonde.io/controllers/state"
 
 	"github.com/go-logr/logr"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,16 +70,21 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	var Kubesonde kubesondev1.Kubesonde
 	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
+		if apierrors.IsNotFound(err) {
+			// The Kubesonde resource was deleted: clear the accumulated probe
+			// state so stale results are not served by the REST API.
+			log.Info("Kubesonde resource deleted, clearing probe state")
+			state.ClearState()
+
+			return ctrl.Result{}, nil
+		}
 		log.Error(err, "unable to fetch Kubesonde")
-		// Ignore not found errors as we do not want to support this usecase
-		// Use 	apierrors "k8s.io/apimachinery/pkg/api/errors" to find out if resource was deleted.
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return ctrl.Result{}, err
 	}
 
 	// TODOs
 	/*
 		1) Handle pod deletion. When a pod is deleted also the probes that regard that pod should be removed
-		2) Handle resource deletion. When a kubesonde resource is removed, the state should be cleared
 	*/
 
 	// Dispatcher. Start the worker pool only once across reconciles; it drains a
