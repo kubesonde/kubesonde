@@ -3,7 +3,7 @@ import { apiServer } from "./config";
 import { ProbeOutput } from "src/entities/probeOutput";
 
 /** Interval between `/probes/status` polls, in milliseconds. */
-export const POLL_INTERVAL_MS = 10_000;
+export const POLL_INTERVAL_MS = 2_000;
 
 /**
  * Shape of the `GET /probes/status` response.
@@ -35,7 +35,9 @@ export interface UseProbeDataResult {
 
 /** GET a URL and parse JSON, throwing on a non-2xx response. */
 const getJson = async <T>(url: string, signal: AbortSignal): Promise<T> => {
-    const resp = await fetch(url, { signal });
+    // `no-store` so we always see the controller's current state rather than a
+    // heuristically cached response.
+    const resp = await fetch(url, { signal, cache: "no-store" });
     if (!resp.ok) {
         throw new Error(`request failed: ${resp.status}`);
     }
@@ -51,34 +53,35 @@ export const fetchProbes = (signal: AbortSignal): Promise<ProbeOutput> =>
     getJson<ProbeOutput>(`${apiServer}/probes`, signal);
 
 /**
- * A single poll snapshot: the status, plus the full data once the run is
- * complete. Keeps all network logic out of the hook's state handling.
+ * A single poll snapshot: the current status and the full probe output.
+ * Keeps all network logic out of the hook's state handling.
  */
 export interface ProbeSnapshot {
     status: ProbeStatus;
-    data?: ProbeOutput;
+    data: ProbeOutput;
 }
 
-/** Fetch status, and the full probe output too if the run has completed. */
+/** Fetch the current status and the full probe output together. */
 export const fetchProbeSnapshot = async (
     signal: AbortSignal
 ): Promise<ProbeSnapshot> => {
-    const status = await fetchProbeStatus(signal);
-    if (!status.complete) {
-        return { status };
-    }
-    return { status, data: await fetchProbes(signal) };
+    const [status, data] = await Promise.all([
+        fetchProbeStatus(signal),
+        fetchProbes(signal),
+    ]);
+    return { status, data };
 };
 
 /**
  * Polls the Kubesonde controller for probe results.
  *
- * Every {@link POLL_INTERVAL_MS} it fetches a {@link fetchProbeSnapshot}. While
- * the run is incomplete it keeps polling and exposes `status.count` for progress
- * display. Once `status.complete` is true the snapshot includes the full data,
- * so it stores it and stops the interval (frontend-only; the controller keeps
- * probing). Overlapping requests are suppressed and in-flight requests are
- * aborted on unmount.
+ * Every {@link POLL_INTERVAL_MS} it fetches a {@link fetchProbeSnapshot} (status
+ * + full data). It publishes a new `data` reference only when the payload
+ * actually changed, so the graph re-renders as new probes arrive but is left
+ * untouched (preserving dragged node positions) when nothing changed. Polling
+ * continues while mounted; `status.complete` is exposed as informational state.
+ * Overlapping requests are suppressed and in-flight requests are aborted on
+ * unmount.
  */
 export const useProbeData = (): UseProbeDataResult => {
     const [data, setData] = useState<ProbeOutput | undefined>(undefined);
@@ -95,6 +98,13 @@ export const useProbeData = (): UseProbeDataResult => {
     const inFlightRef = useRef(false);
     // Tracks mounted state so async continuations don't touch state after unmount.
     const mountedRef = useRef(true);
+    // True once we have loaded data at least once, so background refreshes don't
+    // re-trigger the initial loading state.
+    const hasDataRef = useRef(false);
+    // Serialized last payload, so we only publish new `data` (a new reference)
+    // when the probe results actually changed — otherwise the graph would
+    // rebuild every poll and reset any nodes the user dragged.
+    const lastDataJsonRef = useRef<string | undefined>(undefined);
 
     const clearTimer = useCallback(() => {
         if (intervalRef.current !== null) {
@@ -113,7 +123,9 @@ export const useProbeData = (): UseProbeDataResult => {
         const controller = new AbortController();
         controllerRef.current = controller;
 
-        if (mountedRef.current) {
+        // Only surface the loading state before we have any data; background
+        // refreshes update the graph silently.
+        if (mountedRef.current && !hasDataRef.current) {
             setLoading(true);
         }
 
@@ -124,14 +136,17 @@ export const useProbeData = (): UseProbeDataResult => {
             if (!mountedRef.current) {
                 return;
             }
+            hasDataRef.current = true;
             setStatus(nextStatus);
-            setError(undefined);
-            if (nextData) {
+            // Only publish a new data reference when the payload changed, so the
+            // graph does not rebuild (and lose dragged positions) every poll.
+            const nextJson = JSON.stringify(nextData);
+            if (nextJson !== lastDataJsonRef.current) {
+                lastDataJsonRef.current = nextJson;
                 setData(nextData);
-                setReady(true);
-                // Run is complete: stop polling (frontend-only).
-                clearTimer();
             }
+            setReady(true);
+            setError(undefined);
         } catch (err) {
             // Ignore aborts caused by unmount / refresh; surface everything else.
             if (controller.signal.aborted || !mountedRef.current) {
@@ -146,7 +161,7 @@ export const useProbeData = (): UseProbeDataResult => {
                 setLoading(false);
             }
         }
-    }, [clearTimer]);
+    }, []);
 
     const startPolling = useCallback(() => {
         clearTimer();
@@ -156,17 +171,14 @@ export const useProbeData = (): UseProbeDataResult => {
     }, [clearTimer, poll]);
 
     const refresh = useCallback(() => {
-        // Cancel any in-flight request so the immediate fetch is authoritative.
+        // Cancel any in-flight request so the immediate fetch is authoritative,
+        // then poll now. The background interval keeps running regardless.
         if (controllerRef.current) {
             controllerRef.current.abort();
         }
         inFlightRef.current = false;
-        // Restart polling if we haven't completed yet.
-        if (!ready) {
-            startPolling();
-        }
         void poll();
-    }, [poll, ready, startPolling]);
+    }, [poll]);
 
     useEffect(() => {
         mountedRef.current = true;
@@ -180,6 +192,9 @@ export const useProbeData = (): UseProbeDataResult => {
             if (controllerRef.current) {
                 controllerRef.current.abort();
             }
+            // Release the guard so a remount (e.g. React StrictMode) can poll
+            // immediately instead of waiting for the aborted request to settle.
+            inFlightRef.current = false;
         };
         // Poll/startPolling/clearTimer are stable (memoized); run once on mount.
         // eslint-disable-next-line react-hooks/exhaustive-deps

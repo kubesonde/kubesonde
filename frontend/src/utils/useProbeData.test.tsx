@@ -35,42 +35,82 @@ describe("useProbeData", () => {
         jest.clearAllMocks();
     });
 
-    it("polls status until complete, then fetches /probes and stops the interval", async () => {
-        // First poll: incomplete. Second poll: complete -> also fetches /probes.
-        fetchMock
-            .mockResolvedValueOnce(jsonResponse(incompleteStatus)) // status #1
-            .mockResolvedValueOnce(jsonResponse(completeStatus)) // status #2
-            .mockResolvedValueOnce(jsonResponse(probeOutput)); // /probes
+    // Respond based on URL: status endpoint vs full probes payload.
+    const mockByUrl = (status: unknown, probes: unknown) => {
+        fetchMock.mockImplementation((input: RequestInfo | URL) => {
+            const url = String(input);
+            return Promise.resolve(
+                url.endsWith("/probes/status")
+                    ? jsonResponse(status)
+                    : jsonResponse(probes)
+            );
+        });
+    };
+
+    it("renders data immediately without waiting for complete, and keeps polling", async () => {
+        mockByUrl(incompleteStatus, probeOutput);
 
         const { result } = renderHook(() => useProbeData());
 
-        // Immediate poll on mount hits /probes/status.
-        await waitFor(() => expect(result.current.status?.complete).toBe(false));
+        // First poll fetches BOTH status and /probes, exposing data even though
+        // the run is not complete.
+        await waitFor(() => expect(result.current.ready).toBe(true));
+        expect(result.current.status?.complete).toBe(false);
+        expect(result.current.data).toEqual(probeOutput);
         expect(fetchMock).toHaveBeenCalledWith(
             "http://ctrl:2709/probes/status",
             expect.anything()
         );
-        expect(result.current.ready).toBe(false);
-
-        // Advance one interval: second status poll returns complete -> /probes.
-        await act(async () => {
-            jest.advanceTimersByTime(POLL_INTERVAL_MS);
-        });
-
-        await waitFor(() => expect(result.current.ready).toBe(true));
-        expect(result.current.data).toEqual(probeOutput);
         expect(fetchMock).toHaveBeenCalledWith(
             "http://ctrl:2709/probes",
             expect.anything()
         );
 
-        const callsAfterComplete = fetchMock.mock.calls.length;
-
-        // Interval must be stopped: further time passes without new fetches.
+        // Polling continues (never stops), so more fetches happen over time.
+        const before = fetchMock.mock.calls.length;
         await act(async () => {
-            jest.advanceTimersByTime(POLL_INTERVAL_MS * 3);
+            jest.advanceTimersByTime(POLL_INTERVAL_MS);
         });
-        expect(fetchMock.mock.calls.length).toBe(callsAfterComplete);
+        await waitFor(() =>
+            expect(fetchMock.mock.calls.length).toBeGreaterThan(before)
+        );
+    });
+
+    it("keeps polling even after the run is complete (late probes still arrive)", async () => {
+        mockByUrl(completeStatus, probeOutput);
+
+        const { result } = renderHook(() => useProbeData());
+
+        await waitFor(() => expect(result.current.ready).toBe(true));
+        expect(result.current.status?.complete).toBe(true);
+
+        const before = fetchMock.mock.calls.length;
+
+        // Polling continues so edges recorded after completion are still fetched.
+        await act(async () => {
+            jest.advanceTimersByTime(POLL_INTERVAL_MS);
+        });
+        await waitFor(() =>
+            expect(fetchMock.mock.calls.length).toBeGreaterThan(before)
+        );
+    });
+
+    it("does not publish a new data reference when the payload is unchanged", async () => {
+        mockByUrl(incompleteStatus, probeOutput);
+
+        const { result } = renderHook(() => useProbeData());
+        await waitFor(() => expect(result.current.data).toBeDefined());
+        const firstData = result.current.data;
+
+        // Another poll with identical payload must keep the same reference so the
+        // graph is not rebuilt (dragged node positions are preserved).
+        await act(async () => {
+            jest.advanceTimersByTime(POLL_INTERVAL_MS);
+        });
+        await waitFor(() =>
+            expect(fetchMock.mock.calls.length).toBeGreaterThan(2)
+        );
+        expect(result.current.data).toBe(firstData);
     });
 
     it("refresh() re-fetches immediately", async () => {

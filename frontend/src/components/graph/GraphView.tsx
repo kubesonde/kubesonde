@@ -57,10 +57,25 @@ export interface GraphViewProps {
  * every caller (file upload path, live API path, ...) produces identical
  * output.
  */
-export const GraphView = ({ data: rawData, title }: GraphViewProps) => {
+const GraphViewComponent = ({ data: rawData, title }: GraphViewProps) => {
   const data = cleanupProbeOutput(rawData);
   const nodes = buildNodesFromProbes(data);
   const edges = buildEdgesFromProbes(data);
+  // Topology signature: node ids + edge endpoints/ports, order-independent.
+  // GraphBase seeds its internal state from props only on mount, so we key it on
+  // this signature — it remounts (picking up new nodes/edges, like a manual
+  // reset) only when the topology changes, and is left untouched (preserving
+  // dragged positions) when polls bring the same topology.
+  const graphKey =
+    nodes
+      .map((n) => n.id)
+      .sort()
+      .join(",") +
+    "|" +
+    edges
+      .map((e) => `${e.from}->${e.to}:${e.port}`)
+      .sort()
+      .join(",");
   const errorLog = getErrorLogs(data);
   const netInfoContainers = data.podNetworkingv2;
   const netInfoContainersData =
@@ -99,6 +114,7 @@ export const GraphView = ({ data: rawData, title }: GraphViewProps) => {
   return (
     <>
       <GraphBase
+        key={graphKey}
         title={title}
         nodes={nodes}
         edges={edges}
@@ -118,3 +134,7 @@ export const GraphView = ({ data: rawData, title }: GraphViewProps) => {
     </>
   );
 };
+
+// Memoized so a re-render of the parent (e.g. the live toolbar's status ticking)
+// does not rebuild the graph unless the `data`/`title` props actually change.
+export const GraphView = React.memo(GraphViewComponent);

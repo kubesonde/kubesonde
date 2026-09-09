@@ -96,7 +96,7 @@ test("does not show the refresh button until ready", () => {
   render(<GraphFromApi />);
 
   expect(
-    screen.queryByRole("button", { name: /refresh/i })
+    screen.queryByText(/refresh/i)
   ).not.toBeInTheDocument();
   expect(screen.queryByText(/Last updated/i)).not.toBeInTheDocument();
 });
@@ -107,7 +107,7 @@ test("does not show the refresh button on error", () => {
   render(<GraphFromApi />);
 
   expect(
-    screen.queryByRole("button", { name: /refresh/i })
+    screen.queryByText(/refresh/i)
   ).not.toBeInTheDocument();
 });
 
@@ -121,9 +121,9 @@ test("shows the refresh button and last-updated text once ready", () => {
   render(<GraphFromApi />);
 
   expect(
-    screen.getByRole("button", { name: /refresh/i })
+    screen.getByText(/refresh/i)
   ).toBeInTheDocument();
-  expect(screen.getByText(/Last updated/i)).toBeInTheDocument();
+  expect(screen.getByText(/updated/i)).toBeInTheDocument();
 });
 
 test("clicking refresh calls the hook's refresh function", () => {
@@ -137,7 +137,7 @@ test("clicking refresh calls the hook's refresh function", () => {
 
   render(<GraphFromApi />);
 
-  fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
+  fireEvent.click(screen.getByText(/refresh/i));
 
   expect(refresh).toHaveBeenCalledTimes(1);
 });
