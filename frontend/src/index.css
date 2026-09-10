@@ -1,43 +1,34 @@
+/*
+ * LEGACY tokens — kept only for screens not yet migrated to src/styles.
+ * New work should use the SCSS token system (src/styles) and its CSS variables
+ * (--brand-500, --ink, --radius-lg, --shadow-md, …), not these.
+ * Remove this file once every screen is migrated.
+ */
 :root {
-  --primColor: #dcdcdc;
-  --backgroundColor: #dcdcdc;
-  --altBackgroundColor: #BEBEBE;
-  --secoColor: #222222;
-  --cornerRad: 4px;
-  --titleColor:#222222;
-  --shadowColor: rgba(0, 0, 0, 0.2);
-}
-#root {
-  height: 100%;
-}
-body {
-  margin: 0;
-  height: 100vh;
-  background-color: var(--primColor);
-  font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: 1em;
-  font-weight: 500;
-  line-height: 20px;
-  color: var(--secoColor);
+  --primColor: #ffffff;
+  --backgroundColor: #eef2f8;
+  --altBackgroundColor: #f6f8fc;
+  --secoColor: #14203a;
+  --cornerRad: 6px;
+  --titleColor: #14203a;
+  --shadowColor: rgba(20, 32, 58, 0.15);
 }
 
+/* Legacy bare-<button> styling for screens not yet migrated. */
 button {
-  margin: 0.5em  0px 0px 0.5em;
   background-color: var(--primColor);
   color: var(--secoColor);
-  box-shadow: 0 4px 12px 0 var(--shadowColor);
-  border: none;
-  font-weight: bold;
-  padding: 12px;
+  box-shadow: 0 4px 16px rgba(20, 32, 58, 0.08);
+  border: 1px solid var(--shadowColor);
+  font-weight: 650;
+  padding: 10px 16px;
+  border-radius: var(--cornerRad);
   display: inline-block;
   margin: 0 7px;
-  text-align: left;
-  text-decoration: none;
   cursor: pointer;
 }
 
 button:active {
-
   background-color: var(--secoColor);
   color: var(--primColor);
 }

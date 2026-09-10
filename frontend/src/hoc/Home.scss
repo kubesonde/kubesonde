@@ -23,27 +23,8 @@
 }
 
 .home__badge {
-  position: relative;
-  width: 96px;
-  height: 96px;
   display: grid;
   place-items: center;
-
-  // Two rings ping outward from the logo.
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    width: 96px;
-    height: 96px;
-    @include sonar-pulse(var(--brand-500), 2.8s);
-  }
-
-  &::after {
-    animation-delay: 1.4s;
-  }
 }
 
 .home__logo {
@@ -95,7 +76,8 @@
   }
 
   &:focus-visible {
-    @include focus-ring;
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
   }
 
   &:active {

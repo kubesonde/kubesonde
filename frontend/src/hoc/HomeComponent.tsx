@@ -44,8 +44,7 @@ export const HomeComponent = () => {
         </div>
         <h1 className="home__title">Kubesonde</h1>
         <p className="home__lede">
-          See what can reach what inside your cluster. Load a probe run to
-          explore its connectivity.
+          Visualize your cluster's network connectivity
         </p>
       </header>
 
