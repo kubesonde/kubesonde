@@ -1,0 +1,93 @@
+@use 'styles' as *;
+
+.upload {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $space-7 $space-5;
+}
+
+// Click to open a probe file.
+.dropzone {
+  @include card;
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-8 $space-6;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  color: var(--ink);
+  transition: border-color $duration-base $ease-standard,
+    box-shadow $duration-base $ease-standard,
+    transform $duration-base $ease-standard;
+
+  &:hover {
+    border-color: var(--brand-500);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.dropzone__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-100);
+  color: var(--brand-600);
+  font-size: 22px;
+}
+
+.dropzone__title {
+  font-size: $text-lg;
+  font-weight: $weight-semibold;
+}
+
+.dropzone__hint {
+  color: var(--ink-faint);
+  font-size: $text-sm;
+}
+
+.dropzone__cta {
+  margin-top: $space-2;
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 $space-5;
+  border-radius: var(--radius-pill);
+  background: var(--brand-500);
+  color: var(--ink-invert);
+  font-weight: $weight-semibold;
+  font-size: $text-sm;
+
+  .dropzone:hover &,
+  .dropzone:focus-visible & {
+    background: var(--brand-600);
+  }
+}
+
+.dropzone__note {
+  color: var(--ink-faint);
+  font-size: $text-xs;
+
+  code {
+    font-family: var(--font-mono);
+    color: var(--ink-muted);
+  }
+}
