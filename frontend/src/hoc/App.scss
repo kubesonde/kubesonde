@@ -175,8 +175,13 @@ $icon-size: 20px;
       }
     }
 
-    .version {
+    // The version row is informational, not an action (and never "active").
+    .pro-menu .version .pro-inner-item {
       @include data-text;
+      cursor: default;
+      pointer-events: none;
+      background: transparent;
+      color: var(--ink-faint);
     }
   }
 }
