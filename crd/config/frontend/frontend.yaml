@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: kubesonde
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+      app.kubernetes.io/part-of: kubesonde
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+        app.kubernetes.io/part-of: kubesonde
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      # The controller REST API URL (http://localhost:2709) is baked into the
+      # image at build time; the browser reaches it via
+      # `kubectl port-forward ... 2709:2709`.
+      - name: frontend
+        image: ghcr.io/kubesonde/frontend:latest
+        ports:
+        - containerPort: 8088
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8088
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8088
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 65534
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubesonde-frontend
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: kubesonde
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  selector:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: kubesonde
+  ports:
+  - name: http
+    port: 8088
+    targetPort: 8088
