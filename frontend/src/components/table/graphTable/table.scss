@@ -1,8 +1,9 @@
 @use 'styles' as *;
 
+// No `overflow: hidden` here — it would clip the header tooltips. Corners are
+// rounded on the corner cells instead (below).
 #tableWrapper {
   border-radius: var(--radius-lg);
-  overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
@@ -11,7 +12,14 @@ table {
   width: 100%;
   border-spacing: 0;
   background: var(--panel);
+  border-radius: var(--radius-lg);
 }
+
+// Round the four corner cells so fills follow the wrapper's radius.
+thead tr:first-child th:first-child { border-top-left-radius: var(--radius-lg); }
+thead tr:first-child th:last-child { border-top-right-radius: var(--radius-lg); }
+tbody tr:last-child td:first-child { border-bottom-left-radius: var(--radius-lg); }
+tbody tr:last-child td:last-child { border-bottom-right-radius: var(--radius-lg); }
 
 th {
   padding: $space-3;
@@ -42,11 +50,11 @@ tr:last-child td {
   border-bottom: none;
 }
 
-// Deployment rows carry a data-driven pastel tint (inline background on the
-// <tr>). Those tints are always light, so pin the text to dark ink — otherwise
-// it turns light-on-light and unreadable in dark mode. Port chips set their own
-// color on the element, so they're unaffected.
-tbody tr[style] td {
+// Deployment cells carry a data-driven pastel tint (inline background). Those
+// tints are always light, so pin the text to dark ink — otherwise it turns
+// light-on-light and unreadable in dark mode. Port chips set their own color on
+// the element, so they're unaffected.
+tbody td[style] {
   color: #{$color-ink};
 }
 
@@ -134,19 +142,28 @@ tbody tr[style] td {
   top: calc(100% + 6px);
   left: 0;
   z-index: $z-tooltip;
-  width: auto;
+  width: max-content;
+  max-width: 260px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s ease-in-out;
   display: block;
   font-size: $text-xs;
   line-height: 16px;
-  background: var(--ink);
-  color: var(--ink-invert);
-  padding: $space-1 $space-2;
+  // Fixed dark chip in both themes: --ink flips to light in dark mode, which
+  // would make this light-on-light.
+  background: #{$color-ink};
+  color: #fff;
+  padding: $space-2 $space-3;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
-  white-space: nowrap;
+  white-space: normal;
+}
+
+// Keep the rightmost column's tooltip inside the viewport.
+th:last-child[data-tooltip]::before {
+  left: auto;
+  right: 0;
 }
 
 *[data-tooltip]:hover::before {

@@ -151,13 +151,13 @@ export const GraphTable = ({
       <tbody>
         {table.getRowModel().rows.map((row) => {
           return (
-            <tr
-              key={row.id}
-              style={{ backgroundColor: row.original.background }}
-            >
+            <tr key={row.id}>
               {row.getVisibleCells().map((cell) => {
                 return (
-                  <td key={cell.id}>
+                  <td
+                    key={cell.id}
+                    style={{ backgroundColor: row.original.background }}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 );

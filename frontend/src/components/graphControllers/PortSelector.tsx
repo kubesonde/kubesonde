@@ -33,33 +33,40 @@ const colourStyles: StylesConfig<ColourOption, true> = {
     }),
     option: (styles, { isDisabled, isFocused, isSelected }) => ({
         ...styles,
+        // Highlight the focused (keyboard/hover) option with a solid brand fill
+        // so it clearly stands out; selected sits one shade darker.
         backgroundColor: isSelected
-            ? 'var(--brand-500)'
+            ? 'var(--brand-600)'
             : isFocused
-                ? 'var(--brand-100)'
+                ? 'var(--brand-500)'
                 : 'transparent',
-        color: isSelected ? '#fff' : 'var(--ink)',
+        color: isSelected || isFocused ? '#fff' : 'var(--ink)',
         cursor: isDisabled ? 'not-allowed' : 'pointer',
         ':active': {
-            backgroundColor: isSelected ? 'var(--brand-600)' : 'var(--brand-100)',
+            backgroundColor: 'var(--brand-700)',
+            color: '#fff',
         },
     }),
-    multiValue: (styles, { data }) => ({
+    // Selected port chips. Port colors are light pastels (they mirror the graph
+    // palette), so a consistent brand-tinted chip stays readable rather than
+    // white-on-pastel.
+    multiValue: (styles) => ({
         ...styles,
-        backgroundColor: data.color,
+        backgroundColor: 'var(--brand-100)',
         borderRadius: 'var(--radius-sm)',
     }),
     multiValueLabel: (styles) => ({
         ...styles,
-        color: '#fff',
+        color: 'var(--brand-700)',
         fontWeight: 600,
     }),
-    multiValueRemove: (styles, { data }) => ({
+    multiValueRemove: (styles) => ({
         ...styles,
-        color: '#fff',
+        color: 'var(--brand-600)',
+        borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
         ':hover': {
-            backgroundColor: data.color,
-            color: '#fff',
+            backgroundColor: 'var(--brand-200)',
+            color: 'var(--brand-700)',
         },
     }),
 };
