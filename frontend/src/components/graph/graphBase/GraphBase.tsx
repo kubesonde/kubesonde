@@ -118,6 +118,7 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     buildInitialEnabledGroups(props.nodes)
   );
   const [showDenied, setShowDenied] = useState<boolean>(false);
+  const [showOnlyUnexpected, setShowOnlyUnexpected] = useState<boolean>(false);
   const [graphData, setGraphData] = useState<cytoscape.ElementDefinition[]>([]);
   const [colorMap, setColorMap] = useState<{ [key: string]: string }>(
     buildColorMap(props.nodes)
@@ -246,14 +247,20 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
   }, []);
 
 
-  const layout = {
-    name: "concentric",
-    boxSelectionEnabled: false,
-    autounselectify: true,
-    position() {
-      return null;
-    },
-  };
+  // Memoized so its reference is stable: react-cytoscapejs re-runs the layout
+  // whenever the `layout` prop changes identity, which would otherwise reset
+  // node positions on every re-render (e.g. toggling print mode).
+  const layout = useMemo(
+    () => ({
+      name: "concentric",
+      boxSelectionEnabled: false,
+      autounselectify: true,
+      position() {
+        return null;
+      },
+    }),
+    []
+  );
 
   const graphControllerProps: GraphControllerProps = {
     ports: {
@@ -263,6 +270,8 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     },
     showDeniedConnections: showDenied,
     showDeniedConnectionsHandler: showDeniedRules,
+    showOnlyUnexpected,
+    showOnlyUnexpectedHandler: () => setShowOnlyUnexpected((v) => !v),
     tableData: graphTableData,
     deploymentClickHandler: handleDeploymentClick,
     enableDeploymentHandler: handleEnabledClicked,
@@ -274,17 +283,28 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     onPortClickHandler: handlePortClick,
   };
 
+  // Re-run the layout when the graph's elements change (reset, expand/collapse,
+  // filters) — but not on pure appearance changes like the print-mode toggle,
+  // which don't touch graphData. (The layout prop is memoized, so element
+  // patches alone no longer trigger a relayout.)
   useEffect(() => {
-    if (cyRef.current) {
-      cyRef.current.nodes().forEach(node => {
-        const originalLabel = node.data('label');
-        if (originalLabel && originalLabel.includes('-')) {
-          const newLabel = originalLabel.replace(/-/g, '\n');
-          node.data('label', newLabel);
-        }
-      });
+    if (cyRef.current && graphData.length) {
+      cyRef.current.layout(layout).run();
     }
-  }, [data]);
+  }, [graphData, layout]);
+
+  // "Show only unexpected connections": keep only allowed-but-undeclared edges
+  // (orange). Clearing restores edges to whatever the stylesheet dictates.
+  useEffect(() => {
+    if (!cyRef.current) return;
+    cyRef.current.edges().forEach((edge) => {
+      if (showOnlyUnexpected) {
+        edge.style("display", edge.data("status") === "unexpected" ? "element" : "none");
+      } else {
+        edge.removeStyle("display");
+      }
+    });
+  }, [showOnlyUnexpected, graphData]);
 
   const cytoscapeComponentProps = {
     id: printMode ? "graphIdPrintMode" : "graphId",
@@ -304,6 +324,17 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
         ) : (
           <CytoscapeComponent {...cytoscapeComponentProps} />
         )}
+        <p className="icon-attribution">
+          Resource icons from the{" "}
+          <a
+            href="https://github.com/kubernetes/community/tree/master/icons"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Kubernetes community icon set
+          </a>{" "}
+          (CC BY 4.0).
+        </p>
         <p />
         <AppearanceController
           onChange={() => setPrintMode(!printMode)}

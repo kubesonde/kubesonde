@@ -88,8 +88,16 @@ export const onEnabledClick = (
     setActiveDeployments(prevEnabled)
     const newData = {...rawData, nodes: newNodes}
     setRawData(newData)
-    cy?.nodes(`node[id= "${group}"]`).style("visibility", !prevEnabled[group] ? "hidden" : "visible")
-    cy?.nodes(`node[id= "${group}"]`).connectedEdges().style("visibility", !prevEnabled[group] ? "hidden" : "visible")
+    const enabledNow = prevEnabled[group]
+    cy?.nodes(`node[id= "${group}"]`).style("visibility", enabledNow ? "visible" : "hidden")
+    // Only show a connected edge when BOTH its endpoints are visible — otherwise
+    // re-enabling a node would reveal edges to still-disabled nodes (dangling).
+    cy?.nodes(`node[id= "${group}"]`).connectedEdges().forEach((edge) => {
+        const bothVisible =
+            edge.source().style("visibility") !== "hidden" &&
+            edge.target().style("visibility") !== "hidden"
+        edge.style("visibility", bothVisible ? "visible" : "hidden")
+    })
     return
 }
 

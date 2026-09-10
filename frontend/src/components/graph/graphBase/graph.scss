@@ -33,6 +33,16 @@
   box-sizing: content-box;
 }
 
+.icon-attribution {
+  margin: $space-2 0 0;
+  font-size: $text-xs;
+  color: var(--ink-faint);
+
+  a {
+    color: var(--brand-600);
+  }
+}
+
 // The cytoscape canvas surfaces.
 #graphId,
 #graphId2 {

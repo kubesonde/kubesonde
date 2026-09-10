@@ -32,7 +32,20 @@ const buildGroupMap = (input_probes: ProbeOutput): Map<string, string> => {
     return groupMap
 }
 
-const toSimpleEdge = (groupMap: Map<string, string>) => (probe: ProbeOutputItem, index: number): SimpleGraphEdge => ({
+// A connection is "declared" when the target pod's declarative configuration
+// (podConfigurationNetworking) lists that port — same notion the port chips use.
+// Drives the green (declared) vs orange (undeclared) edge color.
+type DeclaredLookup = (podName: string, portProto: string) => boolean
+
+const buildDeclaredLookup = (probes: ProbeOutput): DeclaredLookup => {
+    const declared = new Map<string, Set<string>>()
+    Object.entries(probes.podConfigurationNetworking ?? {}).forEach(([pod, items]) => {
+        declared.set(pod, new Set((items ?? []).map((m) => `${m.port}/${m.protocol}`)))
+    })
+    return (podName, portProto) => declared.get(podName)?.has(portProto) ?? false
+}
+
+const toSimpleEdge = (groupMap: Map<string, string>, isDeclared: DeclaredLookup) => (probe: ProbeOutputItem, index: number): SimpleGraphEdge => ({
     id: index.toString(),
     from: probe.source.name, //source.name.endsWith('DNS') ? PUBLIC_DNS : probe.source.name,
     to: probe.destination.name,//probe.destination.name.endsWith('DNS') ? PUBLIC_DNS : probe.destination.name,
@@ -41,7 +54,8 @@ const toSimpleEdge = (groupMap: Map<string, string>) => (probe: ProbeOutputItem,
     toDeployment: groupMap.get(probe.destination.name),
     port: probe.forwardedPort ? `${probe.port}:${probe.forwardedPort}/${probe.protocol}` : `${probe.port}/${probe.protocol}`,
     timestamp: probe.timestamp,
-    deniedConnection: probe.resultingAction === "Deny" ? true : false
+    deniedConnection: probe.resultingAction === "Deny" ? true : false,
+    expected: isDeclared(probe.destination.name, `${probe.port}/${probe.protocol}`)
 })
 
 const toErrorEdge = (groupMap: Map<string, string>) => (probe: ProbeOutputError, index: number): SimpleGraphEdge => ({
@@ -121,13 +135,14 @@ function removeDuplicates(allEdges: SimpleGraphEdge[]): SimpleGraphEdge[] {
 
 export function buildEdgesFromProbes(probes: ProbeOutput): SimpleGraphEdge[] {
     const groupMap = buildGroupMap(probes)
+    const isDeclared = buildDeclaredLookup(probes)
 
     const allowedEdges: SimpleGraphEdge[] = probes.items
         .filter((probe) => probe.resultingAction !== "Deny")
-        .map(toSimpleEdge(groupMap))
+        .map(toSimpleEdge(groupMap, isDeclared))
     const disallowedEdges: SimpleGraphEdge[] = probes.items
         .filter((probe) => probe.resultingAction === "Deny")
-        .map(toSimpleEdge(groupMap))
+        .map(toSimpleEdge(groupMap, isDeclared))
         .map((edge) => ({ ...edge, id: edge.id + "disallowed", hidden: true }))
     const errorEdges = probes.errors.map(toErrorEdge(groupMap))
     const retval = removeDuplicates([...allowedEdges, ...disallowedEdges, ...errorEdges])

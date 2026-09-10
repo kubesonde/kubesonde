@@ -15,6 +15,8 @@ export interface GraphControllerProps {
   };
   showDeniedConnections: boolean;
   showDeniedConnectionsHandler: () => void;
+  showOnlyUnexpected: boolean;
+  showOnlyUnexpectedHandler: () => void;
   tableData: GraphTableCell[];
   deploymentClickHandler: (key: string) => void;
   enableDeploymentHandler: (
@@ -42,6 +44,8 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   ports,
   showDeniedConnections,
   showDeniedConnectionsHandler,
+  showOnlyUnexpected,
+  showOnlyUnexpectedHandler,
   tableData,
   deploymentClickHandler,
   enableDeploymentHandler,
@@ -92,6 +96,20 @@ export const GraphController: React.FC<GraphControllerProps> = ({
               onChange={showDeniedConnectionsHandler}
             />
             <span> Show denied connections</span>
+
+            <span style={{ margin: "8px" }} />
+            <Switch
+              role="switch"
+              height={14}
+              width={30}
+              checkedIcon={false}
+              uncheckedIcon={false}
+              onColor="#c9821a"
+              offColor="#bbbbbb"
+              checked={showOnlyUnexpected}
+              onChange={showOnlyUnexpectedHandler}
+            />
+            <span> Show only unexpected connections</span>
 
             <span style={{ margin: "4px" }} />
             <Button

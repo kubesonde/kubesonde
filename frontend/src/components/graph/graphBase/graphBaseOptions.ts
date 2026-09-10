@@ -2,48 +2,27 @@ export const cytoscapeStylesheet = [
     {
         selector: "node",
         style: {
-            backgroundColor: "data(bg)",
-            padding: "6px",
+            // The node IS the k8s resource icon, recolored per node (see
+            // toCyNode / coloredK8sIcon) — no background tile.
+            "background-opacity": 0,
+            "background-image": "data(icon)",
+            "background-fit": "contain",
+            "background-clip": "none",
+            "border-width": 0,
             color: "black",
-            "border-width": 2,
-            "border-color": 'black',
             "min-width": "50px",
             "min-height": "50px",
             "text-wrap": "wrap",
-            "text-max-width": "40px",
+            "text-max-width": "60px",
             "text-events": "yes",
             "text-background-color": "transparent",
             "text-background-opacity": 0,
             "text-background-padding": "0px",
             "text-margin-x": "0px",
-            "text-margin-y": "0px",
-            "text-valign": "center",
+            "text-margin-y": "4px",
+            "text-valign": "bottom",
             "text-halign": "center",
             "text-overflow-wrap": "break-word",
-        }
-    },
-    {
-        selector: 'node[type="deployment"]',
-        style: {
-            shape: 'rectangle',
-        }
-    },
-    {
-        selector: 'node[type="pod"]',
-        style: {
-            shape: 'ellipse',
-        }
-    },
-    {
-        selector: 'node[type="service"]',
-        style: {
-            shape: 'octagon',
-        }
-    },
-    {
-        selector: 'node[type="internet"]',
-        style: {
-            shape: "diamond"
         }
     },
     {
@@ -56,16 +35,23 @@ export const cytoscapeStylesheet = [
         selector: "node[label]",
         style: {
             label: "data(label)",
-            "font-size": "7",
-            color: "black",
+            "font-size": "10",
+            color: "#14203a",
             "text-halign": "center",
-            "text-valign": "center",
+            "text-valign": "bottom",
             "text-margin-x": "0px",
-            "text-margin-y": "0px",
-            "text-background-color": "transparent",
-            "text-background-opacity": 0,
-            "text-background-padding": "0px",
-            "text-overflow-wrap": "break-word",
+            "text-margin-y": "6px",
+            "text-wrap": "wrap",
+            "text-max-width": "140px",
+            // The deployment/pod color lives in the label's background chip.
+            "text-background-color": "data(bg)",
+            "text-background-opacity": 1,
+            "text-background-padding": "4px",
+            "text-background-shape": "roundrectangle",
+            "text-border-color": "rgba(20,32,58,0.25)",
+            "text-border-width": 1,
+            "text-border-opacity": 1,
+            "text-overflow-wrap": "whitespace",
         }
     },
     {
@@ -100,16 +86,29 @@ export const cytoscapeStylesheet = [
         }
     },
     {
-        selector: 'edge[denied="true"]',
+        // Allowed and declared/expected.
+        selector: 'edge[status="expected"]',
         style: {
-            "background-color": "#FACD37",
-            "text-outline-color": "#FACD37",
-            "text-border-color": "red",
-            "color": "red",
-            "target-arrow-color": "red",
-            "line-color": "red"
-
-
+            "line-color": "#1f9d6b",
+            "target-arrow-color": "#1f9d6b",
+        }
+    },
+    {
+        // Allowed but not declared — unexpected open path.
+        selector: 'edge[status="unexpected"]',
+        style: {
+            "line-color": "#c9821a",
+            "target-arrow-color": "#c9821a",
+        }
+    },
+    {
+        // Denied / blocked connection.
+        selector: 'edge[status="denied"]',
+        style: {
+            "line-color": "#d64550",
+            "target-arrow-color": "#d64550",
+            "text-border-color": "#d64550",
+            "color": "#d64550",
         }
     }
 ] as Array<cytoscape.StylesheetCSS>;
@@ -118,30 +117,31 @@ export const cytoscapeStylesheetPrintMode = [
     {
         selector: "node",
         style: {
-            backgroundColor: "data(bg)",
-            padding: "6px",
-            "border-width": 2,
-            "border-color": 'black',
+            // Print/export: solid white tile with a dark border so the recolored
+            // icon reads clearly on a white page (no transparency).
+            shape: "round-rectangle",
+            "background-color": "#ffffff",
+            "background-opacity": 1,
+            "background-image": "data(icon)",
+            "background-fit": "contain",
+            "background-clip": "none",
+            padding: "7px",
+            "border-width": 1,
+            "border-color": "#14203a",
             color: "black",
             "min-width": "50px",
             "min-height": "50px",
             "text-wrap": "wrap",
-            "text-max-width": "40px",
+            "text-max-width": "60px",
             "text-events": "yes",
             "text-background-color": "transparent",
             "text-background-opacity": 0,
             "text-background-padding": "0px",
             "text-margin-x": "0px",
-            "text-margin-y": "0px",
-            "text-valign": "center",
+            "text-margin-y": "4px",
+            "text-valign": "bottom",
             "text-halign": "center",
             "text-overflow-wrap": "break-word",
-        }
-    },
-    {
-        selector: 'node[type="deployment"]',
-        style: {
-            'shape': 'rectangle',
         }
     },
     {
@@ -154,16 +154,23 @@ export const cytoscapeStylesheetPrintMode = [
         selector: "node[label]",
         style: {
             label: "data(label)",
-            "font-size": "7",
-            color: "black",
+            "font-size": "10",
+            color: "#14203a",
             "text-halign": "center",
-            "text-valign": "center",
+            "text-valign": "bottom",
             "text-margin-x": "0px",
-            "text-margin-y": "0px",
-            "text-background-color": "transparent",
-            "text-background-opacity": 0,
-            "text-background-padding": "0px",
-            "text-overflow-wrap": "break-word",
+            "text-margin-y": "6px",
+            "text-wrap": "wrap",
+            "text-max-width": "140px",
+            // The deployment/pod color lives in the label's background chip.
+            "text-background-color": "data(bg)",
+            "text-background-opacity": 1,
+            "text-background-padding": "4px",
+            "text-background-shape": "roundrectangle",
+            "text-border-color": "rgba(20,32,58,0.25)",
+            "text-border-width": 1,
+            "text-border-opacity": 1,
+            "text-overflow-wrap": "whitespace",
         }
     },
     {
@@ -198,16 +205,29 @@ export const cytoscapeStylesheetPrintMode = [
         }
     },
     {
-        selector: 'edge[denied="true"]',
+        // Allowed and declared/expected.
+        selector: 'edge[status="expected"]',
         style: {
-            "background-color": "#FACD37",
-            "text-outline-color": "#FACD37",
-            "text-border-color": "red",
-            "color": "red",
-            "target-arrow-color": "red",
-            "line-color": "red"
-
-
+            "line-color": "#1f9d6b",
+            "target-arrow-color": "#1f9d6b",
+        }
+    },
+    {
+        // Allowed but not declared — unexpected open path.
+        selector: 'edge[status="unexpected"]',
+        style: {
+            "line-color": "#c9821a",
+            "target-arrow-color": "#c9821a",
+        }
+    },
+    {
+        // Denied / blocked connection.
+        selector: 'edge[status="denied"]',
+        style: {
+            "line-color": "#d64550",
+            "target-arrow-color": "#d64550",
+            "text-border-color": "#d64550",
+            "color": "#d64550",
         }
     }
 ] as Array<cytoscape.StylesheetCSS>;
