@@ -37,29 +37,35 @@ export const HomeComponent = () => {
   
 
   return (
-    <div className="form-container">
-      <div className="home-hero">
-        <img src="/logo257.png" alt="Kubesonde logo" className="home-logo" />
-        <h1 className="home-title">Kubesonde</h1>
-        <p className="home-subtitle">Visualize your cluster's network connectivity</p>
-      </div>
-      <div id="file-upload-form" className="uploader">
-        <div id="file-upload" />
-        <label htmlFor="file-upload" id="file-drag">
-          <img id="file-image" src="#" alt="Preview" className="hidden" />
-          <div id="start">
-            <FaDownload />
-            <div>Select a probe output file</div>
-            <span
-              id="file-upload-btn"
-              className="btn btn-primary"
-              onClick={() => openFileSelector()}
-            >
-              Select a file
-            </span>
-          </div>
-        </label>
-      </div>
+    <div className="home">
+      <header className="home__hero">
+        <div className="home__badge">
+          <img src="/logo257.png" alt="" className="home__logo" />
+        </div>
+        <h1 className="home__title">Kubesonde</h1>
+        <p className="home__lede">
+          See what can reach what inside your cluster. Load a probe run to
+          explore its connectivity.
+        </p>
+      </header>
+
+      <button
+        type="button"
+        className="dropzone"
+        onClick={() => openFileSelector()}
+      >
+        <span className="dropzone__icon">
+          <FaDownload aria-hidden="true" />
+        </span>
+        <span className="dropzone__title">Open a probe run</span>
+        <span className="dropzone__hint">
+          Choose a probe output file to visualize its network graph
+        </span>
+        <span className="dropzone__cta">Choose file</span>
+        <span className="dropzone__note">
+          Accepts <code>.json</code> exported by Kubesonde
+        </span>
+      </button>
     </div>
   );
 };
