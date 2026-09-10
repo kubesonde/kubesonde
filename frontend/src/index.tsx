@@ -5,6 +5,10 @@ import './index.css';
 import './styles/global.scss';
 import App from './hoc/App';
 import reportWebVitals from './reportWebVitals';
+import { applyTheme, getInitialTheme } from './utils/theme';
+
+// Set the theme before first paint to avoid a flash of the wrong palette.
+applyTheme(getInitialTheme());
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

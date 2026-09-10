@@ -8,8 +8,15 @@ import {
   SidebarFooter,
 } from "react-pro-sidebar";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FiHome, FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
+import {
+  FiHome,
+  FiArrowLeftCircle,
+  FiArrowRightCircle,
+  FiSun,
+  FiMoon,
+} from "react-icons/fi";
 import { FaGithub, FaList } from "react-icons/fa";
+import { applyTheme, getInitialTheme, Theme } from "src/utils/theme";
 
 //menuCollapse state using useState hook
 import { GrGraphQl } from "react-icons/gr";
@@ -35,8 +42,14 @@ export const Sidebar: React.FC = () => {
   const [menuCollapse, setMenuCollapse] = useState<boolean>(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const menuIconClick = () => {
     menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
+  };
+  const toggleTheme = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    setTheme(next);
   };
   const MenuItems = routes.map((route) => (
     <MenuItem
@@ -78,6 +91,12 @@ export const Sidebar: React.FC = () => {
           </SidebarContent>
           <SidebarFooter>
             <Menu iconShape="square">
+              <MenuItem
+                icon={theme === "dark" ? <FiMoon /> : <FiSun />}
+                onClick={toggleTheme}
+              >
+                {theme === "dark" ? "Dark mode" : "Solar mode"}
+              </MenuItem>
               <MenuItem className="version">
                 Version {import.meta.env.VITE_APP_VERSION}
               </MenuItem>
