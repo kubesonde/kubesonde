@@ -1,0 +1,16 @@
+@use 'styles' as *;
+
+.app {
+  height: 100%;
+  display: flex;
+  position: relative;
+}
+
+.app > .main {
+  padding: $space-5;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  overflow-y: auto;
+}

@@ -22,7 +22,7 @@ import {
 import { GraphNode, SimpleGraphEdge } from "src/entities/graph";
 import { GraphTableCell } from "src/components/table/graphTable/graphTable";
 import { BoolDict } from "src/entities/types";
-import "./graph.css";
+import "./graph.scss";
 import {
   GraphController,
   GraphControllerProps,

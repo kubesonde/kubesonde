@@ -7,7 +7,7 @@ import {
   CellContext,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
-import "./table.css";
+import "./table.scss";
 import { PodCellRenderer } from "./renderers/PodCellRenderer";
 import { PortCellWithToggleRenderer } from "./renderers/PortCellWithToggleRenderer";
 import { DeploymentCellRenderer } from "./renderers/DeploymentCellRenderer";

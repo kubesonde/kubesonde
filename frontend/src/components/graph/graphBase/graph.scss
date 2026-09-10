@@ -1,0 +1,55 @@
+@use 'styles' as *;
+
+// Page title bar (deployment / example name).
+.title {
+  margin: 0 0 $space-4;
+  padding: $space-4 $space-5;
+  font-size: $text-xl;
+  font-weight: $weight-bold;
+  letter-spacing: $tracking-tight;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+#GraphSubitle {
+  font-size: $text-lg;
+  font-weight: $weight-semibold;
+  color: var(--ink);
+  margin: $space-5 0 0 $space-5;
+}
+
+.statsTable {
+  margin-top: $space-5;
+}
+
+.statsTable > table > thead > tr > th {
+  border-right: none;
+}
+
+#graphContainer {
+  box-sizing: content-box;
+}
+
+// The cytoscape canvas surfaces.
+#graphId,
+#graphId2 {
+  height: 45vh;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  resize: both;
+  overflow: auto;
+}
+
+// Print/export mode keeps a plain high-contrast frame.
+#graphIdPrintMode {
+  height: 45vh;
+  border: 2px solid #000;
+  background: #fff;
+  resize: both;
+  overflow: auto;
+}

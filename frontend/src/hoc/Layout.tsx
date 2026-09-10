@@ -1,7 +1,7 @@
 import {Sidebar} from "./Sidebar";
 import {Route, Routes} from "react-router-dom";
 import {GraphJSONUploadComponent} from "../components/graph/GraphJSONUploadComponent";
-import './Layout.css'
+import './Layout.scss'
 import {HomeComponent} from "src/hoc/HomeComponent";
 import {GraphFromLocation} from "src/components/graph/GraphFromLocation";
 import {ExampleGraphComponent} from "src/components/graph/ExampleGraph";

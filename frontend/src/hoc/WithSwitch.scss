@@ -1,0 +1,14 @@
+@use 'styles' as *;
+
+.withSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-1 0;
+}
+
+.switchText {
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  color: var(--ink);
+}

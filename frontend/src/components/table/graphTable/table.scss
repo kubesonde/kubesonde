@@ -1,0 +1,154 @@
+@use 'styles' as *;
+
+#tableWrapper {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+table {
+  width: 100%;
+  border-spacing: 0;
+  background: var(--panel);
+}
+
+th {
+  padding: $space-3;
+  text-align: left;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  color: var(--ink-muted);
+  background: var(--panel-alt);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  z-index: $z-sticky;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+td {
+  padding: $space-2 $space-3;
+  font-size: $text-sm;
+  color: var(--ink);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+// Deployment rows carry a data-driven pastel tint (inline background on the
+// <tr>). Those tints are always light, so pin the text to dark ink — otherwise
+// it turns light-on-light and unreadable in dark mode. Port chips set their own
+// color on the element, so they're unaffected.
+tbody tr[style] td {
+  color: #{$color-ink};
+}
+
+.deployment,
+.deploymentClicked,
+.arrow {
+  cursor: pointer;
+}
+
+.arrow {
+  margin-left: -0.1em;
+}
+
+.podItem,
+.portItem {
+  padding-left: $space-4;
+}
+
+// -- Port status chips ---------------------------------------------------------
+// A probed port is a signal: reachable (ok), blocked (error), or worth a look
+// (warn). Rendered one per line inside the "Ports exposed" cell.
+%port-chip {
+  @include data-text;
+  display: block;
+  margin: 2px 0;
+  padding: 2px $space-3;
+  border-radius: var(--radius-sm);
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+}
+
+.okPort {
+  @extend %port-chip;
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.errorPort {
+  @extend %port-chip;
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.warningPort {
+  @extend %port-chip;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+// Ports observed via netstat but not probed — neutral, de-emphasized.
+.portItemNetstatOnly {
+  @extend %port-chip;
+  background: var(--ink);
+  color: var(--ink-invert);
+}
+
+.portItemUnderlined {
+  @extend %port-chip;
+  background: var(--panel-alt);
+  color: var(--ink-muted);
+}
+
+.podGroup {
+  display: flex;
+}
+
+.colordiv {
+  width: 1em;
+  height: 1em;
+  position: relative;
+  margin: auto;
+  border-radius: var(--radius-xs);
+}
+
+// -- Tooltip -------------------------------------------------------------------
+*[data-tooltip] {
+  position: relative;
+}
+
+*[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  // Below the element: the rounded table wrapper clips overflow, so a tooltip
+  // above the header row would be hidden. Below keeps it inside the wrapper.
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: $z-tooltip;
+  width: auto;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  display: block;
+  font-size: $text-xs;
+  line-height: 16px;
+  background: var(--ink);
+  color: var(--ink-invert);
+  padding: $space-1 $space-2;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+
+*[data-tooltip]:hover::before {
+  opacity: 1;
+}

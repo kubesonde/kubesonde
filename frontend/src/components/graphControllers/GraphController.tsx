@@ -1,6 +1,6 @@
 import React from "react";
 import { GraphTable, GraphTableCell } from "../table/graphTable/graphTable";
-import "./graphController.css";
+import "./graphController.scss";
 import Switch from "react-switch";
 import { ColourOption, PortSelector } from "./PortSelector";
 import { MultiValue } from "react-select";

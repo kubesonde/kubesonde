@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table'
 import React, {useEffect, useMemo, useState} from "react";
 import {computeMetrics} from "../../../utils/graph";
-import "../graphTable/table.css"
+import "../graphTable/table.scss"
 import {Graph} from "../../../entities/graph";
 interface StatsTableItem {
     stat: string
