@@ -40,14 +40,41 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
-// dispatcherOnce ensures the probe worker pool is started only once, regardless
-// of how many times Reconcile runs.
-var dispatcherOnce sync.Once
+// probingMu guards probingCancel, which tracks the lifecycle of the background
+// probing goroutines (dispatcher, event listener, recursive probing, monitor).
+// They are started when a Kubesonde exists and cancelled when it is deleted, so
+// probing actually stops (rather than refilling the cleared state).
+var (
+	probingMu     sync.Mutex
+	probingCancel context.CancelFunc
+)
 
-// startupOnce ensures the per-object probing/events/monitor goroutines are
-// started only once. Reconcile is requeued periodically to refresh status, and
-// those long-running goroutines must not be re-spawned on every requeue.
-var startupOnce sync.Once
+// startProbing launches the background goroutines under a fresh cancelable
+// context. It is idempotent: if probing is already running it does nothing.
+func startProbing(apiClient kubernetes.Interface, k kubesondev1.Kubesonde) {
+	probingMu.Lock()
+	defer probingMu.Unlock()
+	if probingCancel != nil {
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	probingCancel = cancel
+
+	go kubesondeDispatcher.Run(ctx, apiClient)
+	go kubesondeEvents.InitEventListener(ctx, apiClient, k)
+	go recursiveprobing.RecursiveProbing(ctx, k, 20*time.Second)
+	go kubesondemonitor.RunMonitorContainers(ctx, apiClient)
+}
+
+// stopProbing cancels the background goroutines if they are running.
+func stopProbing() {
+	probingMu.Lock()
+	defer probingMu.Unlock()
+	if probingCancel != nil {
+		probingCancel()
+		probingCancel = nil
+	}
+}
 
 // statusRefreshInterval is how often Reconcile is requeued to refresh the
 // completeness status shown by `kubectl get kubesondes`.
@@ -71,9 +98,11 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	var Kubesonde kubesondev1.Kubesonde
 	if err := r.Get(ctx, req.NamespacedName, &Kubesonde); err != nil {
 		if apierrors.IsNotFound(err) {
-			// The Kubesonde resource was deleted: clear the accumulated probe
-			// state so stale results are not served by the REST API.
-			log.Info("Kubesonde resource deleted, clearing probe state")
+			// The Kubesonde resource was deleted: stop the background probing
+			// goroutines and clear the accumulated state so it is not refilled
+			// and no stale results are served by the REST API.
+			log.Info("Kubesonde resource deleted, stopping probing and clearing state")
+			stopProbing()
 			state.ClearState()
 
 			return ctrl.Result{}, nil
@@ -81,30 +110,9 @@ func (r *KubesondeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		log.Error(err, "unable to fetch Kubesonde")
 		return ctrl.Result{}, err
 	}
-
-	// TODOs
-	/*
-		1) Handle pod deletion. When a pod is deleted also the probes that regard that pod should be removed
-	*/
-
-	// Dispatcher. Start the worker pool only once across reconciles; it drains a
-	// process-wide shared queue and must not be started multiple times.
-	dispatcherOnce.Do(func() {
-		go kubesondeDispatcher.Run(context.Background(), apiClient)
-	})
-
-	// Start the long-running per-object goroutines only once; requeues below are
-	// only for refreshing status and must not re-spawn these loops.
-	startupOnce.Do(func() {
-		// Events
-		go kubesondeEvents.InitEventListener(apiClient, Kubesonde)
-
-		// Probing
-		go recursiveprobing.RecursiveProbing(Kubesonde, 20*time.Second)
-
-		// Monitor
-		go kubesondemonitor.RunMonitorContainers(apiClient)
-	})
+	// Start (or keep running) the background probing goroutines for this
+	// Kubesonde. Idempotent across the periodic status requeues.
+	startProbing(apiClient, Kubesonde)
 
 	// Refresh the completeness status so it is visible via `kubectl get kubesondes`.
 	completeness := state.GetCompleteness()

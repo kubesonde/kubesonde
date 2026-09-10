@@ -1,6 +1,7 @@
 package recursiveprobing
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -13,16 +14,23 @@ import (
 var log = logf.Log.WithName("Recursive probing")
 
 // This function starts an infinite loop that runs all the probes at regular
-// intervals
-func RecursiveProbing(Kubesonde kubesondev1.Kubesonde, when time.Duration) {
+// intervals until ctx is cancelled (e.g. when the Kubesonde resource is deleted).
+func RecursiveProbing(ctx context.Context, Kubesonde kubesondev1.Kubesonde, when time.Duration) {
+	if ctx.Err() != nil {
+		return
+	}
 	var task = func() {
+		if ctx.Err() != nil {
+			log.Info("Recursive probing stopped")
+			return
+		}
 		size := kubesondeDispatcher.QueueSize()
 		log.Info(fmt.Sprintf("Probe queue size: %d", size))
 		if size == 0 {
 			go RunProbing()
 		}
 
-		RecursiveProbing(Kubesonde, when)
+		RecursiveProbing(ctx, Kubesonde, when)
 	}
 	time.AfterFunc(when, task)
 }

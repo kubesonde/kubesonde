@@ -1,6 +1,7 @@
 package events
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -96,7 +97,7 @@ func svcEventHandler(Kubesonde kubesondev1.Kubesonde) cache.ResourceEventHandler
 
 // Setup event listener for pods and services. When a new event is received, probes
 // and ephemeral containers will be generated
-func InitEventListener(client kubernetes.Interface, Kubesonde kubesondev1.Kubesonde) {
+func InitEventListener(ctx context.Context, client kubernetes.Interface, Kubesonde kubesondev1.Kubesonde) {
 	log.Info("Setting up the event listener...")
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(client, time.Second*5)
 	podInformer := kubeInformerFactory.Core().V1().Pods().Informer()
@@ -109,11 +110,20 @@ func InitEventListener(client kubernetes.Interface, Kubesonde kubesondev1.Kubeso
 		log.Error(err, "Failed to add service event handler")
 	}
 
+	// Stop the informers when ctx is cancelled (e.g. the Kubesonde is deleted).
 	stop := make(chan struct{})
-	defer close(stop)
+	go func() {
+		<-ctx.Done()
+		close(stop)
+	}()
 	kubeInformerFactory.Start(stop)
 	for {
-		time.Sleep(time.Second * 30)
+		select {
+		case <-ctx.Done():
+			log.Info("Event listener stopped")
+			return
+		case <-time.After(time.Second * 30):
+		}
 		activePodsStored := getActivePodsEvent()
 		log.Info(fmt.Sprintf("Active pods: %v", activePodsStored))
 		log.Info(fmt.Sprintf("Number of probes in State: %d", len(eventstorage.GetProbes())))

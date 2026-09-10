@@ -182,3 +182,46 @@ func TestKubesondeReconcilerWithValidResource(t *testing.T) {
 		assert.Equal(t, ctrl.Result{RequeueAfter: statusRefreshInterval}, result)
 	})
 }
+
+func TestProbingLifecycle(t *testing.T) {
+	t.Run("probing starts on reconcile and stops on deletion", func(t *testing.T) {
+		// Start from a clean lifecycle state.
+		stopProbing()
+		state.ResetDefaultManager()
+
+		scheme := runtime.NewScheme()
+		_ = kubesondev1.AddToScheme(scheme)
+
+		kubesonde := &kubesondev1.Kubesonde{
+			ObjectMeta: metav1.ObjectMeta{Name: "lifecycle", Namespace: "default"},
+			Spec:       kubesondev1.KubesondeSpec{Namespace: "default", Probe: "all"},
+		}
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(kubesonde).
+			WithStatusSubresource(kubesonde).Build()
+		reconciler := &KubesondeReconciler{
+			Client:           fakeClient,
+			Log:              logr.Discard(),
+			Scheme:           scheme,
+			KubernetesClient: kubernetesfake.NewSimpleClientset(),
+		}
+		req := ctrl.Request{NamespacedName: types.NamespacedName{Name: "lifecycle", Namespace: "default"}}
+
+		// Reconciling an existing resource starts probing.
+		_, err := reconciler.Reconcile(context.Background(), req)
+		assert.NoError(t, err)
+		probingMu.Lock()
+		started := probingCancel != nil
+		probingMu.Unlock()
+		assert.True(t, started, "probing should be running after reconcile")
+
+		// Deleting the resource stops probing.
+		emptyClient := fake.NewClientBuilder().WithScheme(scheme).Build()
+		reconciler.Client = emptyClient
+		_, err = reconciler.Reconcile(context.Background(), req)
+		assert.NoError(t, err)
+		probingMu.Lock()
+		stopped := probingCancel == nil
+		probingMu.Unlock()
+		assert.True(t, stopped, "probing should be stopped after deletion")
+	})
+}

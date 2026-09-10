@@ -38,8 +38,14 @@ func rebuildProbesForPod(pod v1.Pod) {
 }
 
 // This function starts an infinite loop
-func RunMonitorContainers(client kubernetes.Interface) {
+func RunMonitorContainers(ctx context.Context, client kubernetes.Interface) {
 	for {
+		select {
+		case <-ctx.Done():
+			log.Info("Monitor stopped")
+			return
+		default:
+		}
 		var pods = eventstorage.GetActivePods() /*lo.Filter(GetActivePods(), func(pod v1.Pod, i int) bool {
 			return PodWithEphemeralContainer(client, pod)
 		})*/
@@ -51,7 +57,7 @@ func RunMonitorContainers(client kubernetes.Interface) {
 			if index < currPodsWithNetstatLen && currPodsWithNetstat[index] == p.Name {
 				return
 			}
-			fresh_pod, erro := client.CoreV1().Pods(p.Namespace).Get(context.TODO(), p.Name, metav1.GetOptions{})
+			fresh_pod, erro := client.CoreV1().Pods(p.Namespace).Get(ctx, p.Name, metav1.GetOptions{})
 			if erro != nil {
 				log.Info(fmt.Sprintf("Pod %s does not exist, removing from state", p.Name))
 				eventstorage.DeleteActivePod(p.Name)
@@ -75,7 +81,12 @@ func RunMonitorContainers(client kubernetes.Interface) {
 			state.SetNestatPod(p.Name)
 
 		})
-		time.Sleep(10 * time.Second)
+		select {
+		case <-ctx.Done():
+			log.Info("Monitor stopped")
+			return
+		case <-time.After(10 * time.Second):
+		}
 	}
 }
 
