@@ -32,7 +32,7 @@ export const GraphJSONUploadComponent: React.FC = () => {
       {filesContent.length ? (
         getGraph()
       ) : (
-        <button onClick={() => openFileSelector()}>
+        <button className="button" onClick={() => openFileSelector()}>
           Select Kubesonde state file
         </button>
       )}

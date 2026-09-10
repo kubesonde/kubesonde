@@ -61,7 +61,7 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   const data = filterablePorts.map((port) => ({
     value: port.port + "/" + port.protocol,
     label: port.port + "/" + port.protocol,
-    color: "var(--secoColor)",
+    color: "var(--ink)",
   }));
   const onChange = (values: MultiValue<ColourOption>) => {
     const ids = values.map((value) => value.value);
@@ -70,7 +70,7 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   const portsFilt = portsFiltered.map((port) => ({
     value: port,
     label: port,
-    color: "var(--secoColor)",
+    color: "var(--ink)",
   }));
   return (
     <>
