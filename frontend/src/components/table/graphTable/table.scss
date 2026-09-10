@@ -24,6 +24,7 @@ tbody tr:last-child td:last-child { border-bottom-right-radius: var(--radius-lg)
 th {
   padding: $space-3;
   text-align: left;
+  white-space: nowrap;
   font-size: $text-sm;
   font-weight: $weight-semibold;
   color: var(--ink-muted);
@@ -48,14 +49,6 @@ td {
 
 tr:last-child td {
   border-bottom: none;
-}
-
-// Deployment cells carry a data-driven pastel tint (inline background). Those
-// tints are always light, so pin the text to dark ink — otherwise it turns
-// light-on-light and unreadable in dark mode. Port chips set their own color on
-// the element, so they're unaffected.
-tbody td[style] {
-  color: #{$color-ink};
 }
 
 .deployment,
@@ -92,16 +85,19 @@ tbody td[style] {
   color: var(--ok);
 }
 
+// "Open but not declared" — orange, to avoid colliding with the red used for
+// denied connections in the graph.
 .errorPort {
-  @extend %port-chip;
-  background: var(--error-bg);
-  color: var(--error);
-}
-
-.warningPort {
   @extend %port-chip;
   background: var(--warn-bg);
   color: var(--warn);
+}
+
+// "Declared but not open" — red.
+.warningPort {
+  @extend %port-chip;
+  background: var(--error-bg);
+  color: var(--error);
 }
 
 // Ports observed via netstat but not probed — neutral, de-emphasized.
@@ -122,11 +118,11 @@ tbody td[style] {
 }
 
 .colordiv {
-  width: 1em;
-  height: 1em;
-  position: relative;
+  width: 1.15em;
+  height: 1.15em;
   margin: auto;
   border-radius: var(--radius-xs);
+  border: 1px solid rgba(20, 32, 58, 0.2);
 }
 
 // -- Tooltip -------------------------------------------------------------------
