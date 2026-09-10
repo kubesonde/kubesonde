@@ -1,0 +1,45 @@
+// =============================================================================
+// Global base: minimal reset + document typography. Consumes CSS variables.
+// =============================================================================
+@use 'tokens' as *;
+@use 'mixins' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: $text-md;
+  line-height: $leading-normal;
+  font-weight: $weight-medium;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  line-height: $leading-tight;
+  letter-spacing: $tracking-tight;
+  font-weight: $weight-bold;
+}
+
+a {
+  color: var(--brand-600);
+}
+
+:focus-visible {
+  @include focus-ring;
+  border-radius: var(--radius-sm);
+}

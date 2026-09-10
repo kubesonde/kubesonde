@@ -1,0 +1,6 @@
+// =============================================================================
+// The single global stylesheet. Imported once from index.tsx.
+// Emits the theme (:root CSS variables) and the base reset/typography.
+// =============================================================================
+@use 'theme';
+@use 'base';
