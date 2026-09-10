@@ -1,74 +1,24 @@
 @use 'styles' as *;
 
-.home {
+.upload {
   min-height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: $space-7;
   padding: $space-7 $space-5;
-  width: 100%;
-  max-width: $size-content-max;
-  margin: 0 auto;
 }
 
-// -- Hero: the logo held inside radiating sonar rings (the signature moment) ---
-.home__hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: $space-3;
-}
-
-.home__badge {
-  display: grid;
-  place-items: center;
-}
-
-.home__logo {
-  position: relative;
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-md);
-}
-
-.home__title {
-  font-size: $text-2xl;
-  color: var(--ink);
-}
-
-.home__lede {
-  margin: 0;
-  max-width: 46ch;
-  color: var(--ink-muted);
-  font-weight: $weight-medium;
-  font-size: $text-lg;
-  line-height: $leading-normal;
-}
-
-// -- Action blocks: upload a run, or load the example -------------------------
-.home__blocks {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $space-4;
-  width: 100%;
-  max-width: 640px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.block {
+// Click to open a probe file.
+.dropzone {
   @include card;
+  position: relative;
+  width: 100%;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: $space-3;
-  padding: $space-6 $space-5;
+  padding: $space-8 $space-6;
   cursor: pointer;
   text-align: center;
   font-family: inherit;
@@ -93,7 +43,7 @@
   }
 }
 
-.block__icon {
+.dropzone__icon {
   display: grid;
   place-items: center;
   width: 56px;
@@ -104,14 +54,37 @@
   font-size: 22px;
 }
 
-.block__title {
+.dropzone__title {
   font-size: $text-lg;
   font-weight: $weight-semibold;
 }
 
-.block__hint {
+.dropzone__hint {
   color: var(--ink-faint);
   font-size: $text-sm;
+}
+
+.dropzone__cta {
+  margin-top: $space-2;
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 $space-5;
+  border-radius: var(--radius-pill);
+  background: var(--brand-500);
+  color: var(--ink-invert);
+  font-weight: $weight-semibold;
+  font-size: $text-sm;
+
+  .dropzone:hover &,
+  .dropzone:focus-visible & {
+    background: var(--brand-600);
+  }
+}
+
+.dropzone__note {
+  color: var(--ink-faint);
+  font-size: $text-xs;
 
   code {
     font-family: var(--font-mono);

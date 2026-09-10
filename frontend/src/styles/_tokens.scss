@@ -1,0 +1,116 @@
+// =============================================================================
+// Kubesonde design tokens — the single source of truth.
+//
+// These are compile-time SCSS constants. They are mapped to runtime CSS custom
+// properties in `_theme.scss` (so dark mode / theming works), but everything
+// downstream should reference THESE names, never raw hex or magic numbers.
+// =============================================================================
+
+// -- Brand ---------------------------------------------------------------------
+// Cobalt pulled from the Kubesonde logo (the sonar wheel).
+$color-brand-50:  #f1f5fc;
+$color-brand-100: #e7ecf7;
+$color-brand-200: #cbd8ee;
+$color-brand-400: #5b7bc4;
+$color-brand-500: #3a5ba9; // logo blue
+$color-brand-600: #2f4c90;
+$color-brand-700: #263d74;
+
+// -- Ink (text) ----------------------------------------------------------------
+$color-ink:        #14203a; // primary text, deep navy (not black)
+$color-ink-muted:  #55627a;
+$color-ink-faint:  #8a93a6;
+$color-ink-invert: #f4f7fc;
+
+// -- Surfaces & borders --------------------------------------------------------
+$color-surface:    #eef2f8; // app canvas
+$color-panel:      #ffffff; // cards / raised surfaces
+$color-panel-alt:  #f6f8fc; // subtle inset / zebra
+$color-border:     #dae0ec;
+$color-border-strong: #c3ccdd;
+
+// -- Signal / status -----------------------------------------------------------
+// Replaces the raw greenyellow/red/orange used in the tables. A probe result is
+// a signal: reachable, blocked, or worth a look.
+$color-ok:      #1f9d6b;
+$color-ok-bg:   #e6f5ee;
+$color-error:   #d64550;
+$color-error-bg:#fbeaeb;
+$color-warn:    #c9821a;
+$color-warn-bg: #fbf0de;
+
+// -- Dark theme surfaces (consumed by _theme.scss) -----------------------------
+$color-dark-surface:   #0d1526;
+$color-dark-panel:     #131f36;
+$color-dark-panel-alt: #1a2844;
+$color-dark-border:    #26375a;
+$color-dark-ink:       #e7edf7;
+$color-dark-ink-muted: #9aa8c4;
+
+// -- Radius --------------------------------------------------------------------
+$radius-xs:   4px;
+$radius-sm:   6px;
+$radius-md:   10px;
+$radius-lg:   16px;
+$radius-xl:   24px;
+$radius-pill: 999px;
+
+// -- Elevation (cool-tinted, keyed to ink, not flat black) ---------------------
+$shadow-sm:  0 1px 2px rgba(20, 32, 58, 0.06);
+$shadow-md:  0 4px 16px rgba(20, 32, 58, 0.08);
+$shadow-lg:  0 12px 32px rgba(20, 32, 58, 0.12);
+$shadow-focus: 0 0 0 3px rgba(58, 91, 169, 0.35);
+
+// -- Spacing scale (4px base) --------------------------------------------------
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 48px;
+$space-8: 64px;
+
+// -- Sizes ---------------------------------------------------------------------
+$size-control-h:       40px;
+$size-icon:            20px;
+$size-sidebar:         260px;
+$size-sidebar-collapsed: 84px;
+$size-content-max:     720px;
+
+// -- Typography ----------------------------------------------------------------
+$font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+  sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+$font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas,
+  "Liberation Mono", monospace;
+
+$text-xs:  12px;
+$text-sm:  14px;
+$text-md:  16px;
+$text-lg:  20px;
+$text-xl:  28px;
+$text-2xl: 40px;
+
+$leading-tight:   1.2;
+$leading-normal:  1.5;
+
+$weight-regular:  400;
+$weight-medium:   500;
+$weight-semibold: 650;
+$weight-bold:     750;
+
+$tracking-tight: -0.02em;
+$tracking-wide:   0.04em;
+
+// -- Motion --------------------------------------------------------------------
+$ease-standard: cubic-bezier(0.3, 0, 0.2, 1);
+$duration-fast: 120ms;
+$duration-base: 200ms;
+
+// -- Z-index -------------------------------------------------------------------
+$z-base:     0;
+$z-dropdown: 100;
+$z-sticky:   200;
+$z-sidebar:  300;
+$z-overlay:  400;
+$z-tooltip:  500;

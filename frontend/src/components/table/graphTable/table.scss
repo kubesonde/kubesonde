@@ -1,0 +1,167 @@
+@use 'styles' as *;
+
+// No `overflow: hidden` here — it would clip the header tooltips. Corners are
+// rounded on the corner cells instead (below).
+#tableWrapper {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+table {
+  width: 100%;
+  border-spacing: 0;
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+}
+
+// Round the four corner cells so fills follow the wrapper's radius.
+thead tr:first-child th:first-child { border-top-left-radius: var(--radius-lg); }
+thead tr:first-child th:last-child { border-top-right-radius: var(--radius-lg); }
+tbody tr:last-child td:first-child { border-bottom-left-radius: var(--radius-lg); }
+tbody tr:last-child td:last-child { border-bottom-right-radius: var(--radius-lg); }
+
+th {
+  padding: $space-3;
+  text-align: left;
+  white-space: nowrap;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  color: var(--ink-muted);
+  background: var(--panel-alt);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  z-index: $z-sticky;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+td {
+  padding: $space-2 $space-3;
+  font-size: $text-sm;
+  color: var(--ink);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.deployment,
+.deploymentClicked,
+.arrow {
+  cursor: pointer;
+}
+
+.arrow {
+  margin-left: -0.1em;
+}
+
+.podItem,
+.portItem {
+  padding-left: $space-4;
+}
+
+// -- Port status chips ---------------------------------------------------------
+// A probed port is a signal: reachable (ok), blocked (error), or worth a look
+// (warn). Rendered one per line inside the "Ports exposed" cell.
+%port-chip {
+  @include data-text;
+  display: block;
+  margin: 2px 0;
+  padding: 2px $space-3;
+  border-radius: var(--radius-sm);
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+}
+
+.okPort {
+  @extend %port-chip;
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+// "Open but not declared" — orange, to avoid colliding with the red used for
+// denied connections in the graph.
+.errorPort {
+  @extend %port-chip;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+// "Declared but not open" — red.
+.warningPort {
+  @extend %port-chip;
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+// Ports observed via netstat but not probed — neutral, de-emphasized.
+.portItemNetstatOnly {
+  @extend %port-chip;
+  background: var(--ink);
+  color: var(--ink-invert);
+}
+
+.portItemUnderlined {
+  @extend %port-chip;
+  background: var(--panel-alt);
+  color: var(--ink-muted);
+}
+
+.podGroup {
+  display: flex;
+}
+
+.colordiv {
+  width: 1.15em;
+  height: 1.15em;
+  margin: auto;
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(20, 32, 58, 0.2);
+}
+
+// -- Tooltip -------------------------------------------------------------------
+*[data-tooltip] {
+  position: relative;
+}
+
+*[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  // Below the element: the rounded table wrapper clips overflow, so a tooltip
+  // above the header row would be hidden. Below keeps it inside the wrapper.
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: $z-tooltip;
+  width: max-content;
+  max-width: 260px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  display: block;
+  font-size: $text-xs;
+  line-height: 16px;
+  // Fixed dark chip in both themes: --ink flips to light in dark mode, which
+  // would make this light-on-light.
+  background: #{$color-ink};
+  color: #fff;
+  padding: $space-2 $space-3;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  white-space: normal;
+}
+
+// Keep the rightmost column's tooltip inside the viewport.
+th:last-child[data-tooltip]::before {
+  left: auto;
+  right: 0;
+}
+
+*[data-tooltip]:hover::before {
+  opacity: 1;
+}

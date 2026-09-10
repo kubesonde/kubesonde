@@ -1,0 +1,103 @@
+// =============================================================================
+// Emits the token constants as runtime CSS custom properties on :root.
+// This is the ONE place that turns compile-time $constants into --variables.
+// Dark mode: add `data-theme="dark"` on <html>, or rely on the media default.
+// =============================================================================
+@use 'tokens' as *;
+
+@mixin light-vars {
+  --brand-50:  #{$color-brand-50};
+  --brand-100: #{$color-brand-100};
+  --brand-200: #{$color-brand-200};
+  --brand-400: #{$color-brand-400};
+  --brand-500: #{$color-brand-500};
+  --brand-600: #{$color-brand-600};
+  --brand-700: #{$color-brand-700};
+
+  --ink:        #{$color-ink};
+  --ink-muted:  #{$color-ink-muted};
+  --ink-faint:  #{$color-ink-faint};
+  --ink-invert: #{$color-ink-invert};
+
+  --surface:    #{$color-surface};
+  --panel:      #{$color-panel};
+  --panel-alt:  #{$color-panel-alt};
+  --border:        #{$color-border};
+  --border-strong: #{$color-border-strong};
+
+  --ok:       #{$color-ok};
+  --ok-bg:    #{$color-ok-bg};
+  --error:    #{$color-error};
+  --error-bg: #{$color-error-bg};
+  --warn:     #{$color-warn};
+  --warn-bg:  #{$color-warn-bg};
+
+  --shadow-sm:    #{$shadow-sm};
+  --shadow-md:    #{$shadow-md};
+  --shadow-lg:    #{$shadow-lg};
+  --shadow-focus: #{$shadow-focus};
+}
+
+@mixin dark-vars {
+  --surface:    #{$color-dark-surface};
+  --panel:      #{$color-dark-panel};
+  --panel-alt:  #{$color-dark-panel-alt};
+  --border:        #{$color-dark-border};
+  --border-strong: #{$color-dark-border};
+  --ink:        #{$color-dark-ink};
+  --ink-muted:  #{$color-dark-ink-muted};
+  --ink-faint:  #{$color-dark-ink-muted};
+  --brand-500:  #{$color-brand-400};
+  --brand-600:  #{$color-brand-500};
+
+  --ok-bg:    rgba(31, 157, 107, 0.16);
+  --error-bg: rgba(214, 69, 80, 0.18);
+  --warn-bg:  rgba(201, 130, 26, 0.18);
+
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg:  0 12px 32px rgba(0, 0, 0, 0.55);
+}
+
+// Static tokens (radius, spacing, type, motion, z) don't change per theme.
+@mixin static-vars {
+  --radius-xs:   #{$radius-xs};
+  --radius-sm:   #{$radius-sm};
+  --radius-md:   #{$radius-md};
+  --radius-lg:   #{$radius-lg};
+  --radius-xl:   #{$radius-xl};
+  --radius-pill: #{$radius-pill};
+
+  --space-1: #{$space-1};
+  --space-2: #{$space-2};
+  --space-3: #{$space-3};
+  --space-4: #{$space-4};
+  --space-5: #{$space-5};
+  --space-6: #{$space-6};
+  --space-7: #{$space-7};
+  --space-8: #{$space-8};
+
+  --control-h: #{$size-control-h};
+  --sidebar-w: #{$size-sidebar};
+  --content-max: #{$size-content-max};
+
+  --font-sans: #{$font-sans};
+  --font-mono: #{$font-mono};
+}
+
+:root {
+  @include static-vars;
+  @include light-vars;
+}
+
+// Explicit opt-in dark theme.
+:root[data-theme='dark'] {
+  @include dark-vars;
+}
+
+// System-preference dark, unless the user has explicitly chosen light.
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-vars;
+  }
+}

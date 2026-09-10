@@ -19,7 +19,10 @@ export interface GraphEdge {
     label: string,
     ports: string[],
     hidden?: boolean,
-    deniedConnection: boolean
+    deniedConnection: boolean,
+    // Whether the connection was expected by the declarative config
+    // (expectedAction === "Allow"). Drives the green/orange edge color.
+    expected?: boolean
 
 }
 
@@ -34,6 +37,8 @@ export interface SimpleGraphEdge {
     hidden?: boolean,
     deniedConnection: boolean
     timestamp: number
+    // Whether the connection was expected by the declarative config.
+    expected?: boolean
 
 }
 

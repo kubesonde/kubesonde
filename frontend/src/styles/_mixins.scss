@@ -1,0 +1,20 @@
+// =============================================================================
+// Reusable style patterns. All reference CSS custom properties (see _theme.scss)
+// so they stay theme-aware, except keyframe geometry which is static.
+// =============================================================================
+@use 'tokens' as *;
+
+// A raised panel/card.
+@mixin card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+// Monospaced tabular data (ports, IPs, pod names).
+@mixin data-text {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}

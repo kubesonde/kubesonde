@@ -1,6 +1,6 @@
 import Switch from "react-switch";
 import React, {ComponentProps, ComponentType, useState} from "react";
-import './WithSwitch.css'
+import './WithSwitch.scss'
 export interface WithSwitchProps {
     title: string
 }

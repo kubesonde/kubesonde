@@ -61,7 +61,8 @@ describe('Edge creation', function () {
             label: "8080",
             port: "8080/TCP",
             timestamp: 1234,
-            deniedConnection: false
+            deniedConnection: false,
+            expected: false
         },
         {
             from: "pod1",
@@ -72,7 +73,8 @@ describe('Edge creation', function () {
             label: "80",
             port: "80/TCP",
             timestamp: 1234,
-            deniedConnection: false
+            deniedConnection: false,
+            expected: false
         }
         ])
     })
@@ -132,7 +134,8 @@ describe('Edge creation', function () {
             label: "8080",
             port: "8080/TCP",
             timestamp: 1234,
-            deniedConnection: false
+            deniedConnection: false,
+            expected: false
         },
         {
             from: "pod2",
@@ -141,7 +144,8 @@ describe('Edge creation', function () {
             label: "80",
             port: "80/TCP",
             timestamp: 1234,
-            deniedConnection: false
+            deniedConnection: false,
+            expected: false
         }
         ])
     })

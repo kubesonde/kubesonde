@@ -1,4 +1,5 @@
 import { GraphEdge, GraphNode, SimpleGraphEdge } from "../entities/graph";
+import { k8sIcons } from "./k8sIcons";
 import {
     getColoredData,
     getDeployments, hidePorts,
@@ -524,6 +525,8 @@ describe('toCyNode', () => {
                 // @ts-ignore
                 bg: node.color,
                 type: "deployment",
+                // @ts-ignore
+                icon: k8sIcons["deployment"],
                 hidden: "false"
             }
         })
@@ -537,6 +540,8 @@ describe('toCyNode', () => {
                 // @ts-ignore
                 bg: node.color,
                 type: "pod",
+                // @ts-ignore
+                icon: k8sIcons["pod"],
                 hidden: "false"
             }
         })
