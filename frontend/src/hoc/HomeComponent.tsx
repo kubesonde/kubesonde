@@ -1,4 +1,5 @@
 import { FaDownload } from "react-icons/fa";
+import { GrGraphQl } from "react-icons/gr";
 import "./Home.scss";
 import React, { useEffect } from "react";
 import { useFilePicker } from "use-file-picker";
@@ -48,23 +49,35 @@ export const HomeComponent = () => {
         </p>
       </header>
 
-      <button
-        type="button"
-        className="dropzone"
-        onClick={() => openFileSelector()}
-      >
-        <span className="dropzone__icon">
-          <FaDownload aria-hidden="true" />
-        </span>
-        <span className="dropzone__title">Open a probe run</span>
-        <span className="dropzone__hint">
-          Choose a probe output file to visualize its network graph
-        </span>
-        <span className="dropzone__cta">Choose file</span>
-        <span className="dropzone__note">
-          Accepts <code>.json</code> exported by Kubesonde
-        </span>
-      </button>
+      <div className="home__blocks">
+        <button
+          type="button"
+          className="block"
+          onClick={() => openFileSelector()}
+        >
+          <span className="block__icon">
+            <FaDownload aria-hidden="true" />
+          </span>
+          <span className="block__title">Upload a probe run</span>
+          <span className="block__hint">
+            Open a <code>.json</code> file exported by Kubesonde
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="block"
+          onClick={() => navigate("/example")}
+        >
+          <span className="block__icon">
+            <GrGraphQl aria-hidden="true" />
+          </span>
+          <span className="block__title">Load the example</span>
+          <span className="block__hint">
+            Explore a sample probe to see how it works
+          </span>
+        </button>
+      </div>
     </div>
   );
 };
