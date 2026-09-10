@@ -1,4 +1,5 @@
 import { FaDownload } from "react-icons/fa";
+import { GrGraphQl } from "react-icons/gr";
 import "./Home.scss";
 import React, { useEffect } from "react";
 import { useFilePicker } from "use-file-picker";
@@ -37,28 +38,45 @@ export const HomeComponent = () => {
   
 
   return (
-    <div className="form-container">
-      <div className="home-hero">
-        <img src="/logo257.png" alt="Kubesonde logo" className="home-logo" />
-        <h1 className="home-title">Kubesonde</h1>
-        <p className="home-subtitle">Visualize your cluster's network connectivity</p>
-      </div>
-      <div id="file-upload-form" className="uploader">
-        <div id="file-upload" />
-        <label htmlFor="file-upload" id="file-drag">
-          <img id="file-image" src="#" alt="Preview" className="hidden" />
-          <div id="start">
-            <FaDownload />
-            <div>Select a probe output file</div>
-            <span
-              id="file-upload-btn"
-              className="btn btn-primary"
-              onClick={() => openFileSelector()}
-            >
-              Select a file
-            </span>
-          </div>
-        </label>
+    <div className="home">
+      <header className="home__hero">
+        <div className="home__badge">
+          <img src="/logo257.png" alt="" className="home__logo" />
+        </div>
+        <h1 className="home__title">Kubesonde</h1>
+        <p className="home__lede">
+          Visualize your cluster's network connectivity
+        </p>
+      </header>
+
+      <div className="home__blocks">
+        <button
+          type="button"
+          className="block"
+          onClick={() => openFileSelector()}
+        >
+          <span className="block__icon">
+            <FaDownload aria-hidden="true" />
+          </span>
+          <span className="block__title">Upload a probe run</span>
+          <span className="block__hint">
+            Open a <code>.json</code> file exported by Kubesonde
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className="block"
+          onClick={() => navigate("/example")}
+        >
+          <span className="block__icon">
+            <GrGraphQl aria-hidden="true" />
+          </span>
+          <span className="block__title">Load the example</span>
+          <span className="block__hint">
+            Explore a sample probe to see how it works
+          </span>
+        </button>
       </div>
     </div>
   );

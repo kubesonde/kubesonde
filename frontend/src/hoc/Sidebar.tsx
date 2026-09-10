@@ -7,9 +7,16 @@ import {
   SidebarContent,
   SidebarFooter,
 } from "react-pro-sidebar";
-import { Link } from "react-router-dom";
-import { FiHome, FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  FiHome,
+  FiArrowLeftCircle,
+  FiArrowRightCircle,
+  FiSun,
+  FiMoon,
+} from "react-icons/fi";
 import { FaGithub, FaList } from "react-icons/fa";
+import { applyTheme, getInitialTheme, Theme } from "src/utils/theme";
 
 //menuCollapse state using useState hook
 import { GrGraphQl } from "react-icons/gr";
@@ -33,20 +40,26 @@ const routes = [
 
 export const Sidebar: React.FC = () => {
   const [menuCollapse, setMenuCollapse] = useState<boolean>(false);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const menuIconClick = () => {
     menuCollapse ? setMenuCollapse(false) : setMenuCollapse(true);
   };
+  const toggleTheme = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    setTheme(next);
+  };
   const MenuItems = routes.map((route) => (
-    <MenuItem key={route.name} icon={route.icon} className="menuItem">
-      <Link
-        id={route.name}
-        key={route.name}
-        role="menuLink"
-        className="menuOption"
-        to={route.path}
-      >
-        {route.name}
-      </Link>
+    <MenuItem
+      key={route.name}
+      icon={route.icon}
+      className="menuItem"
+      active={pathname === route.path}
+      onClick={() => navigate(route.path)}
+    >
+      {route.name}
     </MenuItem>
   ));
   return (
@@ -56,7 +69,7 @@ export const Sidebar: React.FC = () => {
         <ProSidebar collapsed={menuCollapse} role="sidebar">
           <SidebarHeader>
             <div className="logotext">
-              {/* Icon change using menucollapse state */}
+              <img src="/logo257.png" alt="" className="brandmark" />
               <p>{menuCollapse ? "Ksonde" : "Kubesonde Viewer"}</p>
             </div>
             <div className="closemenu" onClick={menuIconClick}>
@@ -66,30 +79,39 @@ export const Sidebar: React.FC = () => {
           </SidebarHeader>
           <SidebarContent>
             <Menu iconShape="square">
-              <MenuItem icon={<FiHome />}>
-                <Link to="/">Home</Link>
+              <MenuItem
+                icon={<FiHome />}
+                active={pathname === "/"}
+                onClick={() => navigate("/")}
+              >
+                Home
               </MenuItem>
               {MenuItems}
             </Menu>
           </SidebarContent>
           <SidebarFooter>
             <Menu iconShape="square">
-              <MenuItem>Version: {import.meta.env.VITE_APP_VERSION}</MenuItem>
-              <MenuItem icon={<FaGithub />}>
-                 <a href="https://github.com/kubesonde/kubesonde" target="_blank" rel="noopener noreferrer">
-                </a>
+              <MenuItem
+                icon={theme === "dark" ? <FiMoon /> : <FiSun />}
+                onClick={toggleTheme}
+              >
+                {theme === "dark" ? "Dark mode" : "Solar mode"}
               </MenuItem>
-              {!menuCollapse && (
-                <MenuItem className="attribution">
-                  <a
-                    href="https://github.com/jackap"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Developed by Jacopo Bufalino
-                  </a>
-                </MenuItem>
-              )}
+              <MenuItem className="version">
+                Version {import.meta.env.VITE_APP_VERSION}
+              </MenuItem>
+              <MenuItem
+                icon={<FaGithub />}
+                onClick={() =>
+                  window.open(
+                    "https://github.com/kubesonde/kubesonde",
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+              >
+                View on GitHub
+              </MenuItem>
             </Menu>
           </SidebarFooter>
         </ProSidebar>

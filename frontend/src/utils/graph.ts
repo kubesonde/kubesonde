@@ -6,6 +6,7 @@ import { BoolDict, Dict } from "../entities/types";
 // @ts-ignore
 import randomColor from "randomcolor"
 import cytoscape, { ElementDefinition } from "cytoscape";
+import { k8sIcons } from "./k8sIcons";
 
 const INTERNET_COLOR = "#FFBF00";
 const TEST_POD_COLOR = "red";
@@ -53,7 +54,7 @@ export const mergeEdges = (edges: GraphEdge[]) => {
             if (curr.to === curr.from) {
                 return acc
             }
-            const item = acc.find((item) => item.from === curr.from && item.to === curr.to)
+            const item = acc.find((item) => item.from === curr.from && item.to === curr.to && item.expected === curr.expected)
             if (curr.hidden === true) {
                 return [...acc, curr]
             }
@@ -334,7 +335,10 @@ export function mergeEdgesSimple(simpleEdges: SimpleGraphEdge[]): GraphEdge[] {
             if (curr.to === curr.from) {
                 return acc
             }
-            const item = acc.find((item) => item.from === curr.from && item.to === curr.to)
+            // Group by status too, so declared (green) and undeclared (orange)
+            // connections between the same nodes stay separate edges instead of
+            // collapsing into one misleading color.
+            const item = acc.find((item) => item.from === curr.from && item.to === curr.to && item.expected === curr.expected)
             if (curr.hidden === true && curr.deniedConnection) {
                 const newItem = { ...curr, ports: [curr.port] }
                 // @ts-ignore
@@ -400,13 +404,17 @@ export function toCyNode(node: GraphNode): cytoscape.ElementDefinition {
             return "pod"
         }
     }
+    const type = get_type(node)
     return Object.assign({}, {
         data: {
             id: node.id,
             label: node.label,
             // @ts-ignore
             bg: node.color,
-            type: get_type(node),
+            type,
+            // Default (blue) k8s resource icon; the deployment color is applied
+            // to the node label's background instead (see graphBaseOptions).
+            icon: k8sIcons[type],
             hidden: node.hidden ? "true" : "false"
         }
     })
@@ -415,6 +423,13 @@ export function toCyNode(node: GraphNode): cytoscape.ElementDefinition {
 }
 
 export function toCyEdge(edge: GraphEdge): cytoscape.ElementDefinition {
+    // Edge color signal: denied (red), allowed + expected/declared (green),
+    // or allowed but not declared (orange).
+    const status = edge.deniedConnection
+        ? "denied"
+        : edge.expected
+            ? "expected"
+            : "unexpected"
     return Object.assign({}, {
         data:
         {
@@ -422,7 +437,8 @@ export function toCyEdge(edge: GraphEdge): cytoscape.ElementDefinition {
             source: edge.from,
             target: edge.to, label: edge.label,
             hidden: edge.hidden ? "true" : "false",
-            denied: edge.deniedConnection ? "true" : "false"
+            denied: edge.deniedConnection ? "true" : "false",
+            status
         },
     })
 }

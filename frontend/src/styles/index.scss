@@ -1,0 +1,11 @@
+// =============================================================================
+// Component entry point. Import in any component with:
+//
+//     @use 'styles' as *;
+//
+// This forwards ONLY constants and mixins — it emits no CSS, so it's safe to
+// pull into every file. Global CSS (theme vars + reset) lives in global.scss,
+// which is imported exactly once from index.tsx.
+// =============================================================================
+@forward 'tokens';
+@forward 'mixins';

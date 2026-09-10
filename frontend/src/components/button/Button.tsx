@@ -1,4 +1,4 @@
-import './Button.css'
+import './Button.scss'
 import React from "react";
 import {IconType} from "react-icons";
 

@@ -1,0 +1,53 @@
+@use 'styles' as *;
+
+.viewWrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+.w70 { width: 70%; }
+.w100 { width: 100%; }
+.w30 { width: 30%; }
+
+.col {
+  margin-left: $space-2;
+  margin-bottom: $space-2;
+  overflow: hidden;
+}
+
+#ControlsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+// Toolbar of graph controls (print toggle, downloads, filters).
+#SwitchWrapper {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+// Destructive reset action.
+#resetGraph {
+  height: var(--control-h);
+  padding: 0 $space-4;
+  background: var(--error);
+  color: #fff;
+  border: 1px solid var(--error);
+  border-radius: var(--radius-pill);
+  font-weight: $weight-semibold;
+  font-size: $text-sm;
+  cursor: pointer;
+  transition: background $duration-fast $ease-standard;
+
+  &:hover {
+    background: #c23b45;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
+  }
+}

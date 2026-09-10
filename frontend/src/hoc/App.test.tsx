@@ -11,10 +11,9 @@ test("App runs", () => {
   );
   //const sidebar = screen.getByRole("sidebar")
   expect(screen.getByText("Kubesonde Viewer")).not.toBeUndefined();
-  const links = screen.getAllByRole("menuLink") as HTMLLinkElement[];
-  expect(links.length).toBe(2);
-  const names = links.map((link: HTMLLinkElement) => link.textContent);
-  expect(names).toEqual(["Upload a file", "Load example probe"]);
+  // Navigation lives on the menu-item rows (onClick), so assert the labels render.
+  expect(screen.getByText("Upload a file")).not.toBeUndefined();
+  expect(screen.getByText("Load example probe")).not.toBeUndefined();
 
   /* const graphToggle = screen.getByRole("graphLibToggle")
     expect(graphToggle.children.length).toBe(1)

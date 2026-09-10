@@ -1,6 +1,6 @@
 import React from "react";
 import { GraphTable, GraphTableCell } from "../table/graphTable/graphTable";
-import "./graphController.css";
+import "./graphController.scss";
 import Switch from "react-switch";
 import { ColourOption, PortSelector } from "./PortSelector";
 import { MultiValue } from "react-select";
@@ -15,6 +15,8 @@ export interface GraphControllerProps {
   };
   showDeniedConnections: boolean;
   showDeniedConnectionsHandler: () => void;
+  showOnlyUnexpected: boolean;
+  showOnlyUnexpectedHandler: () => void;
   tableData: GraphTableCell[];
   deploymentClickHandler: (key: string) => void;
   enableDeploymentHandler: (
@@ -42,6 +44,8 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   ports,
   showDeniedConnections,
   showDeniedConnectionsHandler,
+  showOnlyUnexpected,
+  showOnlyUnexpectedHandler,
   tableData,
   deploymentClickHandler,
   enableDeploymentHandler,
@@ -57,7 +61,7 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   const data = filterablePorts.map((port) => ({
     value: port.port + "/" + port.protocol,
     label: port.port + "/" + port.protocol,
-    color: "var(--secoColor)",
+    color: "var(--ink)",
   }));
   const onChange = (values: MultiValue<ColourOption>) => {
     const ids = values.map((value) => value.value);
@@ -66,7 +70,7 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   const portsFilt = portsFiltered.map((port) => ({
     value: port,
     label: port,
-    color: "var(--secoColor)",
+    color: "var(--ink)",
   }));
   return (
     <>
@@ -92,6 +96,20 @@ export const GraphController: React.FC<GraphControllerProps> = ({
               onChange={showDeniedConnectionsHandler}
             />
             <span> Show denied connections</span>
+
+            <span style={{ margin: "8px" }} />
+            <Switch
+              role="switch"
+              height={14}
+              width={30}
+              checkedIcon={false}
+              uncheckedIcon={false}
+              onColor="#c9821a"
+              offColor="#bbbbbb"
+              checked={showOnlyUnexpected}
+              onChange={showOnlyUnexpectedHandler}
+            />
+            <span> Show only unexpected connections</span>
 
             <span style={{ margin: "4px" }} />
             <Button
