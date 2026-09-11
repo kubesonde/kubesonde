@@ -122,7 +122,7 @@ export default defineConfig({
     ],
 
     editLink: {
-      pattern: 'https://github.com/kubesonde/kubesonde/edit/main/docs-site/:path',
+      pattern: 'https://github.com/kubesonde/kubesonde/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
 

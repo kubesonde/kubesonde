@@ -30,5 +30,7 @@ Static output is written to `.vitepress/dist/`.
 
 Static assets live in `public/`:
 
-- `architecture.png` — the component diagram (from the repo `docs/` folder)
+- `kubesonde.png` — the component/architecture diagram
+- `kubesonde.pdf` — design notes / paper
 - `logo.png` — the Kubesonde logo
+- `screenshots/` — captures of the viewer UI

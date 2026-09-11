@@ -2,7 +2,7 @@
 
 Kubesonde has two parts: a **manager** (the controller) that runs in the `kubesonde-system` namespace, and per-pod **probe** and **monitor** containers that the manager injects into the pods it targets. A separate **frontend** reads results from the manager and renders the connectivity graph.
 
-![Kubesonde architecture: the manager (Kubernetes API event listener, Kubesonde API server, result storage, probe queue, probe dispatcher, monitor listener) drives probe and monitor containers inside each target pod.](/architecture.png)
+![Kubesonde architecture: the manager (Kubernetes API event listener, Kubesonde API server, result storage, probe queue, probe dispatcher, monitor listener) drives probe and monitor containers inside each target pod.](/kubesonde.png)
 
 ## The manager
 
