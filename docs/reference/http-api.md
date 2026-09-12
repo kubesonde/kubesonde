@@ -11,21 +11,39 @@ All endpoints send permissive CORS headers, so the browser-based [frontend](/how
 
 ## `GET /probes`
 
-Returns all recorded probes as JSON. This is the payload you export and load into the UI.
+Returns the recorded probe state as a JSON **object**. This is the payload you export and load into the UI.
 
 ```bash
 curl -s localhost:2709/probes > probes.json
 ```
 
-Each probe item includes (fields are omitted when empty):
+The response is an object, not a bare array. The probes live under `items`:
+
+```json
+{
+  "items": [ { "type": "Probe", "resultingAction": "Allow", ... } ],
+  "errors": [ { "reason": "command terminated with exit code 1", "value": { ... } } ],
+  "podNetworking": [],
+  "podNetworkingv2": { },
+  "podConfigurationNetworking": { }
+}
+```
+
+| Top-level field | Type | Description |
+| --- | --- | --- |
+| `items` | array | The recorded probes (see the fields below). |
+| `errors` | array | Probes that failed to run, each with a `reason` and the offending probe under `value`. |
+| `podNetworking`, `podNetworkingv2`, `podConfigurationNetworking` | — | Internal networking snapshots used by the UI. |
+
+Each entry in `items` includes (fields are omitted when empty):
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `type` | string | `Probe` (a connection attempt) or `Information`. |
 | `expectedAction` | string | The asserted outcome, if you set `expected` — `Allow` or `Deny`. |
 | `resultingAction` | string | The observed outcome — `Allow` or `Deny`. |
-| `source` | object | Origin endpoint (`type`, `name`, `IPAddress`). |
-| `destination` | object | Destination endpoint (`type`, `name`, `IPAddress`). |
+| `source` | object | Origin endpoint (see below). |
+| `destination` | object | Destination endpoint (see below). |
 | `destinationHostnames` | string[] | Hostnames resolved for the destination. |
 | `protocol` | string | Transport protocol. |
 | `port` | string | Destination port (defaults to `80`). |
@@ -33,7 +51,7 @@ Each probe item includes (fields are omitted when empty):
 | `timestamp` | int64 | Unix timestamp of the probe. |
 | `debugOutput` | string | Raw output of the request (e.g. the HTTP code for TCP). |
 
-Endpoint `type` is one of `Pod`, `Service`, or `Internet`.
+Each endpoint (`source` / `destination`) may include `type` (`Pod`, `Service`, or `Internet`), `name`, `IPAddress`, `namespace`, `labels`, `deploymentName`, and `replicaSetName`.
 
 ## `GET /probes/status`
 
