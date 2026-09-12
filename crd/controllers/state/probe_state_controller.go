@@ -123,9 +123,8 @@ func NewStateManager() *StateManager {
 		probeOutput: v1.ProbeOutput{
 			Items:                      []v1.ProbeOutputItem{},
 			Errors:                     []v1.ProbeOutputError{},
-			PodNetworking:              []v1.PodNetworkingInfo{},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodNetworking:              make(v1.PodNetworkingInfo),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 		},
 		podsWithNetstat: []string{},
 		lockTimeout:     defaultLockTimeout,
@@ -183,9 +182,8 @@ func (sm *StateManager) GetProbeState() v1.ProbeOutput {
 	return v1.ProbeOutput{
 		Items:                      append([]v1.ProbeOutputItem{}, sm.probeOutput.Items...),
 		Errors:                     append([]v1.ProbeOutputError{}, sm.probeOutput.Errors...),
-		PodNetworking:              append([]v1.PodNetworkingInfo{}, sm.probeOutput.PodNetworking...),
-		PodNetworkingV2:            copyNetworkingMapV2(sm.probeOutput.PodNetworkingV2),
-		PodConfigurationNetworking: copyNetworkingMapV2(sm.probeOutput.PodConfigurationNetworking),
+		PodNetworking:              copyNetworkingMap(sm.probeOutput.PodNetworking),
+		PodConfigurationNetworking: copyNetworkingMap(sm.probeOutput.PodConfigurationNetworking),
 		Start:                      sm.probeOutput.Start,
 		End:                        sm.probeOutput.End,
 	}
@@ -229,8 +227,8 @@ func (sm *StateManager) AppendErrors(items *[]v1.ProbeOutputError) error {
 	return nil
 }
 
-// AppendNetInfoV2 adds networking items to a specific key (union operation)
-func (sm *StateManager) AppendNetInfoV2(key string, items *[]v1.PodNetworkingItem) error {
+// AppendNetInfo adds networking items to a specific key (union operation)
+func (sm *StateManager) AppendNetInfo(key string, items *[]v1.PodNetworkingItem) error {
 	if items == nil {
 		return fmt.Errorf("items cannot be nil")
 	}
@@ -241,7 +239,7 @@ func (sm *StateManager) AppendNetInfoV2(key string, items *[]v1.PodNetworkingIte
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	sm.probeOutput.PodNetworkingV2[key] = lo.Union(sm.probeOutput.PodNetworkingV2[key], *items)
+	sm.probeOutput.PodNetworking[key] = lo.Union(sm.probeOutput.PodNetworking[key], *items)
 	return nil
 }
 
@@ -261,8 +259,8 @@ func (sm *StateManager) SetConfig(podName string, items *[]v1.PodNetworkingItem)
 	return nil
 }
 
-// SetNetInfoV2 replaces networking items for a specific key
-func (sm *StateManager) SetNetInfoV2(key string, items *[]v1.PodNetworkingItem) error {
+// SetNetInfo replaces networking items for a specific key
+func (sm *StateManager) SetNetInfo(key string, items *[]v1.PodNetworkingItem) error {
 	if items == nil {
 		return fmt.Errorf("items cannot be nil")
 	}
@@ -273,7 +271,7 @@ func (sm *StateManager) SetNetInfoV2(key string, items *[]v1.PodNetworkingItem) 
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	sm.probeOutput.PodNetworkingV2[key] = *items
+	sm.probeOutput.PodNetworking[key] = *items
 	return nil
 }
 
@@ -290,9 +288,8 @@ func (sm *StateManager) Clear() {
 	sm.probeOutput = v1.ProbeOutput{
 		Items:                      []v1.ProbeOutputItem{},
 		Errors:                     []v1.ProbeOutputError{},
-		PodNetworking:              []v1.PodNetworkingInfo{},
-		PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-		PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+		PodNetworking:              make(v1.PodNetworkingInfo),
+		PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 	}
 	sm.lastChangeAt = time.Time{}
 	sm.mu.Unlock()
@@ -305,12 +302,12 @@ func (sm *StateManager) Clear() {
 }
 
 // Helper function to deep copy networking map
-func copyNetworkingMapV2(src v1.PodNetworkingInfoV2) v1.PodNetworkingInfoV2 {
+func copyNetworkingMap(src v1.PodNetworkingInfo) v1.PodNetworkingInfo {
 	if src == nil {
-		return make(v1.PodNetworkingInfoV2)
+		return make(v1.PodNetworkingInfo)
 	}
 
-	dst := make(v1.PodNetworkingInfoV2, len(src))
+	dst := make(v1.PodNetworkingInfo, len(src))
 	for k, v := range src {
 		dst[k] = append([]v1.PodNetworkingItem{}, v...)
 	}
@@ -352,8 +349,8 @@ func AppendErrors(items *[]v1.ProbeOutputError) {
 	}
 }
 
-func AppendNetInfoV2(key string, items *[]v1.PodNetworkingItem) {
-	if err := GetDefaultManager().AppendNetInfoV2(key, items); err != nil {
+func AppendNetInfo(key string, items *[]v1.PodNetworkingItem) {
+	if err := GetDefaultManager().AppendNetInfo(key, items); err != nil {
 		log.Error(err, "Failed to append net info v2")
 	}
 }
@@ -364,9 +361,9 @@ func SetConfig(podName string, items *[]v1.PodNetworkingItem) {
 	}
 }
 
-func SetNetInfoV2(key string, items *[]v1.PodNetworkingItem) {
-	if err := GetDefaultManager().SetNetInfoV2(key, items); err != nil {
-		log.Error(err, "Failed to set net info v2")
+func SetNetInfo(key string, items *[]v1.PodNetworkingItem) {
+	if err := GetDefaultManager().SetNetInfo(key, items); err != nil {
+		log.Error(err, "Failed to set net info")
 	}
 }
 

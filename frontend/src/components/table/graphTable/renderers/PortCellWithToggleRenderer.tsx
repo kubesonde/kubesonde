@@ -1,12 +1,12 @@
 import { CellContext } from "@tanstack/react-table";
 import { GraphTableCell } from "../graphTable";
-import { PodNetworkingInfoV2 } from "src/entities/probeOutput";
+import { PodNetworkingInfo } from "src/entities/probeOutput";
 
 export const PortCellWithToggleRenderer = (
   ports: {
-    netstat: PodNetworkingInfoV2;
-    declared: PodNetworkingInfoV2;
-    probed: PodNetworkingInfoV2;
+    netstat: PodNetworkingInfo;
+    declared: PodNetworkingInfo;
+    probed: PodNetworkingInfo;
   },
   row: CellContext<GraphTableCell, unknown>
 ) => {

@@ -132,7 +132,7 @@ export const CompleteExample: ProbeOutput = {
         ],
     },
     // Ports actually observed listening on the pods (e.g. via netstat).
-    podNetworkingv2: {
+    podNetworking: {
         pod2: [
             { ip: "10.0.0.2", port: "80", protocol: "TCP" },
             { ip: "10.0.0.2", port: "22", protocol: "TCP" },

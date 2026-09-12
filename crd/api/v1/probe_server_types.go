@@ -90,18 +90,13 @@ type ProbeOutputError struct {
 	Reason string          `json:"reason,omitempty"`
 }
 
-type PodNetworkingInfo struct {
-	PodName string `json:"podName"`
-	Netstat string `json:"netstat"`
-}
 type ProbeOutput struct {
-	Items                      []ProbeOutputItem   `json:"items"`
-	Errors                     []ProbeOutputError  `json:"errors"`
-	PodNetworking              []PodNetworkingInfo `json:"podNetworking"` // TODO: Delete this
-	PodNetworkingV2            PodNetworkingInfoV2 `json:"podNetworkingv2"`
-	PodConfigurationNetworking PodNetworkingInfoV2 `json:"podConfigurationNetworking"`
-	Start                      string              `json:"start,omitempty"` // TODO: This may be unuseful
-	End                        string              `json:"end,omitempty"`   // TODO: This may be unuseful
+	Items                      []ProbeOutputItem  `json:"items"`
+	Errors                     []ProbeOutputError `json:"errors"`
+	PodNetworking              PodNetworkingInfo  `json:"podNetworking"`
+	PodConfigurationNetworking PodNetworkingInfo  `json:"podConfigurationNetworking"`
+	Start                      string             `json:"start,omitempty"` // TODO: This may be unuseful
+	End                        string             `json:"end,omitempty"`   // TODO: This may be unuseful
 }
 
 type PodNetworkingItem struct {
@@ -110,4 +105,4 @@ type PodNetworkingItem struct {
 	Protocol string `json:"protocol"`
 }
 
-type PodNetworkingInfoV2 map[string][]PodNetworkingItem
+type PodNetworkingInfo map[string][]PodNetworkingItem

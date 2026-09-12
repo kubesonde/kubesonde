@@ -24,9 +24,8 @@ var _ = Describe("PostProbesClear", func() {
 		innerState := v1.ProbeOutput{
 			Items:                      []v1.ProbeOutputItem{},
 			Errors:                     []v1.ProbeOutputError{},
-			PodNetworking:              []v1.PodNetworkingInfo{},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodNetworking:              make(v1.PodNetworkingInfo),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 		}
 		stateManager.SetProbeState(&innerState)
 	})
@@ -39,13 +38,10 @@ var _ = Describe("PostProbesClear", func() {
 			Errors: []v1.ProbeOutputError{
 				{Value: v1.ProbeOutputItem{Type: "Probe"}},
 			},
-			PodNetworking: []v1.PodNetworkingInfo{
-				{PodName: "testPod", Netstat: "data"},
-			},
-			PodNetworkingV2: v1.PodNetworkingInfoV2{
+			PodNetworking: v1.PodNetworkingInfo{
 				"key1": []v1.PodNetworkingItem{{Port: "80", IP: "10.0.0.1"}},
 			},
-			PodConfigurationNetworking: v1.PodNetworkingInfoV2{
+			PodConfigurationNetworking: v1.PodNetworkingInfo{
 				"pod1": []v1.PodNetworkingItem{{Port: "443", IP: "10.0.0.2"}},
 			},
 			Start: "startTime",
@@ -64,7 +60,6 @@ var _ = Describe("PostProbesClear", func() {
 		Expect(result.Items).To(BeEmpty())
 		Expect(result.Errors).To(BeEmpty())
 		Expect(result.PodNetworking).To(BeEmpty())
-		Expect(result.PodNetworkingV2).To(BeEmpty())
 		Expect(result.PodConfigurationNetworking).To(BeEmpty())
 		Expect(result.Start).To(BeEmpty())
 		Expect(result.End).To(BeEmpty())
@@ -86,9 +81,8 @@ var _ = Describe("PostProbesClear with default manager", func() {
 		innerState := v1.ProbeOutput{
 			Items:                      []v1.ProbeOutputItem{},
 			Errors:                     []v1.ProbeOutputError{},
-			PodNetworking:              []v1.PodNetworkingInfo{},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodNetworking:              make(v1.PodNetworkingInfo),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 		}
 		state.SetProbeState(&innerState)
 	})

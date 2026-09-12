@@ -1,6 +1,6 @@
-import { PodNetworkingInfoV2, ProbeEndpointInfo, ProbeEndpointType, ProbeOutput, ProbeOutputError, ProbeOutputItem } from "../entities/probeOutput";
+import { PodNetworkingInfo, ProbeEndpointInfo, ProbeEndpointType, ProbeOutput, ProbeOutputError, ProbeOutputItem } from "../entities/probeOutput";
 import { GraphNode, SimpleGraphEdge } from "../entities/graph";
-import { NetstatInterface, parseNetstat } from "./netstat";
+import { NetstatInterface } from "./netstat";
 import { Dict } from "src/entities/types";
 
 //const PUBLIC_DNS = "Public DNS"
@@ -70,15 +70,6 @@ const toErrorEdge = (groupMap: Map<string, string>) => (probe: ProbeOutputError,
     deniedConnection: true,
     timestamp: probe.value.timestamp
 })
-
-export function getNetstatInfoFromProbes(input_probes: ProbeOutput): NetstatInfo[] | undefined {
-    const netstatMap = input_probes.podNetworking?.map((item) =>
-        ({ name: item.podName, entries: item.netstat.split('\n').slice(2) }))
-    return netstatMap?.map((entry) => ({
-        name: entry.name,
-        entries: entry?.entries.map((e) => parseNetstat(e))
-    }))
-}
 
 export function buildNodesFromProbes(probes: ProbeOutput): GraphNode[] {
     const buildTitle = (item: ProbeEndpointInfo): string => {
@@ -174,13 +165,13 @@ export function getPodIPMappingFromProbes(input_probes: ProbeOutput): Dict | und
 
 }
 
-export function cleanupNetInfo(data: PodNetworkingInfoV2): PodNetworkingInfoV2 {
+export function cleanupNetInfo(data: PodNetworkingInfo): PodNetworkingInfo {
     return Object.entries(data).map(([key, value]) => {
         return { key, value: value.filter((item) => item.ip !== "127.0.0.1") }
     }).reduce((acc, curr) => {
         acc[curr.key] = curr.value
         return acc
-    }, {} as PodNetworkingInfoV2)
+    }, {} as PodNetworkingInfo)
 
 }
 
@@ -212,7 +203,7 @@ export function cleanupProbeOutput(input_probes: ProbeOutput): ProbeOutput {
     const updated_probes = {
         ...input_probes,
         items: cleanupProbes(input_probes.items),
-        podNetworkingv2: cleanupNetInfo(input_probes.podNetworkingv2)
+        podNetworking: cleanupNetInfo(input_probes.podNetworking)
     }
     const fixed_services = {
         ...updated_probes,

@@ -37,7 +37,7 @@ import {
   onPodClick,
   onPortClick,
 } from "src/components/graph/graphBase/GraphBaseAPIs";
-import { PodNetworkingInfoV2 } from "src/entities/probeOutput";
+import { PodNetworkingInfo } from "src/entities/probeOutput";
 
 // Only cy.popperRef() is used in this file, which doesn't invoke the factory,
 // so a no-op factory satisfies the registration requirement.
@@ -47,8 +47,8 @@ export type GraphProps = BasicGraphProps & { title: string };
 export interface BasicGraphProps {
   nodes: GraphNode[];
   edges: SimpleGraphEdge[];
-  podNetworkInfo?: PodNetworkingInfoV2;
-  declarativeConfiguration?: PodNetworkingInfoV2;
+  podNetworkInfo?: PodNetworkingInfo;
+  declarativeConfiguration?: PodNetworkingInfo;
 }
 
 const headless = import.meta.env.NODE_ENV === "test";
@@ -60,7 +60,7 @@ const headless = import.meta.env.NODE_ENV === "test";
  * const nodes: GraphNode[] = []
  * const edges: SimpleGraphEdge[] = []
  * const netstat: NetstatInfo[] = []
- * const podNetworkInfo: PodNetworkingInfoV2 = {}
+ * const podNetworkInfo: PodNetworkingInfo = {}
  * return (
  *   <GraphBase nodes={nodes} edges={edges} nestat={netstat} podNetworkInfo={podNetworkingInfo} />
  * )
@@ -102,7 +102,7 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     }
     acc[curr.to] = [entry];
     return acc;
-  }, {} as PodNetworkingInfoV2);
+  }, {} as PodNetworkingInfo);
   const [filteredPorts, setFilteredPorts] = useState<BoolDict>(
     toBoolDict(ports)
   );

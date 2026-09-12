@@ -22,7 +22,7 @@ export const GraphJSONUploadComponent: React.FC = () => {
         title="JSON example"
         nodes={nodes}
         edges={edges}
-        podNetworkInfo={parsedData.podNetworkingv2}
+        podNetworkInfo={parsedData.podNetworking}
         declarativeConfiguration={parsedData.podConfigurationNetworking}
       />
     );

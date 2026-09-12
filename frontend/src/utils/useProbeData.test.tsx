@@ -18,7 +18,7 @@ const jsonResponse = (body: unknown, ok = true, statusCode = 200): Response =>
 
 const incompleteStatus = { complete: false, count: 3, window: 1000, secondsSinceLastChange: 1 };
 const completeStatus = { complete: true, count: 5, window: 1000, secondsSinceLastChange: 30 };
-const probeOutput = { start: "a", end: "b", items: [], errors: [], podNetworkingv2: {}, podConfigurationNetworking: {} };
+const probeOutput = { start: "a", end: "b", items: [], errors: [], podNetworking: {}, podConfigurationNetworking: {} };
 
 describe("useProbeData", () => {
     let fetchMock: FetchMock;
