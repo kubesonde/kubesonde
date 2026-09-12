@@ -23,9 +23,8 @@ The response is an object, not a bare array. The probes live under `items`:
 {
   "items": [ { "type": "Probe", "resultingAction": "Allow", ... } ],
   "errors": [ { "reason": "command terminated with exit code 1", "value": { ... } } ],
-  "podNetworking": [],
-  "podNetworkingv2": { },
-  "podConfigurationNetworking": { }
+  "podNetworking": { "podA": [ { "port": "80", "ip": "10.0.0.1", "protocol": "TCP" } ] },
+  "podConfigurationNetworking": { "podA": [ { "port": "80", "ip": "", "protocol": "TCP" } ] }
 }
 ```
 
@@ -33,7 +32,8 @@ The response is an object, not a bare array. The probes live under `items`:
 | --- | --- | --- |
 | `items` | array | The recorded probes (see the fields below). |
 | `errors` | array | Probes that failed to run, each with a `reason` and the offending probe under `value`. |
-| `podNetworking`, `podNetworkingv2`, `podConfigurationNetworking` | — | Internal networking snapshots used by the UI. |
+| `podNetworking` | object | Per-pod observed open ports, keyed by pod name: `{ pod: [{ port, ip, protocol }] }`. |
+| `podConfigurationNetworking` | object | Per-pod ports declared in the pod's configuration, same shape as `podNetworking`. |
 
 Each entry in `items` includes (fields are omitted when empty):
 
