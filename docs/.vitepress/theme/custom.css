@@ -1,0 +1,85 @@
+/*
+ * Kubesonde docs theme overrides.
+ * Colors mirror the Kubesonde frontend palette (src/styles):
+ *   brand-500 #3a5ba9 (logo blue), 600 #2f4c90, 700 #263d74,
+ *   ink #14203a, surfaces #eef2f8 / #ffffff / #f6f8fc,
+ *   ok #1f9d6b, warn #c9821a, error #d64550.
+ */
+
+:root {
+  /* Brand ramp */
+  --vp-c-brand-1: #2f4c90;   /* brand-600 — primary (text on light) */
+  --vp-c-brand-2: #3a5ba9;   /* brand-500 — logo blue */
+  --vp-c-brand-3: #3a5ba9;   /* solid button / hover base */
+  --vp-c-brand-soft: #e7ecf7; /* brand-100 tint */
+
+  --vp-c-default-soft: #f6f8fc; /* panel-alt */
+
+  /* Semantic accents from the frontend */
+  --vp-c-tip-1: #1f9d6b;
+  --vp-c-tip-soft: #e6f5ee;
+  --vp-c-warning-1: #c9821a;
+  --vp-c-warning-soft: #fbf0de;
+  --vp-c-danger-1: #d64550;
+  --vp-c-danger-soft: #fbeaeb;
+
+  /* Home hero */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #3a5ba9, #2f4c90);
+  --vp-home-hero-image-background-image: linear-gradient(120deg, #cbd8ee, #5b7bc4);
+  --vp-home-hero-image-filter: blur(44px);
+
+  /* Buttons */
+  --vp-button-brand-bg: #3a5ba9;
+  --vp-button-brand-hover-bg: #2f4c90;
+  --vp-button-brand-active-bg: #263d74;
+  --vp-button-brand-border: #3a5ba9;
+}
+
+/* Light surfaces + ink to match the app canvas */
+:root {
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #eef2f8;      /* app canvas */
+  --vp-c-bg-soft: #f6f8fc;     /* panel-alt */
+  --vp-c-text-1: #14203a;      /* deep navy ink */
+  --vp-c-text-2: #55627a;      /* ink-muted */
+  --vp-c-text-3: #8a93a6;      /* ink-faint */
+  --vp-c-border: #dae0ec;
+  --vp-c-divider: #dae0ec;
+}
+
+/* Dark theme mirrors the frontend dark palette */
+.dark {
+  --vp-c-brand-1: #8fa8e0;     /* lighter for contrast on dark */
+  --vp-c-brand-2: #5b7bc4;     /* brand-400 */
+  --vp-c-brand-3: #3a5ba9;
+  --vp-c-brand-soft: #1a2844;
+
+  --vp-c-bg: #0d1526;          /* dark-surface */
+  --vp-c-bg-alt: #131f36;      /* dark-panel */
+  --vp-c-bg-soft: #1a2844;     /* dark-panel-alt */
+  --vp-c-bg-elv: #131f36;
+  --vp-c-text-1: #e7edf7;      /* dark-ink */
+  --vp-c-text-2: #9aa8c4;      /* dark-ink-muted */
+  --vp-c-border: #26375a;      /* dark-border */
+  --vp-c-divider: #26375a;
+  --vp-c-default-soft: #1a2844;
+
+  --vp-button-brand-bg: #3a5ba9;
+  --vp-button-brand-hover-bg: #5b7bc4;
+  --vp-home-hero-name-background: linear-gradient(120deg, #8fa8e0, #5b7bc4);
+
+  /* Lighten the semantic accents so their text/titles stay legible on dark. */
+  --vp-c-warning-1: #e6a23c;
+  --vp-c-warning-2: #eab558;
+  --vp-c-warning-soft: #3a2e12;
+  --vp-c-tip-1: #3fbd85;
+  --vp-c-tip-soft: #12301f;
+  --vp-c-danger-1: #e26670;
+  --vp-c-danger-soft: #3a1a1c;
+}
+
+/* Custom-block titles inherit the accent; make sure warning text tracks it. */
+.dark .custom-block.warning .custom-block-title {
+  color: var(--vp-c-warning-1);
+}
