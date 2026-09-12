@@ -59,7 +59,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kubesonde-frontend
+  name: frontend
   labels:
     app.kubernetes.io/name: frontend
     app.kubernetes.io/component: frontend
