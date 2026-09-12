@@ -1,11 +1,9 @@
+import { ColumnDef, flexRender, CellContext } from '@tanstack/react-table'
 import {
-    ColumnDef,
-    useReactTable,
+    useLegacyTable as useReactTable,
     getCoreRowModel,
     getExpandedRowModel,
-    flexRender,
-    CellContext,
-} from '@tanstack/react-table'
+} from '@tanstack/react-table/legacy'
 import React, {useEffect, useMemo, useState} from "react";
 import {computeMetrics} from "../../../utils/graph";
 import "../graphTable/table.scss"

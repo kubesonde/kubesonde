@@ -17,9 +17,10 @@ module.exports = {
     transform: {
         "^.+\\.(t|j)sx?$": "<rootDir>/jest.swc-transform.cjs",
     },
-    // react-router (and a few deps) ship ESM; let swc transform them too.
+    // react-router, @tanstack/* (react-table v9 and its deps), and a few others
+    // ship ESM; let swc transform them too.
     transformIgnorePatterns: [
-        "/node_modules/(?!(react-router|react-router-dom|@remix-run|react-cytoscapejs)/)",
+        "/node_modules/(?!(react-router|react-router-dom|@remix-run|react-cytoscapejs|@tanstack)/)",
     ],
     testMatch: ["<rootDir>/src/**/*.test.{ts,tsx}"],
     collectCoverageFrom: [

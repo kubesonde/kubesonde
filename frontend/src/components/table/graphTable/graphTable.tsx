@@ -1,11 +1,9 @@
+import { ColumnDef, flexRender, CellContext } from "@tanstack/react-table";
 import {
-  ColumnDef,
-  useReactTable,
+  useLegacyTable as useReactTable,
   getCoreRowModel,
   getExpandedRowModel,
-  flexRender,
-  CellContext,
-} from "@tanstack/react-table";
+} from "@tanstack/react-table/legacy";
 import { useMemo } from "react";
 import "./table.scss";
 import { PodCellRenderer } from "./renderers/PodCellRenderer";
