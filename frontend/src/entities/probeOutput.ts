@@ -3,20 +3,15 @@ export interface ProbeOutput {
     end: string,
     items: ProbeOutputItem[],
     errors: ProbeOutputError[],
-    podNetworking?: PodNetworkingInfo[]
-    podNetworkingv2: PodNetworkingInfoV2
-    podConfigurationNetworking: PodNetworkingInfoV2
+    podNetworking: PodNetworkingInfo
+    podConfigurationNetworking: PodNetworkingInfo
 }
 
-export interface PodNetworkingInfoV2 { [name: string]: PodNetwotkingItem[] }
+export interface PodNetworkingInfo { [name: string]: PodNetwotkingItem[] }
 export interface PodNetwotkingItem {
     ip: string,
     port: string,
     protocol: string
-}
-export interface PodNetworkingInfo {
-    podName: string,
-    netstat: string
 }
 
 export enum ProbeOutputType {

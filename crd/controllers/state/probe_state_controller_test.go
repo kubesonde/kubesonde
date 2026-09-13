@@ -31,7 +31,6 @@ func TestStateManagerCreation(t *testing.T) {
 		assert.NotNil(t, sm.probeOutput.Items)
 		assert.NotNil(t, sm.probeOutput.Errors)
 		assert.NotNil(t, sm.probeOutput.PodNetworking)
-		assert.NotNil(t, sm.probeOutput.PodNetworkingV2)
 		assert.NotNil(t, sm.probeOutput.PodConfigurationNetworking)
 		assert.NotNil(t, sm.podsWithNetstat)
 		assert.Equal(t, defaultLockTimeout, sm.lockTimeout)
@@ -279,7 +278,7 @@ func TestStateManagerAppendOperations(t *testing.T) {
 }
 
 func TestStateManagerNetInfoOperations(t *testing.T) {
-	t.Run("Test AppendNetInfoV2", func(t *testing.T) {
+	t.Run("Test AppendNetInfo", func(t *testing.T) {
 		sm := NewStateManager()
 
 		// Add initial net info
@@ -292,7 +291,7 @@ func TestStateManagerNetInfoOperations(t *testing.T) {
 			},
 		}
 
-		err := sm.AppendNetInfoV2(key, &initialItems)
+		err := sm.AppendNetInfo(key, &initialItems)
 		assert.NoError(t, err)
 
 		// Add more items
@@ -304,24 +303,24 @@ func TestStateManagerNetInfoOperations(t *testing.T) {
 			},
 		}
 
-		err = sm.AppendNetInfoV2(key, &newItems)
+		err = sm.AppendNetInfo(key, &newItems)
 		assert.NoError(t, err)
 
 		// Check that both items are present
 		state := sm.GetProbeState()
-		assert.Len(t, state.PodNetworkingV2[key], 2)
+		assert.Len(t, state.PodNetworking[key], 2)
 	})
 
-	t.Run("Test AppendNetInfoV2 with nil input", func(t *testing.T) {
+	t.Run("Test AppendNetInfo with nil input", func(t *testing.T) {
 		sm := NewStateManager()
-		err := sm.AppendNetInfoV2("test-key", nil)
+		err := sm.AppendNetInfo("test-key", nil)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "items cannot be nil")
 	})
 
-	t.Run("Test AppendNetInfoV2 with empty key", func(t *testing.T) {
+	t.Run("Test AppendNetInfo with empty key", func(t *testing.T) {
 		sm := NewStateManager()
-		err := sm.AppendNetInfoV2("", nil)
+		err := sm.AppendNetInfo("", nil)
 		assert.Error(t, err)
 	})
 
@@ -359,7 +358,7 @@ func TestStateManagerNetInfoOperations(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("Test SetNetInfoV2", func(t *testing.T) {
+	t.Run("Test SetNetInfo", func(t *testing.T) {
 		sm := NewStateManager()
 
 		// Set net info
@@ -372,24 +371,24 @@ func TestStateManagerNetInfoOperations(t *testing.T) {
 			},
 		}
 
-		err := sm.SetNetInfoV2(key, &items)
+		err := sm.SetNetInfo(key, &items)
 		assert.NoError(t, err)
 
 		// Check that net info is set
 		state := sm.GetProbeState()
-		assert.Len(t, state.PodNetworkingV2[key], 1)
+		assert.Len(t, state.PodNetworking[key], 1)
 	})
 
-	t.Run("Test SetNetInfoV2 with nil input", func(t *testing.T) {
+	t.Run("Test SetNetInfo with nil input", func(t *testing.T) {
 		sm := NewStateManager()
-		err := sm.SetNetInfoV2("test-key", nil)
+		err := sm.SetNetInfo("test-key", nil)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "items cannot be nil")
 	})
 
-	t.Run("Test SetNetInfoV2 with empty key", func(t *testing.T) {
+	t.Run("Test SetNetInfo with empty key", func(t *testing.T) {
 		sm := NewStateManager()
-		err := sm.SetNetInfoV2("", nil)
+		err := sm.SetNetInfo("", nil)
 		assert.Error(t, err)
 	})
 }

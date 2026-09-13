@@ -12,7 +12,7 @@ export const ExampleGraphComponent: React.FC = () => {
       title="Example"
       nodes={nodes}
       edges={edges}
-      podNetworkInfo={CompleteExample.podNetworkingv2}
+      podNetworkInfo={CompleteExample.podNetworking}
       declarativeConfiguration={CompleteExample.podConfigurationNetworking}
     />
   );

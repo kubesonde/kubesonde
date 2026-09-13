@@ -6,7 +6,7 @@ import {
   cleanupProbeOutput,
   ProbeErrorInfo,
 } from "src/utils/probes";
-import { PodNetworkingInfoV2, ProbeOutput } from "src/entities/probeOutput";
+import { PodNetworkingInfo, ProbeOutput } from "src/entities/probeOutput";
 import { ErrorLogTable } from "src/components/table/graphTable/errorLogTable";
 import React from "react";
 import { WithSwitch } from "src/hoc/WithSwitch";
@@ -18,7 +18,7 @@ const isPresent = (errorLog: ProbeErrorInfo[] | undefined): boolean => {
   return errorLog !== null && errorLog !== undefined && errorLog.length > 0;
 };
 
-const netinfo2Table = (netInfo: PodNetworkingInfoV2) => {
+const netinfo2Table = (netInfo: PodNetworkingInfo) => {
   const unsortedEntries = Object.entries(netInfo)
     .map(([key, value]) => {
       if (value === undefined || value === null) {
@@ -77,7 +77,7 @@ const GraphViewComponent = ({ data: rawData, title }: GraphViewProps) => {
       .sort()
       .join(",");
   const errorLog = getErrorLogs(data);
-  const netInfoContainers = data.podNetworkingv2;
+  const netInfoContainers = data.podNetworking;
   const netInfoContainersData =
     netInfoContainers && netinfo2Table(netInfoContainers);
 

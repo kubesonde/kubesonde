@@ -26,10 +26,9 @@ func TestContinuousMode(t *testing.T) {
 var _ = Describe("ContinuousMode", func() {
 	BeforeEach(func() {
 		innerState := v1.ProbeOutput{
-			Items:           []v1.ProbeOutputItem{},
-			Errors:          []v1.ProbeOutputError{},
-			PodNetworking:   []v1.PodNetworkingInfo{},
-			PodNetworkingV2: make(v1.PodNetworkingInfoV2),
+			Items:         []v1.ProbeOutputItem{},
+			Errors:        []v1.ProbeOutputError{},
+			PodNetworking: make(v1.PodNetworkingInfo),
 		}
 		state.SetProbeState(&innerState)
 	})

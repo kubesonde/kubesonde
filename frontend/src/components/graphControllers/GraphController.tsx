@@ -5,13 +5,13 @@ import Switch from "react-switch";
 import { ColourOption, PortSelector } from "./PortSelector";
 import { MultiValue } from "react-select";
 import { Button } from "src/components/button/Button";
-import { PodNetworkingInfoV2 } from "src/entities/probeOutput";
+import { PodNetworkingInfo } from "src/entities/probeOutput";
 
 export interface GraphControllerProps {
   ports: {
-    netstat: PodNetworkingInfoV2;
-    declared: PodNetworkingInfoV2;
-    probed: PodNetworkingInfoV2;
+    netstat: PodNetworkingInfo;
+    declared: PodNetworkingInfo;
+    probed: PodNetworkingInfo;
   };
   showDeniedConnections: boolean;
   showDeniedConnectionsHandler: () => void;

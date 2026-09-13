@@ -1,4 +1,4 @@
-import { PodNetworkingInfoV2, PodNetwotkingItem } from "src/entities/probeOutput";
+import { PodNetworkingInfo, PodNetwotkingItem } from "src/entities/probeOutput";
 import { SimpleGraphEdge } from "../entities/graph";
 import { NetstatInfo } from "./probes";
 
@@ -25,7 +25,7 @@ export const getMappingFromNetstat = (netstat: NetstatInfo[]): PortMapping[] => 
     return mapping
 }
 
-export const getMappingFromNetInfo = (netstat: PodNetworkingInfoV2): PortMapping[] => {
+export const getMappingFromNetInfo = (netstat: PodNetworkingInfo): PortMapping[] => {
     const mapping: PortMapping[] = Object.entries<PodNetwotkingItem[]>(netstat).map(value => {
         return {
             podName: value[0],

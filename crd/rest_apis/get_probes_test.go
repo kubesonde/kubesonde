@@ -22,9 +22,8 @@ var _ = Describe("GetProbes", func() {
 		innerState := v1.ProbeOutput{
 			Items:                      []v1.ProbeOutputItem{},
 			Errors:                     []v1.ProbeOutputError{},
-			PodNetworking:              []v1.PodNetworkingInfo{},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodNetworking:              make(v1.PodNetworkingInfo),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 		}
 		err := stateManager.SetProbeState(&innerState)
 		Expect(err).To(BeNil())
@@ -34,14 +33,12 @@ var _ = Describe("GetProbes", func() {
 		finalState := v1.ProbeOutput{
 			Items:  []v1.ProbeOutputItem{},
 			Errors: []v1.ProbeOutputError{},
-			PodNetworking: []v1.PodNetworkingInfo{
-				{
-					PodName: "testPod",
-					Netstat: "somestring",
+			PodNetworking: v1.PodNetworkingInfo{
+				"testPod": {
+					{Port: "80", IP: "1.2.3.4", Protocol: "TCP"},
 				},
 			},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 			Start:                      "def",
 			End:                        "",
 		}
@@ -72,8 +69,8 @@ var _ = Describe("GetProbes", func() {
 		Expect(dst.Items).To(BeEmpty())
 		Expect(dst.Errors).To(BeEmpty())
 		Expect(dst.PodNetworking).To(HaveLen(1))
-		Expect(dst.PodNetworking[0].PodName).To(Equal("testPod"))
-		Expect(dst.PodNetworking[0].Netstat).To(Equal("somestring"))
+		Expect(dst.PodNetworking["testPod"]).To(HaveLen(1))
+		Expect(dst.PodNetworking["testPod"][0].Port).To(Equal("80"))
 		Expect(dst.Start).To(Equal("def"))
 		Expect(dst.End).To(Equal(""))
 	})
@@ -87,9 +84,8 @@ var _ = Describe("GetProbes with default manager", func() {
 		innerState := v1.ProbeOutput{
 			Items:                      []v1.ProbeOutputItem{},
 			Errors:                     []v1.ProbeOutputError{},
-			PodNetworking:              []v1.PodNetworkingInfo{},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodNetworking:              make(v1.PodNetworkingInfo),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 		}
 		state.SetProbeState(&innerState)
 	})
@@ -98,14 +94,12 @@ var _ = Describe("GetProbes with default manager", func() {
 		finalState := v1.ProbeOutput{
 			Items:  []v1.ProbeOutputItem{},
 			Errors: []v1.ProbeOutputError{},
-			PodNetworking: []v1.PodNetworkingInfo{
-				{
-					PodName: "testPod",
-					Netstat: "somestring",
+			PodNetworking: v1.PodNetworkingInfo{
+				"testPod": {
+					{Port: "80", IP: "1.2.3.4", Protocol: "TCP"},
 				},
 			},
-			PodNetworkingV2:            make(v1.PodNetworkingInfoV2),
-			PodConfigurationNetworking: make(v1.PodNetworkingInfoV2),
+			PodConfigurationNetworking: make(v1.PodNetworkingInfo),
 			Start:                      "def",
 			End:                        "",
 		}
@@ -133,8 +127,8 @@ var _ = Describe("GetProbes with default manager", func() {
 		Expect(dst.Items).To(BeEmpty())
 		Expect(dst.Errors).To(BeEmpty())
 		Expect(dst.PodNetworking).To(HaveLen(1))
-		Expect(dst.PodNetworking[0].PodName).To(Equal("testPod"))
-		Expect(dst.PodNetworking[0].Netstat).To(Equal("somestring"))
+		Expect(dst.PodNetworking["testPod"]).To(HaveLen(1))
+		Expect(dst.PodNetworking["testPod"][0].Port).To(Equal("80"))
 		Expect(dst.Start).To(Equal("def"))
 		Expect(dst.End).To(BeEmpty())
 	})
