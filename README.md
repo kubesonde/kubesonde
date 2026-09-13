@@ -195,7 +195,12 @@ npm test
 
 ## Contributing
 
-Contributions to the project are welcome. Create a PR and let's discuss the changes.
+Contributions are welcome! See the [contributing guide](CONTRIBUTING.md) for how
+to build, test, and open a pull request. Please also read our
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+To report a security vulnerability, follow the [security policy](SECURITY.md)
+(please don't open a public issue).
 
 ## Credits
 

@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a problem with Kubesonde
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please fill in the details
+        below so we can reproduce and fix it.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce it? Include the `Kubesonde` resource you applied if relevant.
+      placeholder: |
+        1. Apply this Kubesonde resource: ...
+        2. Run `kubectl get kubesondes`
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Kubesonde version
+      description: The release tag (or image tag) you are running.
+      placeholder: v0.9.0
+    validations:
+      required: true
+  - type: input
+    id: k8s
+    attributes:
+      label: Kubernetes version & distribution
+      placeholder: v1.29, kind / minikube / EKS / ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / output
+      description: Controller logs, `/probes` output, or `kubectl describe kubesonde ...`.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I am running the latest release (or have noted otherwise above).
+          required: true
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
