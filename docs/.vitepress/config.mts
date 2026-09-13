@@ -14,6 +14,10 @@ export default defineConfig({
   // localhost URLs in port-forward examples are intentional, not dead links.
   ignoreDeadLinks: [/^https?:\/\/localhost/],
   head: [
+    // Favicon. head[] URLs are not base-prefixed by VitePress, so include the
+    // "/kubesonde/" base explicitly.
+    ['link', { rel: 'icon', type: 'image/x-icon', href: '/kubesonde/favicon.ico' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/kubesonde/logo.png' }],
     ['meta', { name: 'theme-color', content: '#0b6b5f' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Kubesonde Documentation' }],
