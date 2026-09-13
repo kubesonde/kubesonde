@@ -12,7 +12,11 @@ COPY . .
 ARG VITE_API_SERVER=http://localhost:2709
 ENV VITE_API_SERVER=$VITE_API_SERVER
 
-RUN VITE_APP_VERSION="$(node -p "require('./package.json').version")" npm run build
+# The release version is the git tag, injected by the Release workflow as a
+# build arg (frontend and controller always share it). Local builds show "dev".
+# package.json's version field is not used and is not bumped per release.
+ARG VERSION=dev
+RUN VITE_APP_VERSION="$VERSION" npm run build
 
 # Serve the static SPA with nginx
 

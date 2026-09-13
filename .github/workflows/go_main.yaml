@@ -37,6 +37,9 @@ jobs:
         working-directory: crd
         run: make artifact IMG=ghcr.io/kubesonde/controller:${{ steps.tag.outputs.name }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -60,6 +63,21 @@ jobs:
         run: |
           make IMG=ghcr.io/kubesonde/gonetstat:${{ steps.tag.outputs.name }}
           make IMG=ghcr.io/kubesonde/gonetstat:latest
+
+      # Frontend ships as part of the release, at the same tag as the controller.
+      # VERSION is injected into the build (shown as the UI version banner).
+      - name: Build frontend image (tag + latest)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: |
+            VERSION=${{ steps.tag.outputs.name }}
+          tags: |
+            ghcr.io/kubesonde/frontend:${{ steps.tag.outputs.name }}
+            ghcr.io/kubesonde/frontend:latest
 
       # Create the GitHub Release last, attaching the installer manifest and
       # auto-generated release notes from merged PRs / commits since the last tag.

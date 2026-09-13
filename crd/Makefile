@@ -185,9 +185,13 @@ $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,${GOLANGCI_LINT_VERSION})
 
 .PHONY: artifact
+# The frontend image shares the controller's release tag (the part of IMG after
+# the last ':'), so the installer pins frontend and controller to one version.
+RELEASE_TAG = $(lastword $(subst :, ,$(IMG)))
 artifact: manifests kustomize ## Generate the repo-root kubesonde.yaml installer manifest pinned to IMG.
 	echo "Creating controller"
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/frontend && $(KUSTOMIZE) edit set image ghcr.io/kubesonde/frontend=ghcr.io/kubesonde/frontend:$(RELEASE_TAG)
 	$(KUSTOMIZE) build config/default > ../kubesonde.yaml
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
