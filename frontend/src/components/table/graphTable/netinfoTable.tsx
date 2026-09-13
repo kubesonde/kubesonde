@@ -1,10 +1,9 @@
+import { ColumnDef, flexRender } from "@tanstack/react-table";
 import {
-  ColumnDef,
-  useReactTable,
+  useLegacyTable as useReactTable,
   getCoreRowModel,
   getExpandedRowModel,
-  flexRender,
-} from "@tanstack/react-table";
+} from "@tanstack/react-table/legacy";
 import React, { useMemo } from "react";
 
 export interface NetInfoTableEntry {

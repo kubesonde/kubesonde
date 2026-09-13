@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.2.4",
     "cytoscape": "^3.34.2",
     "cytoscape-popper": "^4.0.1",
     "immutable": "^5.1.9",

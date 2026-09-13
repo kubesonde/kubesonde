@@ -164,7 +164,7 @@ func buildProbesFromMonitorContainer(apiClient kubernetes.Interface, payload typ
 	netInfoNotLoopback := findListeningPortsNonInLoopback(payload)
 	// log.Info(fmt.Sprintf("Received monitor from %s \n%v", podname, payload))
 	// Store only NON loopback listening ports
-	state.AppendNetInfoV2(podname, &netInfoNotLoopback)
+	state.AppendNetInfo(podname, &netInfoNotLoopback)
 
 	// Should also execute new probes if the port is not already in the storage
 	currPods := eventstorage.GetActivePods()

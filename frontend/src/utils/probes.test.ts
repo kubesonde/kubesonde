@@ -1,4 +1,4 @@
-import { PodNetworkingInfoV2, ProbeEndpointType, ProbeOutput, ProbeOutputItem, ProbeOutputType } from "../entities/probeOutput";
+import { PodNetworkingInfo, ProbeEndpointType, ProbeOutput, ProbeOutputItem, ProbeOutputType } from "../entities/probeOutput";
 import { buildEdgesFromProbes, cleanupNetInfo, cleanupProbes } from "./probes";
 import { ProbeOutputItemBuilder } from "./probes.builder";
 
@@ -6,7 +6,7 @@ describe('Edge creation', function () {
     it('Groups edges with same source an destination', () => {
         const output: ProbeOutput = {
             podConfigurationNetworking: {},
-            podNetworkingv2: {},
+            podNetworking: {},
             start: "start",
             end: "end",
             errors: [],
@@ -81,7 +81,7 @@ describe('Edge creation', function () {
     it('Does not group edges with different source an destination', () => {
         const output: ProbeOutput = {
             podConfigurationNetworking: {},
-            podNetworkingv2: {},
+            podNetworking: {},
             start: "start",
             end: "end",
             errors: [],
@@ -155,7 +155,7 @@ describe('Service endpoint selector', () => {
     it('includes selector field on SERVICE type endpoints', () => {
         const output: ProbeOutput = {
             podConfigurationNetworking: {},
-            podNetworkingv2: {},
+            podNetworking: {},
             start: "start",
             end: "end",
             errors: [],
@@ -191,7 +191,7 @@ describe('Service endpoint selector', () => {
     it('selector is optional on SERVICE type endpoints', () => {
         const output: ProbeOutput = {
             podConfigurationNetworking: {},
-            podNetworkingv2: {},
+            podNetworking: {},
             start: "start",
             end: "end",
             errors: [],
@@ -224,7 +224,7 @@ describe('Service endpoint selector', () => {
 
 describe('Cleanup functions', () => {
     it('removes localhost interfaces from netinfo', () => {
-        const netinfo: PodNetworkingInfoV2 = {
+        const netinfo: PodNetworkingInfo = {
             'pod1': [{
                 ip: "127.0.0.1",
                 port: "80",
@@ -235,7 +235,7 @@ describe('Cleanup functions', () => {
                 protocol: "TCP"
             }]
         }
-        const expectedNetinfo: PodNetworkingInfoV2 = {
+        const expectedNetinfo: PodNetworkingInfo = {
             'pod1': [{
                 ip: "0.0.0.0",
                 port: "8080",

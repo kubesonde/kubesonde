@@ -1,18 +1,16 @@
+import { ColumnDef, flexRender, CellContext } from "@tanstack/react-table";
 import {
-  ColumnDef,
-  useReactTable,
+  useLegacyTable as useReactTable,
   getCoreRowModel,
   getExpandedRowModel,
-  flexRender,
-  CellContext,
-} from "@tanstack/react-table";
+} from "@tanstack/react-table/legacy";
 import { useMemo } from "react";
 import "./table.scss";
 import { PodCellRenderer } from "./renderers/PodCellRenderer";
 import { PortCellWithToggleRenderer } from "./renderers/PortCellWithToggleRenderer";
 import { DeploymentCellRenderer } from "./renderers/DeploymentCellRenderer";
 import { BoolDict, Dict } from "../../../entities/types";
-import { PodNetworkingInfoV2 } from "src/entities/probeOutput";
+import { PodNetworkingInfo } from "src/entities/probeOutput";
 
 export interface GraphTableCell {
   deployment: string;
@@ -27,9 +25,9 @@ export interface GraphTableCell {
 export interface GraphTableProps {
   data: GraphTableCell[];
   ports: {
-    netstat: PodNetworkingInfoV2;
-    declared: PodNetworkingInfoV2;
-    probed: PodNetworkingInfoV2;
+    netstat: PodNetworkingInfo;
+    declared: PodNetworkingInfo;
+    probed: PodNetworkingInfo;
   };
   onDeploymentClick: (key: string) => void;
   onEnabledClick: (key: string, pods: string[], enable: boolean) => void;

@@ -37,7 +37,7 @@ test("renders the graph title and the stats table switch from raw probe data", (
   expect(screen.getByText(/graph stats/)).toBeInTheDocument();
 
   // The open-ports-in-pods table switch is rendered because the fixture
-  // contains podNetworkingv2 data (proves netinfo2Table wiring runs).
+  // contains podNetworking data (proves netinfo2Table wiring runs).
   expect(screen.getByText(/open ports in pods/)).toBeInTheDocument();
 
   // Declarative configuration switch is rendered because the fixture
@@ -51,8 +51,8 @@ test("applies cleanupProbeOutput internally (drops localhost-only entries and re
   const raw: ProbeOutput = {
     ...CompleteExample,
     // Add a localhost-only listening port that cleanupNetInfo must strip.
-    podNetworkingv2: {
-      ...CompleteExample.podNetworkingv2,
+    podNetworking: {
+      ...CompleteExample.podNetworking,
       podLocal: [{ ip: "127.0.0.1", port: "5000", protocol: "TCP" }],
     },
   };
@@ -63,5 +63,5 @@ test("applies cleanupProbeOutput internally (drops localhost-only entries and re
   expect(screen.getByText("Cleanup test")).toBeInTheDocument();
   // The raw input still contains the localhost entry (GraphView must not
   // mutate its input).
-  expect(raw.podNetworkingv2.podLocal[0].ip).toEqual("127.0.0.1");
+  expect(raw.podNetworking.podLocal[0].ip).toEqual("127.0.0.1");
 });
