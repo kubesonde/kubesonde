@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Kubesonde
   text: See the connectivity you actually have
-  tagline: Probe live pods, record every connection attempt, and compare real network reachability against the policies you meant to enforce.
+  tagline: Actively probe every possible connection between your pods, then compare the reachability your cluster really enforces against the policies you meant to apply.
   actions:
     - theme: brand
       text: Quickstart
@@ -13,8 +13,8 @@ hero:
       text: What is Kubesonde?
       link: /guide/introduction
     - theme: alt
-      text: View on GitHub
-      link: https://github.com/kubesonde/kubesonde
+      text: Try the visualizer
+      link: https://kubesonde.jackops.dev
 
 features:
   - title: Runtime probing, not manifest reading
