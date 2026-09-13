@@ -48,5 +48,8 @@ jobs:
           file: ./frontend/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          # Inject the release version (the git tag) as the UI version banner.
+          build-args: |
+            VERSION=${{ github.ref_name }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

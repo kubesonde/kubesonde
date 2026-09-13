@@ -61,6 +61,10 @@ jobs:
           make IMG=ghcr.io/kubesonde/gonetstat:${{ steps.tag.outputs.name }}
           make IMG=ghcr.io/kubesonde/gonetstat:latest
 
+      # NOTE: the frontend image is built by its own workflow
+      # (frontend_container.yaml) on the same tag, so it ships at the same
+      # version. The installer generated above pins that frontend tag.
+
       # Create the GitHub Release last, attaching the installer manifest and
       # auto-generated release notes from merged PRs / commits since the last tag.
       - name: Create Release
