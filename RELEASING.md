@@ -1,22 +1,28 @@
 # Releasing Kubesonde
 
 Releases are fully automated and triggered by pushing a Git tag that starts with
-`v` (for example `v0.9.0`). The [`Release` workflow](.github/workflows/go_main.yaml)
-then:
+`v` (for example `v0.9.0`). The same tag fires two independent workflows:
+
+The [`Release` workflow](.github/workflows/go_main.yaml) (CRD/controller):
 
 1. Builds and tests the CRD (via the reusable `go_base.yaml` workflow).
 2. Generates the installer manifest `kubesonde.yaml`, pinned to the released
    tag for **both** the controller and the frontend.
-3. Builds and pushes multi-arch images to GHCR — all at the **same tag**:
+3. Builds and pushes the controller and gonetstat multi-arch images:
    - `ghcr.io/kubesonde/controller:<tag>` and `:latest`
    - `ghcr.io/kubesonde/gonetstat:<tag>` and `:latest`
-   - `ghcr.io/kubesonde/frontend:<tag>` and `:latest`
 4. Creates a GitHub Release with **auto-generated release notes** (categorized
    via [`.github/release.yml`](.github/release.yml)) and attaches
    `kubesonde.yaml` as a downloadable asset.
 
-Images are pushed **before** the Release is created, so a published release
-always points at images that exist in the registry.
+The [frontend container workflow](.github/workflows/frontend_container.yaml)
+builds and pushes the frontend image **at the same tag**:
+
+- `ghcr.io/kubesonde/frontend:<tag>` and `:latest`
+
+Keeping the two pipelines separate means a controller change and a frontend
+change stay in their own workflows; the shared tag is what guarantees they
+release at the same version.
 
 ## Versioning
 
