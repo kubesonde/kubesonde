@@ -90,6 +90,13 @@ func installContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubeso
 
 func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.Pod, error) {
 	privileged := true
+	// The debugger/monitor images run as root. Target pods may set
+	// runAsNonRoot at the pod level, which is inherited by ephemeral
+	// containers and makes the kubelet reject them with
+	// CreateContainerConfigError. Override it explicitly so the containers
+	// can start regardless of the target pod's security context.
+	runAsNonRoot := false
+	runAsUser := int64(0)
 
 	// Use configurable images from the spec
 	debuggerImage := kubesonde.Spec.DebuggerImage
@@ -113,7 +120,9 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 			TTY:                      true,
 			Command:                  []string{"sh"},
 			SecurityContext: &v1.SecurityContext{
-				Privileged: &privileged,
+				Privileged:   &privileged,
+				RunAsNonRoot: &runAsNonRoot,
+				RunAsUser:    &runAsUser,
 			},
 		},
 	}
@@ -127,7 +136,9 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 			TTY:                      true,
 			Command:                  []string{"sh"},
 			SecurityContext: &v1.SecurityContext{
-				Privileged: &privileged,
+				Privileged:   &privileged,
+				RunAsNonRoot: &runAsNonRoot,
+				RunAsUser:    &runAsUser,
 			},
 		}}
 
