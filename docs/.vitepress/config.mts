@@ -100,6 +100,7 @@ export default defineConfig({
             { text: 'Intended vs. actual connectivity', link: '/concepts/intended-vs-actual' },
             { text: 'Architecture', link: '/concepts/architecture' },
             { text: 'Probe completeness (quiescence)', link: '/concepts/completeness' },
+            { text: 'Security & privileges', link: '/concepts/security' },
             { text: 'What Kubesonde is not', link: '/concepts/what-it-is-not' },
           ],
         },
