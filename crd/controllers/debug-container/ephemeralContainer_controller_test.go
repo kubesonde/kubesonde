@@ -168,3 +168,31 @@ func TestEphemeralContainerNamesAndImages(t *testing.T) {
 	// Verify no other container names exist
 	assert.Len(t, containerMap, 2, "Should have exactly 2 containers")
 }
+
+func TestEphemeralContainersOverrideRunAsNonRoot(t *testing.T) {
+	// Given a pod that enforces runAsNonRoot at the pod level, the
+	// ephemeral containers must explicitly override it so the root
+	// kubesonde images are not rejected with CreateContainerConfigError.
+	runAsNonRoot := true
+	pod := v1.Pod{}
+	pod.Spec.SecurityContext = &v1.PodSecurityContext{
+		RunAsNonRoot: &runAsNonRoot,
+	}
+
+	kubesonde := kubesondev1.Kubesonde{Spec: kubesondev1.KubesondeSpec{}}
+
+	// When
+	result, err := generateDebugContainers(kubesonde, &pod)
+	assert.Nil(t, err)
+
+	// Then every ephemeral container overrides runAsNonRoot and runs as root.
+	assert.Len(t, result.Spec.EphemeralContainers, 2)
+	for _, ec := range result.Spec.EphemeralContainers {
+		sc := ec.SecurityContext
+		assert.NotNil(t, sc, "%s should have a security context", ec.Name)
+		assert.NotNil(t, sc.RunAsNonRoot, "%s should set RunAsNonRoot", ec.Name)
+		assert.False(t, *sc.RunAsNonRoot, "%s must override RunAsNonRoot to false", ec.Name)
+		assert.NotNil(t, sc.RunAsUser, "%s should set RunAsUser", ec.Name)
+		assert.Equal(t, int64(0), *sc.RunAsUser, "%s must run as root (uid 0)", ec.Name)
+	}
+}
