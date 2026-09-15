@@ -17,6 +17,8 @@ export interface GraphControllerProps {
   showDeniedConnectionsHandler: () => void;
   showOnlyUnexpected: boolean;
   showOnlyUnexpectedHandler: () => void;
+  hideServices: boolean;
+  hideServicesHandler: () => void;
   tableData: GraphTableCell[];
   deploymentClickHandler: (key: string) => void;
   enableDeploymentHandler: (
@@ -46,6 +48,8 @@ export const GraphController: React.FC<GraphControllerProps> = ({
   showDeniedConnectionsHandler,
   showOnlyUnexpected,
   showOnlyUnexpectedHandler,
+  hideServices,
+  hideServicesHandler,
   tableData,
   deploymentClickHandler,
   enableDeploymentHandler,
@@ -110,6 +114,20 @@ export const GraphController: React.FC<GraphControllerProps> = ({
               onChange={showOnlyUnexpectedHandler}
             />
             <span> Show only unexpected connections</span>
+
+            <span style={{ margin: "8px" }} />
+            <Switch
+              role="switch"
+              height={14}
+              width={30}
+              checkedIcon={false}
+              uncheckedIcon={false}
+              onColor="#c9821a"
+              offColor="#bbbbbb"
+              checked={hideServices}
+              onChange={hideServicesHandler}
+            />
+            <span> Hide Services</span>
 
             <span style={{ margin: "4px" }} />
             <Button
