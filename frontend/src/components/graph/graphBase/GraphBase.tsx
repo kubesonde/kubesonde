@@ -118,6 +118,7 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     buildInitialEnabledGroups(props.nodes)
   );
   const [showDenied, setShowDenied] = useState<boolean>(false);
+  const [hideServices, setHideServices] = useState<boolean>(false);
   const [showOnlyUnexpected, setShowOnlyUnexpected] = useState<boolean>(false);
   const [graphData, setGraphData] = useState<cytoscape.ElementDefinition[]>([]);
   const [colorMap, setColorMap] = useState<{ [key: string]: string }>(
@@ -181,11 +182,36 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     }
   }
 
+  function handleHideServices() {
+    const newHideServicesState = !hideServices;
+    setHideServices(newHideServicesState);
+    const newData = clusterGroups(data, expandedDeployments);
+    if (newHideServicesState) {
+      const serviceIds = newData.nodes
+        .filter((node) => node.label.includes("SVC"))
+        .map((node) => node.id);
+      const newNodes = newData.nodes.filter((node) => !serviceIds.includes(node.id));
+      const newEdges = newData.edges.filter(
+        (edge) => !serviceIds.includes(edge.from) && !serviceIds.includes(edge.to)
+      );
+      setGraphData([
+        ...newNodes.map(toCyNode),
+        ...newEdges.map(toCyEdge),
+      ]);
+    } else {
+      setGraphData([
+        ...newData.nodes.map(toCyNode),
+        ...newData.edges.map(toCyEdge),
+      ]);
+    }
+  }
+
   function handleGraphReset() {
     setExpandedPods(toBoolDict(props.nodes.map((node) => node.id)));
     setFilteredPorts(toBoolDict(getPorts(props.edges)));
     setExpandedDeployments(getDeployments(props.nodes));
     setShowDenied(false);
+    setHideServices(false);
     setActiveDeployments(buildInitialEnabledGroups(props.nodes));
     const coloredData = getColoredData(props, colorMap);
     setRawData(coloredData);
@@ -272,6 +298,8 @@ export const GraphBase: React.FC<GraphProps> = (props: GraphProps) => {
     showDeniedConnectionsHandler: showDeniedRules,
     showOnlyUnexpected,
     showOnlyUnexpectedHandler: () => setShowOnlyUnexpected((v) => !v),
+    hideServices: hideServices,
+    hideServicesHandler: handleHideServices,
     tableData: graphTableData,
     deploymentClickHandler: handleDeploymentClick,
     enableDeploymentHandler: handleEnabledClicked,
