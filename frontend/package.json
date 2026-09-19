@@ -5,7 +5,7 @@
   "type": "module",
   "dependencies": {
     "@tanstack/react-table": "^9.2.4",
-    "cytoscape": "^3.34.2",
+    "cytoscape": "^3.34.3",
     "cytoscape-popper": "^4.0.1",
     "immutable": "^5.1.9",
     "javascript-algorithms-and-data-structures": "github:trekhleb/javascript-algorithms",
