@@ -10,7 +10,7 @@ jobs:
       working-directory: ./frontend
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: frontend
           path: frontend
@@ -98,7 +98,7 @@ jobs:
           echo "VITE_APP_VERSION=$(grep '"version"' package.json | cut -d '"' -f 4 | head -n 1)" >> $GITHUB_ENV
       - name: Build
         run: npm run build --if-present
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build
           path: build
