@@ -55,6 +55,13 @@ spec:
               debuggerImage:
                 description: DebuggerImage is the image to use for the debugger container
                 type: string
+              disableInternetProbing:
+                description: DisableInternetProbing skips probes to external/Internet
+                  targets
+                type: boolean
+              disableServiceProbing:
+                description: DisableServiceProbing skips probes to Kubernetes Services
+                type: boolean
               exclude:
                 description: Exclude is the set of probes to be excluded
                 items:
