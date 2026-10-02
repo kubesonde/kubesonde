@@ -66,8 +66,8 @@ func AddPodEvent(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, p
 	var activePods = GetActivePods()
 	if len(activePods) > 0 {
 		// Build probes
-		probes := probe_command.BuildTargetedCommands(pod, activePods)
-		probes_from_pods := probe_command.BuildCommandsFromPodSelectors(activePods, "nothing")
+		probes := probe_command.BuildTargetedCommands(pod, activePods, kubesonde.Spec.DisableInternetProbing, kubesonde.Spec.DisableServiceProbing)
+		probes_from_pods := probe_command.BuildCommandsFromPodSelectors(activePods, "nothing", kubesonde.Spec.DisableInternetProbing, kubesonde.Spec.DisableServiceProbing)
 		// Current pod probes all services
 
 		AddProbes(probes)
@@ -75,10 +75,12 @@ func AddPodEvent(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, p
 		kubesondeDispatcher.SendToQueue(probes, kubesondeDispatcher.HIGH)
 	}
 	// TODO: Maybe there should be an event listener on the services to do the same thing.
-	curr_services := eventstorage.GetServices()
-	services_probes := probe_command.BuildCommandsToServices(pod, curr_services)
-	AddProbes(services_probes)
-	other_probes := probe_command.BuildCommandsToOutsideWorld(pod)
+	if !kubesonde.Spec.DisableServiceProbing {
+		curr_services := eventstorage.GetServices()
+		services_probes := probe_command.BuildCommandsToServices(pod, curr_services)
+		AddProbes(services_probes)
+	}
+	other_probes := probe_command.BuildCommandsToOutsideWorld(pod, kubesonde.Spec.DisableInternetProbing, kubesonde.Spec.DisableServiceProbing)
 	AddProbes(other_probes)
 	replicaSet, deployment := utils.GetReplicaAndDeployment(client, pod)
 

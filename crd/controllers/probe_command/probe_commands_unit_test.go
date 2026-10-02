@@ -86,7 +86,7 @@ var _ = Describe("Build commands from spec", func() {
 
 var _ = Describe("Build commands from pod", func() {
 	It("Creates empty commands", func() {
-		Expect(BuildCommandsFromPodSelectors([]Pod{}, "")).To(BeNil())
+		Expect(BuildCommandsFromPodSelectors([]Pod{}, "", false, false)).To(BeNil())
 	})
 	It("Creates correct commands", func() {
 		var ports = []int32{80, 443}
@@ -94,7 +94,7 @@ var _ = Describe("Build commands from pod", func() {
 		podA := buildTestPod([]Container{container}, "10.0.0.1")
 		podB := buildTestPod([]Container{container}, "10.0.0.2")
 
-		output := BuildCommandsFromPodSelectors([]Pod{podA, podB}, "")
+		output := BuildCommandsFromPodSelectors([]Pod{podA, podB}, "", false, false)
 		// 1. PodA -> PodB:80
 		// 2. PodA -> PodB:443
 		// 3. PodA -> Internet:443
@@ -111,7 +111,7 @@ var _ = Describe("Build commands from pod", func() {
 
 var _ = Describe("Build targeted commands from pod", func() {
 	It("Creates empty commands", func() {
-		Expect(BuildCommandsFromPodSelectors([]Pod{}, "")).To(BeNil())
+		Expect(BuildCommandsFromPodSelectors([]Pod{}, "", false, false)).To(BeNil())
 	})
 	It("Creates correct commands", func() {
 		var ports = []int32{80, 443}
@@ -121,7 +121,7 @@ var _ = Describe("Build targeted commands from pod", func() {
 
 		available := []Pod{buildTestPod([]Container{container}, "10.0.0.2")}
 
-		output := BuildTargetedCommands(target, available)
+		output := BuildTargetedCommands(target, available, false, false)
 		/*
 			target -> available 80
 			target -> available 443

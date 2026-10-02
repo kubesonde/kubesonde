@@ -312,7 +312,7 @@ func BuildCommandsToServices(pod v1.Pod, services []v1.Service) []KubesondeComma
 
 	return commands
 }
-func BuildCommandsFromPodSelectors(pods []v1.Pod, _ string) []KubesondeCommand {
+func BuildCommandsFromPodSelectors(pods []v1.Pod, _ string, disableInternetProbing bool, disableServiceProbing bool) []KubesondeCommand {
 
 	var commands []KubesondeCommand
 	for _, source := range pods {
@@ -325,14 +325,14 @@ func BuildCommandsFromPodSelectors(pods []v1.Pod, _ string) []KubesondeCommand {
 
 			}
 		}
-		other_commands := BuildCommandsToOutsideWorld(source)
+		other_commands := BuildCommandsToOutsideWorld(source, disableInternetProbing, disableServiceProbing)
 		commands = append(commands, other_commands...)
 	}
 
 	return commands
 }
 
-func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
+func BuildCommandsToOutsideWorld(target v1.Pod, disableInternetProbing bool, disableServiceProbing bool) []KubesondeCommand {
 	var commands []KubesondeCommand
 
 	googleDNSTCP := KubesondeCommand{
@@ -440,14 +440,19 @@ func BuildCommandsToOutsideWorld(target v1.Pod) []KubesondeCommand {
 		DestinationType:      v12.INTERNET,
 		ProbeChecker:         NmapSucceded,
 	}
-	commands = append(commands /*cloudflareDNS,*/, googleDNSTCP, googleDNSUDP, googleHTTPS, googleHTTP, kubeDNSUDP, kubeDNSTCP)
+	if !disableInternetProbing {
+		commands = append(commands /*cloudflareDNS,*/, googleDNSTCP, googleDNSUDP, googleHTTPS, googleHTTP)
+	}
+	if !disableServiceProbing {
+		commands = append(commands, kubeDNSUDP, kubeDNSTCP)
+	}
 
 	return commands
 }
 
 // Creates probe commends where target is the source of the probe and each available pod
 // is the destination
-func BuildTargetedCommands(target v1.Pod, availablePods []v1.Pod) []KubesondeCommand {
+func BuildTargetedCommands(target v1.Pod, availablePods []v1.Pod, disableInternetProbing bool, disableServiceProbing bool) []KubesondeCommand {
 	var commands []KubesondeCommand
 
 	targetPortsProto := getAllPortsAndProtocolsFromPodSelector(target)
@@ -459,11 +464,11 @@ func BuildTargetedCommands(target v1.Pod, availablePods []v1.Pod) []KubesondeCom
 		for _, targetPortProto := range targetPortsProto {
 			commands = append(commands, buildCommand(source, target, targetPortProto.port, targetPortProto.protocol, v12.POD, v12.POD))
 		}
-		other_commands := BuildCommandsToOutsideWorld(source)
+		other_commands := BuildCommandsToOutsideWorld(source, disableInternetProbing, disableServiceProbing)
 		commands = append(commands, other_commands...)
 	}
 
-	other_commands := BuildCommandsToOutsideWorld(target)
+	other_commands := BuildCommandsToOutsideWorld(target, disableInternetProbing, disableServiceProbing)
 	commands = append(commands, other_commands...)
 
 	return commands
@@ -479,21 +484,6 @@ func BuildTargetedCommandsToDestination(availablePods []v1.Pod, probeDestination
 			if source.Name != probeDestination.Name {
 				commands = append(commands, buildCommand(source, probeDestination, probeDestinationPorts[idx], protocol[idx], v12.POD, v12.POD))
 			}
-		}
-	}
-
-	return commands
-}
-
-// Creates probes from service if available
-func BuildCommandFromService(availablePods []v1.Pod, probeDestination v1.Service) []KubesondeCommand {
-	var commands []KubesondeCommand
-
-	for _, source := range availablePods {
-		for _, port := range probeDestination.Spec.Ports {
-			commands = append(commands, buildCommandBase(source, probeDestination.Name, probeDestination.Namespace, probeDestination.Spec.ClusterIP, port.Port, "TCP", v12.SERVICE, v12.POD))
-			commands = append(commands, buildCommandBase(source, probeDestination.Name, probeDestination.Namespace, probeDestination.Spec.ClusterIP, port.Port, "UDP", v12.SERVICE, v12.POD))
-			commands = append(commands, buildCommandBase(source, probeDestination.Name, probeDestination.Namespace, probeDestination.Spec.ClusterIP, port.Port, "SCTP", v12.SERVICE, v12.POD))
 		}
 	}
 
