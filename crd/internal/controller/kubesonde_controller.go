@@ -63,7 +63,7 @@ func startProbing(apiClient kubernetes.Interface, k kubesondev1.Kubesonde) {
 	go kubesondeDispatcher.Run(ctx, apiClient)
 	go kubesondeEvents.InitEventListener(ctx, apiClient, k)
 	go recursiveprobing.RecursiveProbing(ctx, k, 20*time.Second)
-	go kubesondemonitor.RunMonitorContainers(ctx, apiClient)
+	go kubesondemonitor.RunMonitorContainers(ctx, apiClient, k)
 }
 
 // stopProbing cancels the background goroutines if they are running.
