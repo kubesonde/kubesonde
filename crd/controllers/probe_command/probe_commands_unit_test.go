@@ -86,7 +86,7 @@ var _ = Describe("Build commands from spec", func() {
 
 var _ = Describe("Build commands from pod", func() {
 	It("Creates empty commands", func() {
-		Expect(BuildCommandsFromPodSelectors([]Pod{}, "")).To(BeNil())
+		Expect(BuildCommandsFromPodSelectors([]Pod{}, "", false, false)).To(BeNil())
 	})
 	It("Creates correct commands", func() {
 		var ports = []int32{80, 443}
@@ -94,7 +94,7 @@ var _ = Describe("Build commands from pod", func() {
 		podA := buildTestPod([]Container{container}, "10.0.0.1")
 		podB := buildTestPod([]Container{container}, "10.0.0.2")
 
-		output := BuildCommandsFromPodSelectors([]Pod{podA, podB}, "")
+		output := BuildCommandsFromPodSelectors([]Pod{podA, podB}, "", false, false)
 		// 1. PodA -> PodB:80
 		// 2. PodA -> PodB:443
 		// 3. PodA -> Internet:443
@@ -107,11 +107,51 @@ var _ = Describe("Build commands from pod", func() {
 		// 10. PodB -> DNS
 		Expect(len(output)).To(Equal(16))
 	})
+	It("Drops the 2 outside-world probes per pod when both flags are disabled", func() {
+		var ports = []int32{80, 443}
+		container := buildContainers(ports)
+		podA := buildTestPod([]Container{container}, "10.0.0.1")
+		podB := buildTestPod([]Container{container}, "10.0.0.2")
+
+		output := BuildCommandsFromPodSelectors([]Pod{podA, podB}, "", true, true)
+		// Only the 4 pod-to-pod commands remain (2 per pod), no outside-world probes.
+		Expect(len(output)).To(Equal(4))
+	})
+})
+
+var _ = Describe("BuildCommandsToOutsideWorld", func() {
+	target := buildTestPod([]Container{buildContainers([]int32{80})}, "10.0.0.1")
+
+	It("Creates both Internet and kube-dns probes when nothing is disabled", func() {
+		output := BuildCommandsToOutsideWorld(target, false, false)
+		Expect(len(output)).To(Equal(6)) // 4 Google (DNS TCP/UDP, HTTP, HTTPS) + 2 kube-dns (TCP/UDP)
+	})
+
+	It("Skips Google probes when Internet probing is disabled", func() {
+		output := BuildCommandsToOutsideWorld(target, true, false)
+		Expect(len(output)).To(Equal(2))
+		for _, cmd := range output {
+			Expect(cmd.Destination).To(Equal("KUBE DNS"))
+		}
+	})
+
+	It("Skips kube-dns probes when Service probing is disabled", func() {
+		output := BuildCommandsToOutsideWorld(target, false, true)
+		Expect(len(output)).To(Equal(4))
+		for _, cmd := range output {
+			Expect(cmd.Destination).ToNot(Equal("KUBE DNS"))
+		}
+	})
+
+	It("Creates no probes when both Internet and Service probing are disabled", func() {
+		output := BuildCommandsToOutsideWorld(target, true, true)
+		Expect(output).To(BeNil())
+	})
 })
 
 var _ = Describe("Build targeted commands from pod", func() {
 	It("Creates empty commands", func() {
-		Expect(BuildCommandsFromPodSelectors([]Pod{}, "")).To(BeNil())
+		Expect(BuildCommandsFromPodSelectors([]Pod{}, "", false, false)).To(BeNil())
 	})
 	It("Creates correct commands", func() {
 		var ports = []int32{80, 443}
@@ -121,7 +161,7 @@ var _ = Describe("Build targeted commands from pod", func() {
 
 		available := []Pod{buildTestPod([]Container{container}, "10.0.0.2")}
 
-		output := BuildTargetedCommands(target, available)
+		output := BuildTargetedCommands(target, available, false, false)
 		/*
 			target -> available 80
 			target -> available 443
@@ -131,5 +171,17 @@ var _ = Describe("Build targeted commands from pod", func() {
 			Google HTTPS
 		*/
 		Expect(len(output)).To(Equal(15))
+	})
+	It("Drops outside-world probes when both flags are disabled", func() {
+		var ports = []int32{80, 443}
+		container := buildContainers(ports)
+		targetContainer := buildContainers([]int32{8080})
+		target := buildTestPod([]Container{targetContainer}, "10.0.0.1")
+
+		available := []Pod{buildTestPod([]Container{container}, "10.0.0.2")}
+
+		output := BuildTargetedCommands(target, available, true, true)
+		// target -> available 80, target -> available 443, available -> target 8080
+		Expect(len(output)).To(Equal(3))
 	})
 })

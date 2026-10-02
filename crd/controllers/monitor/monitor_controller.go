@@ -28,17 +28,15 @@ import (
 var log = logf.Log.WithName("Monitor controller")
 var MAX_CONNECT_RETRIES = 6
 
-func rebuildProbesForPod(pod v1.Pod) {
-
+func rebuildServiceProbesForPod(pod v1.Pod) {
 	currServices := eventstorage.GetServices()
-
 	serviceProbes := probe_command.BuildCommandsToServices(pod, currServices)
 
 	kubesondeDispatcher.SendToQueue(serviceProbes, kubesondeDispatcher.HIGH)
 }
 
 // This function starts an infinite loop
-func RunMonitorContainers(ctx context.Context, client kubernetes.Interface) {
+func RunMonitorContainers(ctx context.Context, client kubernetes.Interface, kubesonde v12.Kubesonde) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -69,7 +67,9 @@ func RunMonitorContainers(ctx context.Context, client kubernetes.Interface) {
 			}
 			// log.Info(fmt.Sprintf("Running monitor on pod %s", p.Name))
 
-			rebuildProbesForPod(p)
+			if !kubesonde.Spec.DisableServiceProbing {
+				rebuildServiceProbesForPod(p)
+			}
 
 			var stdout, stderr, err = debug_container.RunMonitorContainerProcess(client, p.Namespace, p.Name)
 			if err != nil {

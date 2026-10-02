@@ -118,6 +118,12 @@ type KubesondeSpec struct {
 	// Include is the set of probes to be included
 	// +optional
 	Include []IncludedItem `json:"include,omitempty"`
+	// DisableInternetProbing skips probes to external/Internet targets
+	// +optional
+	DisableInternetProbing bool `json:"disableInternetProbing,omitempty"`
+	// DisableServiceProbing skips probes to Kubernetes Services
+	// +optional
+	DisableServiceProbing bool `json:"disableServiceProbing,omitempty"`
 }
 
 // KubesondeStatus defines the observed state of Kubesonde
