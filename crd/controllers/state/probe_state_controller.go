@@ -197,7 +197,13 @@ func mergeProbeItem(existing, incoming v1.ProbeOutputItem) v1.ProbeOutputItem {
 	merged.FirstSeen = existing.FirstSeen
 	merged.LastSeen = incoming.Timestamp
 	merged.Observations = existing.Observations + 1
-	merged.Flapped = existing.Flapped || existing.ResultingAction != incoming.ResultingAction
+	if existing.ResultingAction != incoming.ResultingAction {
+		merged.Flapped = true
+		merged.PreviousAction = existing.ResultingAction
+	} else {
+		merged.Flapped = existing.Flapped
+		merged.PreviousAction = existing.PreviousAction
+	}
 	return merged
 }
 

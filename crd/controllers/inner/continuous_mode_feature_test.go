@@ -482,6 +482,7 @@ var _ = Describe("ContinuousMode", func() {
 		Expect(len(output.Items)).To(BeIdenticalTo(1))
 		Expect(output.Items[0].ResultingAction).To(Equal(v1.ALLOW))
 		Expect(output.Items[0].Flapped).To(BeTrue(), "the result changed from DENY to ALLOW across observations")
+		Expect(output.Items[0].PreviousAction).To(Equal(v1.DENY))
 		Expect(output.Items[0].Observations).To(Equal(2))
 	})
 })

@@ -238,6 +238,7 @@ func TestStateManagerAppendOperations(t *testing.T) {
 		item := state.Items[0]
 		assert.Equal(t, v1.DENY, item.ResultingAction)
 		assert.True(t, item.Flapped, "ResultingAction changed across observations, so Flapped must be set")
+		assert.Equal(t, v1.ALLOW, item.PreviousAction, "the prior result must not be lost when it's overwritten")
 		assert.Equal(t, 2, item.Observations)
 		assert.Equal(t, int64(100), item.FirstSeen)
 		assert.Equal(t, int64(200), item.LastSeen)

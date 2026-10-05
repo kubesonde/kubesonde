@@ -68,6 +68,10 @@ type ProbeOutputItem struct {
 	Observations int `json:"observations,omitempty"`
 	// Flapped is true if ResultingAction has changed across observations.
 	Flapped bool `json:"flapped,omitempty"`
+	// PreviousAction is the ResultingAction recorded before the most recent
+	// change. Only set once Flapped is true, so the prior result isn't lost
+	// when a re-probe overwrites ResultingAction.
+	PreviousAction ActionType `json:"previousAction,omitempty"`
 }
 
 type ProbeEndpointInfo struct {
