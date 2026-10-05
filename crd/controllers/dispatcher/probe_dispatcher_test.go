@@ -116,6 +116,72 @@ var _ = Describe("Run executes probes concurrently", func() {
 	})
 })
 
+// UDP port-unreachable replies are ICMP-rate-limited by the kernel, so
+// running several UDP probes against the same destination at once makes some
+// of them silently miss the reply (see finding F9.2/F4). The dispatcher must
+// serialize UDP probes per destination IP even though its worker pool runs
+// everything else concurrently.
+var _ = Describe("Run serializes UDP probes per destination", func() {
+	It("never runs two UDP probes against the same destination IP concurrently", func() {
+		const (
+			numProbes     = 6
+			probeDuration = 50 * time.Millisecond
+		)
+
+		var (
+			inFlight    int32
+			maxInFlight int32
+		)
+
+		var wg sync.WaitGroup
+		wg.Add(numProbes)
+
+		original := executeProbe
+		defer func() { executeProbe = original }()
+		executeProbe = func(_ kubernetes.Interface, _ probe_command.KubesondeCommand) {
+			defer wg.Done()
+			cur := atomic.AddInt32(&inFlight, 1)
+			for {
+				old := atomic.LoadInt32(&maxInFlight)
+				if cur <= old || atomic.CompareAndSwapInt32(&maxInFlight, old, cur) {
+					break
+				}
+			}
+			time.Sleep(probeDuration)
+			atomic.AddInt32(&inFlight, -1)
+		}
+
+		// All probes target the same destination IP, different ports.
+		commands := make([]probe_command.KubesondeCommand, 0, numProbes)
+		for i := 0; i < numProbes; i++ {
+			commands = append(commands, probe_command.KubesondeCommand{
+				Destination:          "same-destination",
+				DestinationIPAddress: "10.0.0.1",
+				DestinationPort:      fmt.Sprintf("%d", 8000+i),
+				Protocol:             "UDP",
+				SourcePodName:        "test-pod",
+				ContainerName:        "debugger",
+				Namespace:            "default",
+				Command:              "sample command",
+				Action:               v1.ALLOW,
+			})
+		}
+
+		client := testclient.NewSimpleClientset()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		Run(ctx, client)
+		SendToQueue(commands, LOW)
+
+		done := make(chan struct{})
+		go func() { wg.Wait(); close(done) }()
+		Eventually(done, 10*time.Second).Should(BeClosed())
+
+		Expect(atomic.LoadInt32(&maxInFlight)).To(Equal(int32(1)),
+			"UDP probes against the same destination ran concurrently")
+	})
+})
+
 /*
 var _ = Describe("Runs", func() {
 	It("Runs", func() {
