@@ -210,6 +210,39 @@ func TestStateManagerAppendOperations(t *testing.T) {
 		assert.Len(t, state.Items, 2)
 	})
 
+	t.Run("Test AppendProbes replaces a re-probed item and flags a flap", func(t *testing.T) {
+		sm := NewStateManager()
+
+		probe := func(action v1.ActionType, timestamp int64) v1.ProbeOutputItem {
+			return v1.ProbeOutputItem{
+				Type:            v1.PROBE,
+				Source:          v1.ProbeEndpointInfo{Type: v1.POD, Name: "src"},
+				Destination:     v1.ProbeEndpointInfo{Type: v1.POD, Name: "dst"},
+				Protocol:        "TCP",
+				Port:            "80",
+				ResultingAction: action,
+				Timestamp:       timestamp,
+			}
+		}
+
+		allowItems := []v1.ProbeOutputItem{probe(v1.ALLOW, 100)}
+		err := sm.AppendProbes(&allowItems)
+		assert.NoError(t, err)
+
+		denyItems := []v1.ProbeOutputItem{probe(v1.DENY, 200)}
+		err = sm.AppendProbes(&denyItems)
+		assert.NoError(t, err)
+
+		state := sm.GetProbeState()
+		assert.Len(t, state.Items, 1, "a re-probe of the same (source, destination, protocol, port) must replace the stored item, not add a second one")
+		item := state.Items[0]
+		assert.Equal(t, v1.DENY, item.ResultingAction)
+		assert.True(t, item.Flapped, "ResultingAction changed across observations, so Flapped must be set")
+		assert.Equal(t, 2, item.Observations)
+		assert.Equal(t, int64(100), item.FirstSeen)
+		assert.Equal(t, int64(200), item.LastSeen)
+	})
+
 	t.Run("Test AppendProbes with nil input", func(t *testing.T) {
 		sm := NewStateManager()
 		err := sm.AppendProbes(nil)

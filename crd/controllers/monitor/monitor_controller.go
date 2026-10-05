@@ -172,20 +172,28 @@ func buildProbesFromMonitorContainer(apiClient kubernetes.Interface, payload typ
 		return []probe_command.KubesondeCommand{}
 	}
 
-	var initVal = map[int32]string{}
-	monitorMapping := lo.Reduce(netInfoNotLoopback, func(acc map[int32]string, item v12.PodNetworkingItem, i int) map[int32]string {
+	// Key by (port, protocol) rather than just port: a port used by both TCP
+	// and UDP (e.g. statsd 9125, alertmanager 9094) must keep both entries -
+	// a map[int32]string keyed on port alone would silently drop one.
+	type portProtocol struct {
+		port     int32
+		protocol string
+	}
+	seenPortProtocols := map[portProtocol]bool{}
+	var uniquePortProtocols []portProtocol
+	for _, item := range netInfoNotLoopback {
 		intport, err := strconv.ParseInt(item.Port, 10, 32)
 		if err != nil {
 			log.Error(err, "Invalid port number", "port", item.Port)
-			return acc
+			continue
 		}
-		acc[int32(intport)] = item.Protocol
-		return acc
-	}, initVal)
-	monitorPorts := lo.Map(netInfoNotLoopback, func(pni v12.PodNetworkingItem, i int) string {
-		return pni.Port
-	})
-	if len(monitorPorts) == 0 {
+		pp := portProtocol{port: int32(intport), protocol: strings.ToUpper(item.Protocol)}
+		if !seenPortProtocols[pp] {
+			seenPortProtocols[pp] = true
+			uniquePortProtocols = append(uniquePortProtocols, pp)
+		}
+	}
+	if len(uniquePortProtocols) == 0 {
 		return []probe_command.KubesondeCommand{}
 	}
 	// FIXME: get namespace from declaration
@@ -194,13 +202,11 @@ func buildProbesFromMonitorContainer(apiClient kubernetes.Interface, payload typ
 		return []probe_command.KubesondeCommand{}
 	}
 
-	intPorts := lo.Map(monitorPorts, func(s string, i int) int32 {
-		acc, err := strconv.ParseInt(s, 10, 32)
-		must(err)
-		return int32(acc)
+	intPorts := lo.Map(uniquePortProtocols, func(pp portProtocol, i int) int32 {
+		return pp.port
 	})
-	var protocols = lo.Map(intPorts, func(value int32, _ int) string {
-		return strings.ToUpper(monitorMapping[value])
+	protocols := lo.Map(uniquePortProtocols, func(pp portProtocol, i int) string {
+		return pp.protocol
 	})
 	probes := probe_command.BuildTargetedCommandsToDestination(currPods, *pod, intPorts, protocols)
 	if len(probes) == 0 {
@@ -237,10 +243,4 @@ func findListeningPortsNonInLoopback(payload types.NestatInfoRequestBody) []v12.
 		return item.IP != "127.0.0.1"
 	})
 	return netInfoNotLoopback
-}
-
-func must(err error) {
-	if err != nil {
-		log.Error(err, "Something went wrong")
-	}
 }

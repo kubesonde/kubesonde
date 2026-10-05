@@ -475,22 +475,13 @@ var _ = Describe("ContinuousMode", func() {
 		Expect(len(output.Errors)).To(BeIdenticalTo(1))
 		Expect(output.Errors[0].Reason).To(ContainSubstring("connection refused"))
 
-		// Success probe: 1 ALLOW probe in Items
-		// The DENY probe from the error path is deduplicated with the ALLOW probe (same source/dest/port)
-		// so only the ALLOW probe should remain
-		Expect(len(output.Items)).To(BeIdenticalTo(2))
-
-		// Verify both outcomes are present
-		var foundDeny, foundAllow int
-		for _, item := range output.Items {
-			if item.ResultingAction == v1.DENY {
-				foundDeny++
-			}
-			if item.ResultingAction == v1.ALLOW {
-				foundAllow++
-			}
-		}
-		Expect(foundDeny).To(BeEquivalentTo(1))
-		Expect(foundAllow).To(BeEquivalentTo(1))
+		// The DENY probe from the error path and the later ALLOW probe share
+		// the same (source, destination, protocol, port) identity, so the
+		// successful re-probe replaces the stored DENY rather than
+		// coexisting with it: exactly one current record for this probe.
+		Expect(len(output.Items)).To(BeIdenticalTo(1))
+		Expect(output.Items[0].ResultingAction).To(Equal(v1.ALLOW))
+		Expect(output.Items[0].Flapped).To(BeTrue(), "the result changed from DENY to ALLOW across observations")
+		Expect(output.Items[0].Observations).To(Equal(2))
 	})
 })
