@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -28,7 +29,26 @@ const (
 var (
 	dispatcherSemaphore = semaphore.NewWeighted(1)
 	pq                  = make(PriorityQueue, 0, 1000)
+
+	// udpDestLocks serializes UDP probes per destination IP. Closed UDP
+	// ports are only detectable via ICMP port-unreachable replies, which
+	// Linux rate-limits (net.ipv4.icmp_ratelimit); running several UDP
+	// probes against the same destination concurrently makes some of them
+	// silently miss that reply and flip from Deny to a false Allow.
+	udpDestLocks   = make(map[string]*semaphore.Weighted)
+	udpDestLocksMu sync.Mutex
 )
+
+func udpDestLock(destIP string) *semaphore.Weighted {
+	udpDestLocksMu.Lock()
+	defer udpDestLocksMu.Unlock()
+	lock, ok := udpDestLocks[destIP]
+	if !ok {
+		lock = semaphore.NewWeighted(1)
+		udpDestLocks[destIP] = lock
+	}
+	return lock
+}
 
 // defaultProbeWorkers is the number of probes executed concurrently. It is kept
 // modest to stay well within the kubelet's exec/attach concurrency limits.
@@ -142,6 +162,16 @@ func worker(ctx context.Context, apiClient kubernetes.Interface) {
 			}
 			continue
 		}
-		executeProbe(apiClient, item.value)
+
+		if item.value.Protocol == "UDP" {
+			lock := udpDestLock(item.value.DestinationIPAddress)
+			if err := lock.Acquire(ctx, 1); err != nil {
+				continue
+			}
+			executeProbe(apiClient, item.value)
+			lock.Release(1)
+		} else {
+			executeProbe(apiClient, item.value)
+		}
 	}
 }

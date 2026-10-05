@@ -65,10 +65,10 @@ response. This is because we do not know if the root of the service is a valid a
 const curlCommand = "curl -s -o /dev/null -I -X GET -w %%{http_code} %s"
 
 // This command scans both UDP and TCP ports and returns only the amount of open ports
-const nmapCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sSU -p %d %s"
-const nmapUDPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sU -p %d %s"
+const nmapCommand = "nmap --open --version-intensity=0 --max-retries=3 -T4 -n -sSU -Pn -p %d %s"
+const nmapUDPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T4 -n -sU -Pn -p %d %s"
 const nmapTCPCommand = "nmap --open --version-intensity=0 --max-retries=3 -T5 -n -sT -Pn -p %d %s"
-const nmapSCTPCommand = "nmap --open -sY -p %d %s"
+const nmapSCTPCommand = "nmap --open -n -Pn -sY -p %d %s"
 const dnsUDPCommand = "nslookup -timeout=5 %s %s"
 
 func NslookupSucceded(output string) bool {
@@ -89,6 +89,37 @@ func NmapSucceded(output string) bool {
 	const successValue2 = "open"
 	res := strings.Contains(output, successValue1) && (strings.Contains(output, successValue2) || strings.Contains(output, successValue3))
 	return res
+}
+
+const nmapHostUp = "1 IP address (1 host up)"
+
+// NmapTCPSucceeded reports Allow only for a confirmed open TCP port. TCP
+// connect scans don't have an ambiguous "open|filtered" state, so a plain
+// "open" match (after confirming the host responded) is unambiguous.
+func NmapTCPSucceeded(output string) bool {
+	return strings.Contains(output, nmapHostUp) && strings.Contains(output, "open") && !strings.Contains(output, "open|filtered")
+}
+
+// NmapUDPSucceeded reports Allow only when a UDP port actually replied
+// ("open"). "open|filtered" means nmap got no reply at all, which is
+// indistinguishable from a dropped/blocked packet, so it's treated as Deny
+// rather than a false Allow.
+func NmapUDPSucceeded(output string) bool {
+	if strings.Contains(output, "open|filtered") {
+		return false
+	}
+	return strings.Contains(output, nmapHostUp) && strings.Contains(output, "open")
+}
+
+// nmapCheckerForProtocol picks the result checker matching the nmap command
+// used for a given protocol. UDP (and the combined TCP+UDP default scan,
+// which can report UDP's ambiguous "open|filtered") must not treat a
+// non-response as Allow.
+func nmapCheckerForProtocol(protocol string) func(string) bool {
+	if protocol == "TCP" {
+		return NmapTCPSucceeded
+	}
+	return NmapUDPSucceeded
 }
 
 type PortAndProtocol struct {
@@ -187,7 +218,7 @@ func buildServiceCommand(source v1.Pod, dest v1.Service, port int32, protocol st
 		SourceIPAddress:      source.Status.PodIP,
 		SourceLabels:         utils.MapToString(source.Labels),
 		SourceType:           srcType,
-		ProbeChecker:         NmapSucceded,
+		ProbeChecker:         nmapCheckerForProtocol(protocol),
 	}
 }
 
@@ -226,7 +257,7 @@ func buildCommand(source v1.Pod, dest v1.Pod, port int32, protocol string, destT
 		SourceIPAddress:      source.Status.PodIP,
 		SourceLabels:         utils.MapToString(source.Labels),
 		SourceType:           srcType,
-		ProbeChecker:         NmapSucceded,
+		ProbeChecker:         nmapCheckerForProtocol(protocol),
 	}
 }
 
@@ -271,7 +302,7 @@ func buildCommandBase(source v1.Pod,
 		SourcePodName:        source.Name,
 		SourceIPAddress:      source.Status.PodIP,
 		SourceType:           srcType,
-		ProbeChecker:         NmapSucceded,
+		ProbeChecker:         nmapCheckerForProtocol(protocol),
 		SourceLabels:         utils.MapToString(source.Labels),
 	}
 }

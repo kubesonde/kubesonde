@@ -27,6 +27,40 @@ var _ = Describe("curlSucceded", func() {
 
 })
 
+var _ = Describe("NmapTCPSucceeded", func() {
+	It("Allows a confirmed open TCP port", func() {
+		output := "Nmap scan report for 10.0.0.1\n80/tcp open  http\n1 IP address (1 host up) scanned"
+		Expect(NmapTCPSucceeded(output)).To(BeTrue())
+	})
+
+	It("Denies when the port isn't reported open", func() {
+		output := "Nmap scan report for 10.0.0.1\n1 IP address (1 host up) scanned"
+		Expect(NmapTCPSucceeded(output)).To(BeFalse())
+	})
+
+	It("Denies when the host never responded", func() {
+		output := "0 hosts up"
+		Expect(NmapTCPSucceeded(output)).To(BeFalse())
+	})
+})
+
+var _ = Describe("NmapUDPSucceeded", func() {
+	It("Allows a confirmed open UDP port", func() {
+		output := "Nmap scan report for 10.0.0.1\n53/udp open  domain\n1 IP address (1 host up) scanned"
+		Expect(NmapUDPSucceeded(output)).To(BeTrue())
+	})
+
+	It("Denies open|filtered: a non-response is indistinguishable from a block", func() {
+		output := "Nmap scan report for 10.0.0.1\n53/udp open|filtered  domain\n1 IP address (1 host up) scanned"
+		Expect(NmapUDPSucceeded(output)).To(BeFalse())
+	})
+
+	It("Denies when the port is closed", func() {
+		output := "Nmap scan report for 10.0.0.1\n1 IP address (1 host up) scanned"
+		Expect(NmapUDPSucceeded(output)).To(BeFalse())
+	})
+})
+
 var _ = Describe("getAllPortsAndProtocolsFromPodSelector", func() {
 
 	It("Returns all the ports in a pod", func() {
