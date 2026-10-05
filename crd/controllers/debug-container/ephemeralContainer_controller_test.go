@@ -202,6 +202,29 @@ func TestEphemeralContainersAreNotPrivilegedAndHandleSigterm(t *testing.T) {
 	}
 }
 
+func TestMonitorContainerSharesFirstContainerPIDNamespace(t *testing.T) {
+	// Given a pod whose app container is "app".
+	pod := v1.Pod{
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{{Name: "app"}, {Name: "sidecar"}},
+		},
+	}
+	kubesonde := kubesondev1.Kubesonde{Spec: kubesondev1.KubesondeSpec{}}
+
+	// When
+	result, err := generateDebugContainers(kubesonde, &pod)
+	assert.Nil(t, err)
+
+	// Then the monitor container targets the pod's first container so
+	// gonetstat can resolve socket owners within the pod's PID namespace.
+	containerMap := make(map[string]v1.EphemeralContainer)
+	for _, ec := range result.Spec.EphemeralContainers {
+		containerMap[ec.Name] = ec
+	}
+	assert.Equal(t, "app", containerMap["monitor"].TargetContainerName)
+	assert.Empty(t, containerMap["debugger"].TargetContainerName)
+}
+
 func TestEphemeralContainersOverrideRunAsNonRoot(t *testing.T) {
 	// Given a pod that enforces runAsNonRoot at the pod level, the
 	// ephemeral containers must explicitly override it so the root

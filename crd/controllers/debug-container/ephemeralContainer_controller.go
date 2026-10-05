@@ -163,6 +163,13 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 				},
 			},
 		}}
+	// Share the first container's PID namespace so gonetstat can resolve
+	// socket owners (needed to report PIDs, and to tell pod sockets apart
+	// from node sockets on hostNetwork pods - see the TODO in
+	// InstallEphameralContainers).
+	if len(pod.Spec.Containers) > 0 {
+		ec2.TargetContainerName = pod.Spec.Containers[0].Name
+	}
 
 	copied := pod.DeepCopy()
 	copied.Spec.EphemeralContainers = append(copied.Spec.EphemeralContainers, *ec1, *ec2)

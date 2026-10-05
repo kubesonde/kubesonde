@@ -6,14 +6,34 @@ on:
       - dev
     paths:
       - crd/**
+      - docker/gonetstat/**
       - .github/**
   pull_request:
     branches:
       - "**"
     paths:
       - crd/**
+      - docker/gonetstat/**
       - .github/**
 
 jobs:
   prepare:
     uses: kubesonde/kubesonde/.github/workflows/go_base.yaml@dev
+
+  test-gonetstat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: docker/gonetstat/go.mod
+
+      - name: Build
+        working-directory: docker/gonetstat
+        run: go build ./...
+
+      - name: Test
+        working-directory: docker/gonetstat
+        run: go test ./...
