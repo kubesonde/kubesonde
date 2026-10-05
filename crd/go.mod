@@ -3,7 +3,7 @@ module kubesonde.io
 go 1.26.8
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.14.2
+	github.com/agiledragon/gomonkey/v2 v2.14.3
 	github.com/go-logr/logr v1.4.4
 	github.com/google/go-cmp v0.7.0
 	github.com/onsi/ginkgo/v2 v2.32.1
