@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/cakturk/go-netstat/netstat"
@@ -42,47 +42,42 @@ func toNetstatInfoRequestBodyItem(data netstat.SockTabEntry, item_type int) Nest
 	}
 }
 
+func isListeningTCP(s *netstat.SockTabEntry) bool {
+	return !s.LocalAddr.IP.IsLoopback() && s.State == netstat.Listen
+}
+
+// UDP has no LISTEN state, so a bound, unconnected socket (no remote port)
+// is the closest equivalent to "listening".
+func isBoundUDP(s *netstat.SockTabEntry) bool {
+	return !s.LocalAddr.IP.IsLoopback() && s.RemoteAddr.Port == 0
+}
+
 func display_socks() {
 	var sockets []NestatInfoRequestBodyItem
 
-	tcp_tabs, err := netstat.TCPSocks(func(s *netstat.SockTabEntry) bool {
-		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
-	})
-	if err != nil {
-		return
-	}
-	for _, e := range tcp_tabs {
-		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, TCP_TYPE))
-	}
-
-	tcpv6_tabs, err := netstat.TCP6Socks(func(s *netstat.SockTabEntry) bool {
-		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.State == netstat.Listen
-	})
-	if err != nil {
-		return
-	}
-	for _, e := range tcpv6_tabs {
-		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, TCP_TYPE))
+	tables := []struct {
+		name string
+		fn   func(netstat.AcceptFn) ([]netstat.SockTabEntry, error)
+		pred netstat.AcceptFn
+		typ  int
+	}{
+		{"TCP", netstat.TCPSocks, isListeningTCP, TCP_TYPE},
+		{"TCP6", netstat.TCP6Socks, isListeningTCP, TCP_TYPE},
+		{"UDP", netstat.UDPSocks, isBoundUDP, UDP_TYPE},
+		{"UDP6", netstat.UDP6Socks, isBoundUDP, UDP_TYPE},
 	}
 
-	udp_tabs, err := netstat.UDPSocks(func(s *netstat.SockTabEntry) bool {
-		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.Process != nil && s.Process.Pid > 0
-	})
-	if err != nil {
-		return
-	}
-	for _, e := range udp_tabs {
-		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, UDP_TYPE))
-	}
-
-	udpv6_tabs, err := netstat.UDP6Socks(func(s *netstat.SockTabEntry) bool {
-		return !strings.Contains(s.LocalAddr.IP.String(), "127.0") && s.LocalAddr.IP.String() != "localhost" && s.LocalAddr.IP.String() != "::1" && s.Process != nil && s.Process.Pid > 0
-	})
-	if err != nil {
-		return
-	}
-	for _, e := range udpv6_tabs {
-		sockets = append(sockets, toNetstatInfoRequestBodyItem(e, UDP_TYPE))
+	for _, t := range tables {
+		tabs, err := t.fn(t.pred)
+		if err != nil {
+			// Don't let one table's failure (e.g. no IPv6 support) drop the
+			// results already collected from the others.
+			fmt.Fprintf(os.Stderr, "gonetstat: failed to read %s sockets: %v\n", t.name, err)
+			continue
+		}
+		for _, e := range tabs {
+			sockets = append(sockets, toNetstatInfoRequestBodyItem(e, t.typ))
+		}
 	}
 
 	if len(sockets) == 0 {
@@ -90,7 +85,6 @@ func display_socks() {
 	}
 	a, _ := json.Marshal(sockets)
 	fmt.Printf("%s\n", a)
-	return
 }
 func main() {
 	display_socks()
