@@ -23,12 +23,14 @@ import (
 var log = logf.Log.WithName("controllers.state")
 
 func InstallEphameralContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, pods *v1.PodList) {
+	// TODO(#294): hostNetwork pods currently get probed like any other pod,
+	// which misattributes every node-level listener (sshd, etcd, kubelet...)
+	// to the pod. Fix needs PID-namespace-based socket ownership (match
+	// /proc/net/tcp|udp inodes against PIDs visible to the monitor container
+	// when it shares the pod's PID namespace), not a declared-containerPorts
+	// filter - a hostNetwork pod can still open undeclared ports itself.
 	podList := pods.Items
 	for i := range podList {
-		if podList[i].Spec.HostNetwork {
-			log.V(1).Info(fmt.Sprintf("Skipping %s pod: hostNetwork pods are not probed by default", podList[i].Name))
-			continue
-		}
 		if !EphemeralContainerExists(&podList[i]) {
 			installContainers(client, kubesonde, &podList[i])
 			log.V(1).Info(fmt.Sprintf("Installing debug containers in %s pod", podList[i].Name))

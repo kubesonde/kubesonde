@@ -202,25 +202,6 @@ func TestEphemeralContainersAreNotPrivilegedAndHandleSigterm(t *testing.T) {
 	}
 }
 
-func TestInstallEphameralContainersSkipsHostNetworkPods(t *testing.T) {
-	// Given a hostNetwork pod.
-	pod := v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{Name: "node-exporter", Namespace: "default"},
-		Spec:       v1.PodSpec{HostNetwork: true},
-	}
-	client := testclient.NewSimpleClientset()
-	client.CoreV1().Pods("default").Create(context.TODO(), &pod, metav1.CreateOptions{})
-	kubesonde := kubesondev1.Kubesonde{Spec: kubesondev1.KubesondeSpec{}}
-
-	// When
-	InstallEphameralContainers(client, kubesonde, &v1.PodList{Items: []v1.Pod{pod}})
-
-	// Then no ephemeral containers are installed.
-	updatedPod, err := client.CoreV1().Pods("default").Get(context.TODO(), "node-exporter", metav1.GetOptions{})
-	assert.Nil(t, err)
-	assert.Len(t, updatedPod.Spec.EphemeralContainers, 0, "hostNetwork pods should be skipped by default")
-}
-
 func TestEphemeralContainersOverrideRunAsNonRoot(t *testing.T) {
 	// Given a pod that enforces runAsNonRoot at the pod level, the
 	// ephemeral containers must explicitly override it so the root
