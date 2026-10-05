@@ -189,7 +189,30 @@ func (sm *StateManager) GetProbeState() v1.ProbeOutput {
 	}
 }
 
-// AppendProbes adds unique probe items to the state
+// mergeProbeItem folds a newly observed probe result into the previously
+// stored one for the same (source, destination, protocol, port): it carries
+// history forward and flags a flap if the result changed.
+func mergeProbeItem(existing, incoming v1.ProbeOutputItem) v1.ProbeOutputItem {
+	merged := incoming
+	merged.FirstSeen = existing.FirstSeen
+	merged.LastSeen = incoming.Timestamp
+	merged.Observations = existing.Observations + 1
+	if existing.ResultingAction != incoming.ResultingAction {
+		merged.Flapped = true
+		merged.PreviousAction = existing.ResultingAction
+	} else {
+		merged.Flapped = existing.Flapped
+		merged.PreviousAction = existing.PreviousAction
+	}
+	return merged
+}
+
+// AppendProbes merges incoming probe items into the state. Items are
+// deduplicated by (source, destination, protocol, port) - see
+// ComparableProbeOutputItem - and a key match replaces the stored item
+// rather than keeping both, so there is always exactly one current record
+// per probe. touchLastChange fires whenever a new probe is recorded or an
+// existing one's result changes, not merely when the item count grows.
 func (sm *StateManager) AppendProbes(items *[]v1.ProbeOutputItem) error {
 	if items == nil {
 		return fmt.Errorf("items cannot be nil")
@@ -198,12 +221,31 @@ func (sm *StateManager) AppendProbes(items *[]v1.ProbeOutputItem) error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	before := len(sm.probeOutput.Items)
-	newItems := append(sm.probeOutput.Items, *items...)
-	sm.probeOutput.Items = lo.UniqBy(newItems, func(poi v1.ProbeOutputItem) v1.ComparableProbeOutputItem {
-		return poi.ToComparableProbe()
-	})
-	if len(sm.probeOutput.Items) > before {
+	indexByKey := make(map[v1.ComparableProbeOutputItem]int, len(sm.probeOutput.Items))
+	for i, item := range sm.probeOutput.Items {
+		indexByKey[item.ToComparableProbe()] = i
+	}
+
+	changed := false
+	for _, incoming := range *items {
+		key := incoming.ToComparableProbe()
+		if idx, ok := indexByKey[key]; ok {
+			existing := sm.probeOutput.Items[idx]
+			merged := mergeProbeItem(existing, incoming)
+			if merged.ResultingAction != existing.ResultingAction {
+				changed = true
+			}
+			sm.probeOutput.Items[idx] = merged
+		} else {
+			incoming.FirstSeen = incoming.Timestamp
+			incoming.LastSeen = incoming.Timestamp
+			incoming.Observations = 1
+			sm.probeOutput.Items = append(sm.probeOutput.Items, incoming)
+			indexByKey[key] = len(sm.probeOutput.Items) - 1
+			changed = true
+		}
+	}
+	if changed {
 		sm.touchLastChange()
 	}
 

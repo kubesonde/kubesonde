@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	eventstorage "kubesonde.io/controllers/event-storage"
+	"kubesonde.io/controllers/probe_command"
 	"kubesonde.io/rest_apis/types"
 )
 
@@ -67,6 +68,35 @@ var _ = Describe("buildProbesFromMonitorContainer", func() {
 		}}
 		// When/then
 		Expect(len(buildProbesFromMonitorContainer(client, p1, "testpod"))).To(Equal(1))
+
+		// cleanup
+		eventstorage.DeleteActivePod("anotherpod")
+		eventstorage.DeleteActivePod("testpod")
+	})
+
+	It("keeps both TCP and UDP when the same port number is used for each", func() {
+		// Given a port (e.g. statsd-style 9125) open on both TCP and UDP.
+		eventstorage.AddActivePod("anotherpod", eventstorage.CreatedPodRecord{
+			Pod: v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "anotherpod", Namespace: "mynamespace"}, Status: v12.PodStatus{PodIP: "1.1.1.1"}},
+		})
+		eventstorage.AddActivePod("testpod", eventstorage.CreatedPodRecord{
+			Pod: v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "testpod", Namespace: "mynamespace"}, Status: v12.PodStatus{PodIP: "1.2.3.4"}},
+		})
+		client := fake.NewSimpleClientset()
+		p := &v12.Pod{ObjectMeta: metav1.ObjectMeta{Name: "testpod", Namespace: "mynamespace"}}
+		client.CoreV1().Pods("mynamespace").Create(context.TODO(), p, metav1.CreateOptions{})
+		payload := []types.NestatInfoRequestBodyItem{
+			{Type: 1, Laddr: []string{"1.2.3.4", "9125"}}, // TCP
+			{Type: 2, Laddr: []string{"1.2.3.4", "9125"}}, // UDP
+		}
+
+		// When
+		probes := buildProbesFromMonitorContainer(client, payload, "testpod")
+
+		// Then a map[int32]string keyed on port alone would have kept only
+		// one protocol; both must survive as distinct probes.
+		protocols := lo.Map(probes, func(p probe_command.KubesondeCommand, _ int) string { return p.Protocol })
+		Expect(protocols).To(ConsistOf("TCP", "UDP"))
 
 		// cleanup
 		eventstorage.DeleteActivePod("anotherpod")

@@ -15,32 +15,29 @@ const (
 	INTERNET ProbeEndpointType = "Internet"
 )
 
+// ComparableProbeOutputItem identifies a probe's identity for deduplication.
+// It deliberately excludes ExpectedAction/ResultingAction and ForwardedPort:
+// a re-probe of the same (source, destination, protocol, port) that gets a
+// different result is still the same probe, and should replace the stored
+// item rather than coexist with it - see StateManager.AppendProbes.
 type ComparableProbeOutputItem struct {
 	Type ProbeOutputItemType `json:"type"`
-	// ExpectedAction is the expected outcome of the probe. It might have values "allow" or "deny"
-	ExpectedAction ActionType `json:"expectedAction,omitempty"`
-	// ResultingAction is the resulted outcome of the probe. It might have values "allow" or "deny"
-	ResultingAction ActionType `json:"resultingAction,omitempty"`
 	// Source is a selector for the origin Pod or a set of pods
 	Source ProbeEndpointInfo `json:"source,omitempty"`
 	// Destination is a selector for the destination Pod or a set of pods
 	Destination ProbeEndpointInfo `json:"destination,omitempty"`
 	Protocol    string            `json:"protocol,omitempty"`
 	// Port is the probing port for ToPodSelector defaults to 80
-	Port          string `json:"port,omitempty"`
-	ForwardedPort string `json:"forwardedPort,omitempty"`
+	Port string `json:"port,omitempty"`
 }
 
 func (item ProbeOutputItem) ToComparableProbe() ComparableProbeOutputItem {
 	return ComparableProbeOutputItem{
-		Type:            item.Type,
-		ExpectedAction:  item.ExpectedAction,
-		ResultingAction: item.ResultingAction,
-		Source:          item.Source,
-		Destination:     item.Destination,
-		Protocol:        item.Protocol,
-		Port:            item.Port,
-		ForwardedPort:   item.ForwardedPort,
+		Type:        item.Type,
+		Source:      item.Source,
+		Destination: item.Destination,
+		Protocol:    item.Protocol,
+		Port:        item.Port,
 	}
 
 }
@@ -63,6 +60,18 @@ type ProbeOutputItem struct {
 	Timestamp     int64  `json:"timestamp,omitempty"`
 	// DebugOutput returns the http code of the request (assuming is TCP)
 	DebugOutput string `json:"debugOutput,omitempty"`
+	// FirstSeen/LastSeen are unix timestamps bounding when this probe (by its
+	// ComparableProbeOutputItem identity) was first and most recently recorded.
+	FirstSeen int64 `json:"firstSeen,omitempty"`
+	LastSeen  int64 `json:"lastSeen,omitempty"`
+	// Observations is how many times this probe has been recorded.
+	Observations int `json:"observations,omitempty"`
+	// Flapped is true if ResultingAction has changed across observations.
+	Flapped bool `json:"flapped,omitempty"`
+	// PreviousAction is the ResultingAction recorded before the most recent
+	// change. Only set once Flapped is true, so the prior result isn't lost
+	// when a re-probe overwrites ResultingAction.
+	PreviousAction ActionType `json:"previousAction,omitempty"`
 }
 
 type ProbeEndpointInfo struct {
