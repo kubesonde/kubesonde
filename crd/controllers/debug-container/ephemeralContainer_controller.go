@@ -25,6 +25,10 @@ var log = logf.Log.WithName("controllers.state")
 func InstallEphameralContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubesonde, pods *v1.PodList) {
 	podList := pods.Items
 	for i := range podList {
+		if podList[i].Spec.HostNetwork {
+			log.V(1).Info(fmt.Sprintf("Skipping %s pod: hostNetwork pods are not probed by default", podList[i].Name))
+			continue
+		}
 		if !EphemeralContainerExists(&podList[i]) {
 			installContainers(client, kubesonde, &podList[i])
 			log.V(1).Info(fmt.Sprintf("Installing debug containers in %s pod", podList[i].Name))
@@ -88,8 +92,14 @@ func installContainers(client kubernetes.Interface, kubesonde kubesondev1.Kubeso
 
 }
 
+// idleEntrypoint traps SIGTERM/SIGINT so the container exits promptly instead
+// of outliving the pod's terminationGracePeriodSeconds (sh as PID1 ignores
+// SIGTERM by default).
+var idleEntrypoint = []string{"sh", "-c", "trap 'exit 0' TERM INT; while :; do sleep 1; done"}
+
 func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.Pod, error) {
-	privileged := true
+	privileged := false
+	allowPrivilegeEscalation := false
 	// The debugger/monitor images run as root. Target pods may set
 	// runAsNonRoot at the pod level, which is inherited by ephemeral
 	// containers and makes the kubelet reject them with
@@ -115,14 +125,19 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 			Name:                     "debugger",
 			Image:                    debuggerImage,
 			ImagePullPolicy:          v1.PullIfNotPresent,
-			Stdin:                    true,
+			Stdin:                    false,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
-			TTY:                      true,
-			Command:                  []string{"sh"},
+			TTY:                      false,
+			Command:                  idleEntrypoint,
 			SecurityContext: &v1.SecurityContext{
-				Privileged:   &privileged,
-				RunAsNonRoot: &runAsNonRoot,
-				RunAsUser:    &runAsUser,
+				Privileged:               &privileged,
+				AllowPrivilegeEscalation: &allowPrivilegeEscalation,
+				RunAsNonRoot:             &runAsNonRoot,
+				RunAsUser:                &runAsUser,
+				Capabilities: &v1.Capabilities{
+					Drop: []v1.Capability{"ALL"},
+					Add:  []v1.Capability{"NET_RAW"},
+				},
 			},
 		},
 	}
@@ -131,14 +146,19 @@ func generateDebugContainers(kubesonde kubesondev1.Kubesonde, pod *v1.Pod) (*v1.
 			Name:                     "monitor",
 			Image:                    monitorImage,
 			ImagePullPolicy:          v1.PullIfNotPresent,
-			Stdin:                    true,
+			Stdin:                    false,
 			TerminationMessagePolicy: v1.TerminationMessageReadFile,
-			TTY:                      true,
-			Command:                  []string{"sh"},
+			TTY:                      false,
+			Command:                  idleEntrypoint,
 			SecurityContext: &v1.SecurityContext{
-				Privileged:   &privileged,
-				RunAsNonRoot: &runAsNonRoot,
-				RunAsUser:    &runAsUser,
+				Privileged:               &privileged,
+				AllowPrivilegeEscalation: &allowPrivilegeEscalation,
+				RunAsNonRoot:             &runAsNonRoot,
+				RunAsUser:                &runAsUser,
+				Capabilities: &v1.Capabilities{
+					Drop: []v1.Capability{"ALL"},
+					Add:  []v1.Capability{"SYS_PTRACE"},
+				},
 			},
 		}}
 
@@ -172,7 +192,7 @@ func RunMonitorContainerProcess(client kubernetes.Interface, namespace string, s
 			Stdin:     false,
 			Stdout:    true,
 			Stderr:    true,
-			TTY:       true,
+			TTY:       false,
 		}, scheme.ParameterCodec)
 	exec, err := remotecommand.NewSPDYExecutor(config.GetConfigOrDie(), "POST", req.URL())
 
