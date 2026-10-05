@@ -147,6 +147,17 @@ var _ = Describe("BuildCommandsToOutsideWorld", func() {
 		output := BuildCommandsToOutsideWorld(target, true, true)
 		Expect(output).To(BeNil())
 	})
+
+	It("Checks the KUBE DNS TCP probe with NmapSucceded, since nmap output never contains \"Server:\"", func() {
+		output := BuildCommandsToOutsideWorld(target, false, false)
+		kubeDNSTCP, found := lo.Find(output, func(cmd KubesondeCommand) bool {
+			return cmd.Destination == "KUBE DNS" && cmd.Protocol == "TCP"
+		})
+		Expect(found).To(BeTrue())
+
+		nmapOpenOutput := "Nmap scan report for kube-dns.kube-system.svc.cluster.local\nHost is up.\n53/tcp open  domain\n1 IP address (1 host up) scanned"
+		Expect(kubeDNSTCP.ProbeChecker(nmapOpenOutput)).To(BeTrue())
+	})
 })
 
 var _ = Describe("Build targeted commands from pod", func() {
