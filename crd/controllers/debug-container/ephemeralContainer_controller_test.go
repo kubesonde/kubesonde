@@ -169,6 +169,39 @@ func TestEphemeralContainerNamesAndImages(t *testing.T) {
 	assert.Len(t, containerMap, 2, "Should have exactly 2 containers")
 }
 
+func TestEphemeralContainersAreNotPrivilegedAndHandleSigterm(t *testing.T) {
+	// Given a pod to instrument.
+	pod := v1.Pod{}
+	kubesonde := kubesondev1.Kubesonde{Spec: kubesondev1.KubesondeSpec{}}
+
+	// When
+	result, err := generateDebugContainers(kubesonde, &pod)
+	assert.Nil(t, err)
+
+	// Then neither container is privileged, stdin/tty are disabled (nothing
+	// attaches to them), and the entrypoint traps SIGTERM so pod deletion
+	// doesn't wait out the full terminationGracePeriodSeconds.
+	assert.Len(t, result.Spec.EphemeralContainers, 2)
+	expectedCaps := map[string]v1.Capability{
+		"debugger": "NET_RAW",
+		"monitor":  "SYS_PTRACE",
+	}
+	for _, ec := range result.Spec.EphemeralContainers {
+		sc := ec.SecurityContext
+		assert.NotNil(t, sc, "%s should have a security context", ec.Name)
+		assert.NotNil(t, sc.Privileged)
+		assert.False(t, *sc.Privileged, "%s must not run privileged", ec.Name)
+		assert.NotNil(t, sc.AllowPrivilegeEscalation)
+		assert.False(t, *sc.AllowPrivilegeEscalation, "%s must not allow privilege escalation", ec.Name)
+		assert.False(t, ec.Stdin, "%s should not request stdin", ec.Name)
+		assert.False(t, ec.TTY, "%s should not request a TTY", ec.Name)
+		assert.NotNil(t, sc.Capabilities)
+		assert.Equal(t, []v1.Capability{"ALL"}, sc.Capabilities.Drop, "%s should drop all capabilities", ec.Name)
+		assert.Equal(t, []v1.Capability{expectedCaps[ec.Name]}, sc.Capabilities.Add, "%s has the wrong added capability", ec.Name)
+		assert.Contains(t, ec.Command, "trap 'exit 0' TERM INT; while :; do sleep 1; done", "%s entrypoint must trap SIGTERM", ec.Name)
+	}
+}
+
 func TestEphemeralContainersOverrideRunAsNonRoot(t *testing.T) {
 	// Given a pod that enforces runAsNonRoot at the pod level, the
 	// ephemeral containers must explicitly override it so the root
