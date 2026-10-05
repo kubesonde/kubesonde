@@ -37,12 +37,24 @@ const buildGroupMap = (input_probes: ProbeOutput): Map<string, string> => {
 // Drives the green (declared) vs orange (undeclared) edge color.
 type DeclaredLookup = (podName: string, portProto: string) => boolean
 
-const buildDeclaredLookup = (probes: ProbeOutput): DeclaredLookup => {
+const buildDeclaredLookup = (probes: ProbeOutput, groupMap: Map<string, string>): DeclaredLookup => {
     const declared = new Map<string, Set<string>>()
+    const declaredByDeployment = new Map<string, Set<string>>()
     Object.entries(probes.podConfigurationNetworking ?? {}).forEach(([pod, items]) => {
-        declared.set(pod, new Set((items ?? []).map((m) => `${m.port}/${m.protocol}`)))
+        const ports = new Set((items ?? []).map((m) => `${m.port}/${m.protocol}`))
+        declared.set(pod, ports)
+        const deployment = groupMap.get(pod)
+        if (deployment) {
+            const existing = declaredByDeployment.get(deployment) ?? new Set<string>()
+            ports.forEach((p) => existing.add(p))
+            declaredByDeployment.set(deployment, existing)
+        }
     })
-    return (podName, portProto) => declared.get(podName)?.has(portProto) ?? false
+    // Service destinations are renamed with a "_SVC" suffix (see cleanupProbeOutput).
+    return (podName, portProto) => {
+        const name = podName.replace(/_SVC$/, "")
+        return declared.get(name)?.has(portProto) ?? declaredByDeployment.get(name)?.has(portProto) ?? false
+    }
 }
 
 const toSimpleEdge = (groupMap: Map<string, string>, isDeclared: DeclaredLookup) => (probe: ProbeOutputItem, index: number): SimpleGraphEdge => ({
@@ -126,7 +138,7 @@ function removeDuplicates(allEdges: SimpleGraphEdge[]): SimpleGraphEdge[] {
 
 export function buildEdgesFromProbes(probes: ProbeOutput): SimpleGraphEdge[] {
     const groupMap = buildGroupMap(probes)
-    const isDeclared = buildDeclaredLookup(probes)
+    const isDeclared = buildDeclaredLookup(probes, groupMap)
 
     const allowedEdges: SimpleGraphEdge[] = probes.items
         .filter((probe) => probe.resultingAction !== "Deny")
