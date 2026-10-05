@@ -403,7 +403,7 @@ func BuildCommandsToOutsideWorld(target v1.Pod, disableInternetProbing bool, dis
 		Protocol:             "TCP",
 		SourceType:           v12.POD,
 		DestinationType:      v12.INTERNET,
-		ProbeChecker:         NslookupSucceded,
+		ProbeChecker:         NmapSucceded,
 	}
 
 	googleHTTP := KubesondeCommand{
