@@ -28,6 +28,12 @@ jobs:
         with:
           go-version-file: crd/go.mod
 
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+
       - name: Resolve tag
         id: tag
         run: echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
@@ -99,7 +105,7 @@ jobs:
           branch="changelog-${{ steps.tag.outputs.name }}"
           git checkout -b "$branch"
           git commit -m "docs: update CHANGELOG.md for ${{ steps.tag.outputs.name }}"
-          git push origin "$branch"
+          git push --force origin "$branch"
           pr_url=$(gh pr create --base main --head "$branch" \
             --title "docs: update CHANGELOG.md for ${{ steps.tag.outputs.name }}" \
             --body "Automated changelog update for ${{ steps.tag.outputs.name }}.")
