@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   packages: write
+  pull-requests: write
 
 jobs:
   # Build and test the CRD before releasing anything.
@@ -85,10 +86,21 @@ jobs:
         with:
           args: --latest --prepend CHANGELOG.md --tag ${{ steps.tag.outputs.name }}
 
-      - name: Commit CHANGELOG.md
+      - name: Open changelog PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
-          git diff --cached --quiet || git commit -m "docs: update CHANGELOG.md for ${{ steps.tag.outputs.name }}"
-          git push origin HEAD:main
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          branch="changelog-${{ steps.tag.outputs.name }}"
+          git checkout -b "$branch"
+          git commit -m "docs: update CHANGELOG.md for ${{ steps.tag.outputs.name }}"
+          git push origin "$branch"
+          pr_url=$(gh pr create --base main --head "$branch" \
+            --title "docs: update CHANGELOG.md for ${{ steps.tag.outputs.name }}" \
+            --body "Automated changelog update for ${{ steps.tag.outputs.name }}.")
+          gh pr merge "$pr_url" --auto --squash
