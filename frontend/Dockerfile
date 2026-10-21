@@ -12,8 +12,9 @@ COPY . .
 ARG VITE_API_SERVER=http://localhost:2709
 ENV VITE_API_SERVER=$VITE_API_SERVER
 
-# The release version is the git tag, injected by the Release workflow as a
-# build arg (frontend and controller always share it). Local builds show "dev".
+# The release version comes from the repo-root VERSION file (the single source
+# of truth that the controller release and both frontend deploy paths read),
+# injected by the workflows as a build arg. Local builds show "dev".
 # package.json's version field is not used and is not bumped per release.
 ARG VERSION=dev
 RUN VITE_APP_VERSION="$VERSION" npm run build

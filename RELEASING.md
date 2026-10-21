@@ -26,14 +26,20 @@ release at the same version.
 
 ## Versioning
 
-The **git tag is the single source of truth**. Controller, gonetstat, and
-frontend always share it — there is nothing to bump by hand:
+The repo-root **`VERSION` file is the single source of truth** that both the
+controller release and both frontend deploy paths read. Controller, gonetstat,
+and frontend always share one version:
 
-- The controller/gonetstat image tags come straight from the pushed tag.
-- The frontend version banner is injected into its Docker build via the
-  `VERSION` build arg (the tag). `frontend/package.json`'s `version` field is
-  **not** used for releases and is intentionally frozen at `0.0.0`; do not bump
-  it. Local `npm run build` shows `dev`.
+- The controller/gonetstat image tags come from the pushed tag, and the Release
+  workflow **fails** unless the tag equals `v$(cat VERSION)`, so the file and
+  the tag can never drift.
+- The frontend version banner is injected via the `VERSION` build arg, read
+  from the `VERSION` file — both in the released container and in the
+  continuous Netlify deploy, so the live site shows the same version as a tagged
+  release instead of `0.0.0`.
+- `frontend/package.json`'s `version` field is **not** used for releases and is
+  intentionally frozen at `0.0.0`; do not bump it. Local `npm run build` shows
+  `dev`.
 
 ## Cutting a release
 
@@ -41,9 +47,13 @@ frontend always share it — there is nothing to bump by hand:
 # Make sure main is green and up to date, then:
 git checkout main && git pull
 
-# Tag and push. Use a semver tag prefixed with v.
+# Bump the VERSION file and commit it (this is the source of truth).
+echo "0.9.0" > VERSION
+git commit -am "chore: release v0.9.0"
+
+# Tag and push. The tag MUST be v<VERSION> or the Release workflow fails.
 git tag v0.9.0
-git push origin v0.9.0
+git push origin main v0.9.0
 ```
 
 That's it — the workflow does the rest. Watch it under the repository's
