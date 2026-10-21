@@ -261,52 +261,6 @@ func buildCommand(source v1.Pod, dest v1.Pod, port int32, protocol string, destT
 	}
 }
 
-func buildCommandBase(source v1.Pod,
-	dest string,
-	destNamespace string,
-	destIP string,
-	destPort int32,
-	protocol string,
-	destType v12.ProbeEndpointType,
-	srcType v12.ProbeEndpointType) KubesondeCommand {
-	var namespace = source.Namespace
-	addresses, err := net.LookupAddr(destIP)
-	if err != nil {
-		addresses = []string{}
-	}
-
-	var cmd string
-	switch protocol {
-	case "TCP":
-		cmd = generateNmapCommand(nmapTCPCommand, destIP, destPort)
-	case "UDP":
-		cmd = generateNmapCommand(nmapUDPCommand, destIP, destPort)
-	case "SCTP":
-		cmd = generateNmapCommand(nmapSCTPCommand, destIP, destPort)
-	default:
-		cmd = generateNmapCommand(nmapCommand, destIP, destPort)
-	}
-
-	return KubesondeCommand{
-		Action:               v12.DENY,
-		ContainerName:        "debugger",
-		Namespace:            namespace,
-		Command:              cmd,
-		Protocol:             protocol,
-		Destination:          dest,
-		DestinationPort:      strconv.Itoa(int(destPort)),
-		DestinationHostnames: addresses,
-		DestinationNamespace: destNamespace,
-		DestinationIPAddress: destIP,
-		DestinationType:      destType,
-		SourcePodName:        source.Name,
-		SourceIPAddress:      source.Status.PodIP,
-		SourceType:           srcType,
-		ProbeChecker:         nmapCheckerForProtocol(protocol),
-		SourceLabels:         utils.MapToString(source.Labels),
-	}
-}
-
 // TODO: refactor-me!
 func BuildCommandsFromSpec(actions []v12.ProbingAction, namespace string) []KubesondeCommand {
 	var commands []KubesondeCommand

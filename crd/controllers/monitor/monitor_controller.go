@@ -132,7 +132,6 @@ func ProcessNetInfo(apiClient kubernetes.Interface, stdout *bytes.Buffer, stderr
 			counter += 1
 			if counter >= MAX_CONNECT_RETRIES {
 				deleteNetstatPodWithLog(podname, stderr)
-				counter = 0
 				return
 			}
 			counterAsDuration := time.Duration(counter * 1000)
