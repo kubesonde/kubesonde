@@ -1,0 +1,14 @@
+crd:
+  - '(?i)\b(crd|custom resource|customresourcedefinition|kubesonde spec|\.yaml spec)\b'
+frontend:
+  - '(?i)\b(frontend|react|ui|typescript|javascript|npm|vite|browser)\b'
+go:
+  - '(?i)\b(golang|go module|go\.mod|controller|operator|reconcile)\b'
+ci:
+  - '(?i)\b(ci|workflow|github action|pipeline|release|build fails?)\b'
+documentation:
+  - '(?i)\b(docs?|documentation|readme|vitepress)\b'
+security:
+  - '(?i)\b(security|vulnerabilit|cve|rbac|privilege|exploit)\b'
+performance:
+  - '(?i)\b(performance|slow|latency|memory|cpu|throughput)\b'
