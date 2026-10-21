@@ -38,6 +38,17 @@ jobs:
         id: tag
         run: echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
+      # The repo-root VERSION file is the single source of truth. Fail the
+      # release if the pushed tag doesn't match it, so the file, the git tag,
+      # and every published image/manifest can never drift apart.
+      - name: Verify tag matches VERSION
+        run: |
+          expected="v$(cat VERSION)"
+          if [ "${{ steps.tag.outputs.name }}" != "$expected" ]; then
+            echo "::error::tag ${{ steps.tag.outputs.name }} does not match VERSION file ($expected). Bump VERSION and tag v<VERSION>."
+            exit 1
+          fi
+
       # Generate the installer manifest (repo-root kubesonde.yaml) pinned to the
       # released controller image tag.
       - name: Create artifact
