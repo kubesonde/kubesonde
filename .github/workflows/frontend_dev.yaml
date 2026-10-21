@@ -6,13 +6,15 @@ on:
       - dev
     paths:
       - frontend/**
-      - .github/**
+      - .github/workflows/frontend_base.yaml
+      - .github/workflows/frontend_dev.yaml
   pull_request:
     branches:
       - "**"
     paths:
       - frontend/**
-      - .github/**
+      - .github/workflows/frontend_base.yaml
+      - .github/workflows/frontend_dev.yaml
 
 jobs:
   prepare:
