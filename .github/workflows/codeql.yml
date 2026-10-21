@@ -6,8 +6,18 @@ name: CodeQL
 on:
   push:
     branches: [main]
+    paths:
+      - 'crd/**/*.go'
+      - 'crd/go.mod'
+      - 'crd/go.sum'
+      - '.github/workflows/codeql.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'crd/**/*.go'
+      - 'crd/go.mod'
+      - 'crd/go.sum'
+      - '.github/workflows/codeql.yml'
   schedule:
     # Weekly full scan (Mondays 06:00 UTC) to catch newly published advisories.
     - cron: "0 6 * * 1"
