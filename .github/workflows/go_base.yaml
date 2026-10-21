@@ -25,9 +25,13 @@ jobs:
         working-directory: crd
         run: make build
 
+      - name: Lint
+        working-directory: crd
+        run: make lint
+
       - name: Test
         working-directory: crd
-        run: make test 
+        run: make test
 
     
       - name: Run gosec 
