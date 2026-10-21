@@ -7,14 +7,16 @@ on:
     paths:
       - crd/**
       - docker/gonetstat/**
-      - .github/**
+      - .github/workflows/go_base.yaml
+      - .github/workflows/go_dev.yaml
   pull_request:
     branches:
       - "**"
     paths:
       - crd/**
       - docker/gonetstat/**
-      - .github/**
+      - .github/workflows/go_base.yaml
+      - .github/workflows/go_dev.yaml
 
 jobs:
   prepare:
