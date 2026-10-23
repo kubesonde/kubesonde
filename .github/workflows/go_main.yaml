@@ -97,13 +97,16 @@ jobs:
 
       # Only touch CHANGELOG.md once the release above actually succeeded, so a
       # failed build/publish never leaves a changelog entry for a release that
-      # doesn't exist.
+      # doesn't exist. Skipped for pre-releases (tags containing '-', e.g.
+      # v0.9.2-rc.1): release candidates don't belong in the changelog.
       - name: Update CHANGELOG.md
+        if: ${{ !contains(steps.tag.outputs.name, '-') }}
         uses: orhun/git-cliff-action@v4
         with:
           args: --latest --prepend CHANGELOG.md --tag ${{ steps.tag.outputs.name }}
 
       - name: Open changelog PR
+        if: ${{ !contains(steps.tag.outputs.name, '-') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
