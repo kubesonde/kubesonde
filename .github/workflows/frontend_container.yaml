@@ -42,7 +42,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
+            # Keep the leading "v" so the frontend image tag matches the git
+            # tag and the controller/gonetstat images (ghcr.io/.../*:vX.Y.Z).
+            # The installer manifest pins the frontend to that v-prefixed tag;
+            # a bare {{version}} (0.9.2) caused ErrImagePull against v0.9.2.
+            type=semver,pattern=v{{version}}
             type=raw,value=latest
 
       - name: Build and push image
