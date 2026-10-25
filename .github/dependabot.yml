@@ -17,6 +17,8 @@ updates:
     open-pull-requests-limit: 10
 
   # Keep GitHub Actions used by our workflows up to date (and patched).
+  # Workflows pin every action to a full commit SHA (with a # vX.Y.Z comment);
+  # Dependabot preserves that style, bumping the SHA and the comment together.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
