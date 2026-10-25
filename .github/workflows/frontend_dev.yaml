@@ -16,6 +16,11 @@ on:
       - .github/workflows/frontend_base.yaml
       - .github/workflows/frontend_dev.yaml
 
+# Least privilege: deny by default, grant read per job.
+permissions: {}
+
 jobs:
   prepare:
-    uses: kubesonde/kubesonde/.github/workflows/frontend_base.yaml@main
+    permissions:
+      contents: read
+    uses: $/.github/workflows/frontend_base.yaml

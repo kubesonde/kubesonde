@@ -7,22 +7,23 @@ name: Dependabot auto-merge
 on:
   pull_request:
 
-permissions:
-  contents: write
-  pull-requests: write
+# Least privilege: deny by default, grant per job only what it needs.
+permissions: {}
 
 jobs:
   # Extract Dependabot metadata (which ecosystem, whether it fixes an advisory).
   metadata:
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     outputs:
       ghsa-id: ${{ steps.meta.outputs.ghsa-id }}
       ecosystem: ${{ steps.meta.outputs.package-ecosystem }}
     steps:
       - name: Fetch Dependabot metadata
         id: meta
-        uses: dependabot/fetch-metadata@v3
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -30,13 +31,18 @@ jobs:
   test-crd:
     needs: metadata
     if: needs.metadata.outputs.ghsa-id != '' && needs.metadata.outputs.ecosystem == 'gomod'
-    uses: ./.github/workflows/go_base.yaml
+    permissions:
+      contents: read
+      security-events: write
+    uses: $/.github/workflows/go_base.yaml
 
   # Run the frontend build+test suite for npm security updates.
   test-frontend:
     needs: metadata
     if: needs.metadata.outputs.ghsa-id != '' && needs.metadata.outputs.ecosystem == 'npm'
-    uses: ./.github/workflows/frontend_base.yaml
+    permissions:
+      contents: read
+    uses: $/.github/workflows/frontend_base.yaml
 
   # Merge only if it is a security update and the relevant suite did not fail.
   # The suite for the other ecosystem is skipped, which counts as "not failed".
@@ -50,6 +56,9 @@ jobs:
       needs.test-frontend.result != 'failure' &&
       needs.test-frontend.result != 'cancelled'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Approve and merge
         env:
