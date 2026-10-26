@@ -7,6 +7,11 @@ updates:
     labels:
       - "dependencies"
     open-pull-requests-limit: 10
+    # Wait 7 days after a release before opening an update PR, so a freshly
+    # published (possibly compromised or broken) version isn't adopted
+    # immediately. Security updates are not subject to this cooldown.
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "npm"
     directory: "/frontend"
@@ -15,6 +20,8 @@ updates:
     labels:
       - "dependencies"
     open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
 
   # Keep GitHub Actions used by our workflows up to date (and patched).
   # Workflows pin every action to a full commit SHA (with a # vX.Y.Z comment);
@@ -25,3 +32,5 @@ updates:
       interval: "weekly"
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
