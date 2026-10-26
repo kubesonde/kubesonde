@@ -34,3 +34,18 @@ updates:
       - "dependencies"
     cooldown:
       default-days: 7
+
+  # Keep container base images (FROM lines) patched. With Dependabot security
+  # updates enabled, a base image with a fixable advisory also gets a PR.
+  - package-ecosystem: "docker"
+    directories:
+      - "/crd"
+      - "/frontend"
+      - "/docker/gonetstat"
+      - "/docker/pynetstat"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    cooldown:
+      default-days: 7
