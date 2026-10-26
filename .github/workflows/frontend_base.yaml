@@ -38,9 +38,15 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      # Single source of truth: use the Node version from the Dockerfile's
+      # base image (bumped by Dependabot's docker ecosystem) so CI tests on
+      # the same Node the container ships.
+      - name: Resolve Node version from Dockerfile
+        run: |
+          echo "NODE_VERSION=$(grep -oE 'node:[0-9]+\.[0-9]+\.[0-9]+' Dockerfile | head -1 | cut -d: -f2)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.20.0
+          node-version: ${{ env.NODE_VERSION }}
       - name: Install
         run: npm install
 
@@ -62,9 +68,15 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      # Single source of truth: use the Node version from the Dockerfile's
+      # base image (bumped by Dependabot's docker ecosystem) so CI tests on
+      # the same Node the container ships.
+      - name: Resolve Node version from Dockerfile
+        run: |
+          echo "NODE_VERSION=$(grep -oE 'node:[0-9]+\.[0-9]+\.[0-9]+' Dockerfile | head -1 | cut -d: -f2)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.20.0
+          node-version: ${{ env.NODE_VERSION }}
       - name: Install
         run: npm install
       - name: Add git safe.directory for container
@@ -92,9 +104,15 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+      # Single source of truth: use the Node version from the Dockerfile's
+      # base image (bumped by Dependabot's docker ecosystem) so CI tests on
+      # the same Node the container ships.
+      - name: Resolve Node version from Dockerfile
+        run: |
+          echo "NODE_VERSION=$(grep -oE 'node:[0-9]+\.[0-9]+\.[0-9]+' Dockerfile | head -1 | cut -d: -f2)" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.20.0
+          node-version: ${{ env.NODE_VERSION }}
       - name: Install
         run: npm install
       - name: Get version
