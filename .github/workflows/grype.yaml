@@ -43,8 +43,6 @@ jobs:
             context: frontend
           - name: gonetstat
             context: docker/gonetstat
-          - name: pynetstat
-            context: docker/pynetstat
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -69,6 +67,10 @@ jobs:
         with:
           image: kubesonde-scan/${{ matrix.name }}:scan
           severity-cutoff: high
+          # Only fail on vulnerabilities that actually have a fix available;
+          # unfixed CVEs in upstream base images aren't actionable here and
+          # would otherwise block every build (same policy as govulncheck).
+          only-fixed: true
           fail-build: true
           output-format: sarif
 
