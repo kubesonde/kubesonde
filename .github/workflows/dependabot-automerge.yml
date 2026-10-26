@@ -20,6 +20,7 @@ jobs:
     outputs:
       ghsa-id: ${{ steps.meta.outputs.ghsa-id }}
       ecosystem: ${{ steps.meta.outputs.package-ecosystem }}
+      cvss: ${{ steps.meta.outputs.cvss }}
     steps:
       - name: Fetch Dependabot metadata
         id: meta
@@ -44,13 +45,19 @@ jobs:
       contents: read
     uses: $/.github/workflows/frontend_base.yaml
 
-  # Merge only if it is a security update and the relevant suite did not fail.
-  # The suite for the other ecosystem is skipped, which counts as "not failed".
+  # Merge only when all of the following hold:
+  #   - it's a security update (ghsa-id present => a fix is available), and
+  #   - the advisory is at least High severity (CVSS >= 7.0; empty score
+  #     coerces to 0 and is treated as below threshold), and
+  #   - the relevant test suite did not fail (the other ecosystem's suite is
+  #     skipped, which counts as "not failed").
+  # Lower-severity security bumps are left for manual review.
   automerge:
     needs: [metadata, test-crd, test-frontend]
     if: >-
       always() &&
       needs.metadata.outputs.ghsa-id != '' &&
+      needs.metadata.outputs.cvss >= 7 &&
       needs.test-crd.result != 'failure' &&
       needs.test-crd.result != 'cancelled' &&
       needs.test-frontend.result != 'failure' &&
