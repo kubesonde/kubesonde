@@ -27,7 +27,10 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Run as an unprivileged user. Make nginx's writable dirs owned by nobody so it
 # can create its temp/pid files without root.
 USER root
-RUN chown -R nobody /var/cache/nginx /tmp
+# Pull patched OS packages so fixable CVEs in the base image are resolved at
+# build time (the :alpine tag floats to the latest nginx, but not always to the
+# latest alpine package patches). Then set up nginx's writable dirs.
+RUN apk upgrade --no-cache && chown -R nobody /var/cache/nginx /tmp
 USER nobody
 EXPOSE 8088
 CMD ["nginx", "-g", "daemon off;"]

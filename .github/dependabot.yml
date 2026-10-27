@@ -42,7 +42,6 @@ updates:
       - "/crd"
       - "/frontend"
       - "/docker/gonetstat"
-      - "/docker/pynetstat"
     schedule:
       interval: "weekly"
     labels:
