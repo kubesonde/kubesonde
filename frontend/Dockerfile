@@ -3,7 +3,7 @@
 # instruction"). The output is static HTML/JS/CSS and is architecture-agnostic,
 # so building it once serves every runtime platform; only the nginx stage below
 # stays multi-arch.
-FROM --platform=$BUILDPLATFORM node:24.20.0-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26.12.0-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
